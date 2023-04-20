@@ -1,0 +1,795 @@
+---
+sidebar_position: 2
+---
+
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import Schema from "@site/static/schemas/blueprint-spec-v2021-10-20.json";
+
+# Specification
+
+**v2023-04-20**
+
+This section provides the first version of the Blueprint Specification with accompanying examples.
+
+This is a specification of resources that can be deployed such as a Celerity application.
+
+This specification is agnostic to the type of resources and is similar to tools like Terraform in the fact that it is abstract enough to support all kinds of resources (e.g. Cloud service resources, REST API resources, Docker containers etc.)
+
+A blueprint will typically contain a bundle of resources that represent a logical deployable unit. One  example of this would be a micro-service and its associated data stores.
+
+All the a way of defining labels and link selectors that can be used to automatically link resources together.
+
+The purpose of the blueprint specification and supporting implementations is to provide the backbone of scalable
+code and infrastructure deployment tools and to be a part of an ecosystem of composable tools that super charge developers to deliver high quality at a fast pace.
+
+A blueprint can either be in JSON or YAML format.
+
+## Yet another specification for resources?
+
+You might be thinking, why on earth do we need another language/specification for defining resources?
+
+That is a completely reasonable question. However, with a clean slate and an ability to focus on simplicity from the beginning we believe the blueprint framework having its own specification is fundamental.
+
+What sets the blueprint specification apart from pre-existing specs of a similar nature is that it is designed to simplify relationships between resources
+with pre-defined rules about how resources can be linked together that are implemented as a part of providers in an implementation of the spec such as the blueprint framework.
+
+This means as a user, you will only have to define relationships between resources with labels, link selectors and accompanying annotations and not have to deal with the inner workings
+of said relationships. This is a huge advantage especially when dealing with resources with very complex relationships.
+
+## Spec
+
+This is a specification conveying a valid structure for a blueprint along with additional context that goes beyond the schema.
+
+You might be familiar with some of the concepts as the specification is inspired by Terraform, AWS CloudFormation and Kubernetes.
+
+<br/>
+
+### version (required)
+
+The version of the blueprint specification to use.
+
+**type** 
+
+string
+
+**allowed values** 
+
+2023-04-20
+
+For the v2023-04-20 version of the specification, the only valid value is `2023-04-20`.
+
+<br/>
+
+### transform
+
+One or more specialised transforms to be applied to the template at the preprocessing stage.
+
+An example use case for a transform would be to provide "virtual" resources that abstract away a lot of complexity
+that can then be expanded into the underlying resources as a part of preprocessing.
+
+**type** 
+
+string | array[string]
+
+**example** 
+
+celerity-2023-04-20
+
+*Representing a hypothetical transform for a celerity application.*
+
+<br/>
+
+### variables
+
+Variables provide a way to add dynamic values that can be referenced in resources and data sources in the spec.
+
+Variables can be referenced in resources and data sources using the following syntax:
+
+```
+${variables.[variableName]}
+```
+
+For example:
+```
+${variables.databaseHost}
+```
+
+**type**
+
+mapping[name(string), [variableDefinition](#variabledefinition)]
+
+**example**
+
+JSON
+```json
+{
+  "variables": {
+    "databaseHost": {
+      "type": "string",
+      "description": "The host of the database"
+    },
+    "databasePort": {
+      "type": "integer",
+      "description": "The port of the database"
+    },
+    "databaseUser": {
+      "type": "string",
+      "description": "The user of the database to connect with"
+    },
+    "databasePassword": {
+      "type": "string",
+      "description": "The password of the user to connect to the database with",
+      "secret": true
+    },
+    "instanceSize": {
+      "type": "aws/ec2/instanceSize",
+      "description": "The size of the instance to use for the service",
+      "default": "t3.micro"
+    },
+    "deploymentTarget": {
+      "type": "string",
+      "description": "Whether the application should be deployed as a containerised service or cloud functions",
+      "allowedValues": ["container", "cloudFunctions"],
+      "default": "container"
+    }
+  }
+}
+```
+
+YAML
+```yaml
+variables:
+  databaseHost:
+    type: string
+    description: The host of the database
+  databasePort:
+    type: integer
+    description: The port of the database
+  databaseUser:
+    type: string
+    description: The user of the database to connect with
+  databasePassword:
+    type: string
+    description: The password of the user to connect to the database with
+    secret: true
+  instanceSize:
+    type: aws/ec2/instanceSize
+    description: The size of the instance to use for the service
+    default: t3.micro
+  deploymentTarget:
+    type: string
+    description: Whether the application should be deployed as a containerised service or cloud functions
+    allowedValues:
+      - container
+      - cloudFunctions
+    default: container
+```
+<br/>
+
+### dataSources
+
+Data sources provide a way to source dynamic values to be used in resources from external sources that will have been created outside
+the scope of a blueprint.
+
+Data sources can be from any provider configured in an implementation of the spec.
+
+Data sources can be referenced in resources using the following syntax:
+```
+${dataSources.[dataSourceName].[exportedField]}
+```
+
+For example, for a data source definition like the following:
+
+```yaml
+dataSources:
+  network:
+    type: aws/vpc
+    metadata:
+      displayName: Network source
+    filter:
+      field: tags
+      operator: contains
+      search: ${variables.environment}
+    exports:
+      subnets:
+        type: array
+      securityGroups:
+        type: array
+      vpc:
+        type: string
+        aliasFor: vpcId
+```
+
+You will be able to access the vpc id of the VPC that was found using the filter like so:
+
+```
+${dataSources.network.vpc}
+```
+
+**type**
+
+mapping[string, [dataSourceDefinition](#datasourcedefinition)]
+
+
+## Spec Data Types
+
+### variableDefinition
+
+A definition for a variable that can be referenced in resources and data sources in the spec.
+The name of the variable is not in this definition as it is the key in the mapping of variables that makes use of this data type.
+
+The custom type (`{customType}`) referenced in the variable fields is a type defined by a specific provider in an implementation of the spec
+that exists for convenience when dealing with variables with a large set of fixed possible values.
+
+#### fields
+___
+
+<p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
+
+The type of the variable that can be referenced throughout the spec.
+
+**field type**
+
+string
+
+**allowed values** 
+
+string | integer |  float | boolean | {customType}
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>allowedValues</strong></p>
+
+A list of allowed values for the variable.
+All possible values must be of the same type
+as the one defined for the field.
+
+**field type** 
+
+array[conditional based on "type" ( string | integer | float | boolean | {customType} )]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of the variable.
+
+**field type**
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>secret</strong></p>
+
+Indicates whether or not the variable is a secret. This is useful as it allows implementations to mask sensitive values in a blueprint.
+
+**field type** 
+
+boolean
+
+**default value**
+
+false
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>default</strong></p>
+
+Provides a default value for the variable as a fallback when a value for the variable is not provided.
+
+**field type**
+
+conditional based on "type" ( string | integer | float | boolean | {customType} )
+
+
+<br/>
+<br/>
+
+### dataSourceDefinition
+
+A definition for a data source that can be referenced in resources and data sources in the spec.
+The name of the data source is not in this definition as it is the key in the mapping of data sources that makes use of this data type.
+
+#### fields
+___
+
+<p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
+
+The type of data source, must be a valid namespace for a type of one of the providers configured with the
+spec implementation/engine that is being used. (e.g. `aws/vpc`)
+
+**field type** 
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>metadata</strong></p>
+
+Metadata provides useful information about the data source including things like
+annotations that can be used to provide extra context about the data source which can
+be used by provider implementations. 
+
+todo: move to annotations definition
+Annotations should be well documented by providers for data source
+and resource types to allow for easy discovery of the available options.
+
+**field type** 
+
+[dataSourceMetadataDefinition](#datasourcemetadatadefinition)
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>filter (required)</strong></p>
+
+Filter provides a way to select a specific resource managed outside of the blueprint for a data source.
+A filter can simply be an equality check (`=` or `!=`), or it can be a more complex search using operators like `in`, `not in` etc.
+
+In the case there are multiple externally-managed resources that match the filter, the first one should be used.
+
+**field type** 
+
+[dataSourceFilterDefinition](#datasourcefilterdefinition)
+
+
+<br/>
+<br/>
+
+### dataSourceMetadataDefinition
+
+A definition for the metadata that can be associated with a data source.
+
+#### fields
+___
+
+<p style={{fontSize: '1.2em'}}><strong>displayName</strong></p>
+
+A name of the data source that should be used when displaying it to the user in UI or CLI tools.
+
+**field type** 
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>annotations</strong></p>
+
+Annotations provide extra context that can be used by data source implementations.
+
+Annotations should be well documented by providers for data sources
+to allow for easy discovery of the available options and required context needed for a data
+source to do its job.
+
+It is good practise to namespace annotation keys and use dot notation.
+
+**field type** 
+
+mapping[string, string]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>custom</strong></p>
+
+Custom is set aside for any custom metadata outside the scope of the blueprint specification
+implementation.
+
+An implementation of the spec should persist the custom metadata associated with a blueprint instance
+so that it can be accessed by other tools that may use the custom metadata.
+Providers can also make use of the custom metadata where annotations do not suffice, however its usage must be
+well documented.
+
+An example use case would be for visual information in a UI diagramming tool for resources and data sources.
+
+**field type** 
+
+mapping[string, ( string | object | integer | float | array | boolean )]
+
+<br/>
+<br/>
+
+### dataSourceFilterDefinition
+
+A definition of a filter that can be used to select a specific resource managed outside of the blueprint for a data source.
+
+#### fields
+___
+
+<p style={{fontSize: '1.2em'}}><strong>field (required)</strong></p>
+
+todo: fill in field name
+
+**field type** 
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>operator (required)</strong></p>
+
+The operator used to compare the search value(s) with configured field in the external resource.
+
+Operators should be read with the field on the left and the search value(s) on the right.
+
+**field type** 
+
+string
+
+**allowed values**
+
+= | != | in | not in | has key | not has key | contains | not contains | starts with | not starts with | 
+ends with | not ends with
+
+For more precise information on how the operators should behave with certain inputs, see the [Operator Behaviours](#operator-behaviours) section.
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>search (required)</strong></p>
+
+A value or list of values that should be compared to the value of the configured field in the resource using the configured operator.
+
+**field type** 
+
+string | integer | float | boolean | array[ ( string | integer | float | boolean ) ]
+
+___
+<p style={{fontSize: '1.2em'}}><strong>custom</strong></p>
+
+Custom is set aside for any custom metadata outside the scope of the blueprint specification
+implementation.
+
+An implementation of the spec should persist the custom metadata associated with a blueprint instance
+so that it can be accessed by other tools that may use the custom metadata.
+Providers can also make use of the custom metadata where annotations do not suffice, however its usage must be
+well documented.
+
+An example use case would be for visual information in a UI diagramming tool for resources and data sources.
+
+**field type** 
+
+mapping[string, ( string | object | integer | float | array | boolean )]
+
+## Spec Behaviours
+
+This section provides in-depth information on how parts of the spec should behave that goes beyond the schema definition.
+
+_It's worth noting that some contextual information that can be presented concisely will be found amongst the schema definitions._
+
+### Operator Behaviours
+
+The following sections describe how the operators should behave with different inputs.
+
+#### Equality Operators ( = | != )
+
+The same rules apply to the `=` and `!=` operators, `!=` will be the negation of the behaviour for the comparisons described below.
+
+primitive = string | integer | float | boolean
+
+<br/>
+
+_field(primitive) **=** search(primitive)_
+
+When the field in the external resource is a primitive and the search value is of the same primitive type then the search value must be an exact match.
+
+_field(array[primitive]) **=** search(array[primitive])_
+
+When the field in the external resource is an array of primitives and the search value is an array of primitives of the same type, then each search value
+must match the field value in the corresponding position in the array.
+
+<br/>
+
+Any other combinations of search value and field type outside of those listed above should be invalid.
+In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
+#### In Operators ( in | not in )
+
+The same rules apply to the `in` and `not in` operators, `not in` will be the negation of the behaviour for the comparisons described below.
+
+primitive = string | integer | float | boolean
+
+<br/>
+
+_field(primitive) **in** search(array[primitive])_
+
+When the field value is a primitive and the search value is an array of the same primitive type, the field value must have an exact match with at least one of the search values.
+
+<br/>
+
+Any other combinations of search value and field type outside of those listed above should be invalid.
+In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
+#### Has Key Operators ( has key | not has key )
+
+The same rules apply to the `has key` and `not has key` operators, `not has key` will be the negation of the behaviour for the comparisons described below.
+
+<br/>
+
+_field(mapping[string, any]) **has key** search(string)_
+
+When the field value is a mapping of strings to any value and the search value is a string, the field must have at least one
+key that is an exact match with the search value.
+
+<br/>
+
+Any other combinations of search value and field type outside of those listed above should be invalid.
+In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
+#### Contains Operators ( contains | not contains )
+
+The same rules apply to the `contains` and `not contains` operators, `not contains` will be the negation of the behaviour for the comparisons described below.
+
+primitive = string | integer | float | boolean
+
+<br/>
+
+_field(array[primitive]) **contains** search(primitive)_
+
+When the field value is a primitive and the search value is an array of the same primitive type, the search value must have an exact match with at least one of the field values.
+
+_field(string) **contains** search(string)_
+
+When the field value is a string and the search value is a string, the search value must be a substring that can be found within the field value.
+
+_field(mapping[string, primitive]) **contains** search(primitive)_
+
+When the field value is a mapping of strings to primitive values and the search value is of the same primitive type,
+the search value must be an exact match with at least one of the mapping values.
+In this use case the keys should not be taken into account and the mapping should be treated as a list of values.
+
+<br/>
+
+Any other combinations of search value and field type outside of those listed above should be invalid.
+In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
+
+```yaml
+version: 2021-10-20
+transform: {specTransform(string|array)}
+variables:
+  {variableName(string)}:
+    type: enum(string|integer|float|boolean)
+    description: {descriptionValue(string)}
+    # Boolean to indicate whether or not this variable is a secret.
+    secret: {secretValue(boolean)}
+    default: {defaultValue(string|integer|float|boolean)}
+# data sources provide data to all resources in a spec
+dataSources:
+  {dataSource(string)}
+    type: {dataSourceType(string)}
+    metadata:
+      displayName: {displayName(string)}
+      annotations:
+        {annotationName(string)}: {annotationValue(string)}
+      # Custom metadata used in your applications for data sources.
+      custom:
+        {property(string)}: {value(string|object|integer|float|array|boolean)}
+    exports:
+      {exportedFieldName(string)}:
+        type: enum(string|integer|float|boolean|object|array)
+        description: {descriptionValue(string)}
+resources:
+  {resourceName(string)}:
+    type: {resourceType(string)}
+    metadata:
+      displayName: {displayName(string)}
+      annotations:
+        {annotationName(string)}: {annotationValue(string)}
+      # labels provide a way of grouping/selecting and automatically
+      # linking resources based on predefined rules.
+      labels:
+        {labelName(string)}: {labelValue(string)}
+      # Custom metadata used in your applications.
+      # For example, this could include visual data for an infrastructure diagramming tool.
+      custom:
+        {property(string)}: {value(string|object|integer|float|array|boolean)}
+    linkSelector:
+      (byLabel):
+        {labelName(string)}: {labelValue(string)}  
+    spec:
+      {property(string)}: {value(string|integer|float|boolean|object|array)}
+```
+
+## Resources
+
+## Data Sources
+
+## Using Variables
+
+## Using Data Sources
+
+## Labels and Implicit Linking
+
+## Providers and Namespaces
+
+todo: talk about how providers are configured and that the engine the blueprint is run on must be configured
+with the providers used within a template. Configuration such as credentials for providers should be set up
+with the engine, that is outside the scope of the blueprint spec.
+
+e.g. Celerity CLI would be configured with AWS credentials for resources and data sources in AWS.
+These credentials would be sourced and fed into the build-time engine that uses the blueprint framework
+with its own set of supported providers.
+
+## Example (Celerity App running on AWS Lambda)
+
+```yaml
+version: 2021-10-20
+# Declaring this transform means that this spec will be transformed
+# using the stratosx transformation dated 2022-01-22.
+# Transforms expand concise specs where a lot of complexity is abstracted away
+# into a fully fledged spec that can be used by the engine that deals with
+# managing and deploying resources.
+# In the case of the stratosx transform, resource types are expanded into collections
+# of underlying resources. (e.g. An aws/lambda/function resource type would become 
+# a resource collection that includes a lambda function, an IAM role and a security group egress)
+transform: stratosx-2022-01-22
+dataSources:
+  # Hypothetical example, in practise a network data source
+  # would look very different.
+  network:
+    type: "aws/vpc"
+    metadata:
+      displayName: Network source
+    exports:
+      subnets:
+        type: array
+      securityGroups:
+        type: array
+      vpc:
+        type: string
+resources:
+  ordersApiGateway:
+    type: "aws/serverless/api"
+    metadata:
+      displayName: Orders API Gateway
+      labels:
+        # based on a rule that API Gateways can only link to Lambdas,
+        # a link between all lambdas and the API Gateway would be implicit here.
+        app: orderApi
+      custom:
+        # Visuals are stripped out during processing but are persisted for the purpose of
+        # visualising the spec with diagrams.
+        # This is just an example of what it could look like, in practise it might be very different.
+        visual:
+          point: 20 100
+          width: 50
+          height: 50
+          linkPorts:
+            - linkTo: getOrders
+              connectAt: 70 100
+              annotation: Call upstream GetOrders lambda function
+    linkSelector:
+      byLabel:
+        # Select all items that an API Gateway object can link to with the same
+        # label.
+        app: orderApi
+    spec:
+      # Use the structure of a concrete spec, exclude references as they
+      # are covered by links and the predefined rules around linking by labels.
+      stageName: Prod
+      cors: "'www.example.com'"
+      models:
+        Order:
+          type: object
+          required:
+            - order_id
+            - product_d
+            - amount
+          properties:
+            order_id:
+              type: integer
+            product_id:
+              type: integer
+            amount:
+              type: integer
+          
+  getOrdersFunction:
+    type: "aws/lambda/function"
+    metadata:
+      displayName: Get Orders Function
+      labels:
+        app: orderApi
+    linkSelector:
+      byLabel:
+        # Will automatically link to resources with the same label
+        # that can be linked to by a lambda function.
+        app: orderApi
+    spec:
+      handler: index.handler
+      runtime: python3.6
+      tracing: Active
+      timeout: 120
+      vpc: ${dataSources.network.vpc}
+      subnets: ${dataSources.network.subnets}
+      securityGroups: ${dataSources.network.securtyGroups}
+  updateOrderFunction:
+    type: "aws/lambda/function"
+    metadata:
+      displayName: Update Order Function
+      labels:
+        workflow: orderQueue
+    spec:
+      handler: index.handler
+      runtime: python3.6
+      tracing: Active
+      timeout: 120
+      
+  createOrderFunction:
+    type: "aws/lambda/function"
+    metadata:
+      displayName: Create Order Function
+      labels:
+        app: orderApi
+    linkSelector:
+      byLabel:
+        app: orderApi
+    spec:
+      handler: index.handler
+      runtime: python3.6
+      tracing: Active
+      timeout: 120
+      
+  redisTable:
+    type: "aws/elasticache"
+    metadata:
+      displayName: Redis Cache/Table
+      annotations:
+        elasticache.credentials.password: ${variables.redisPassword}
+    spec:
+      # ... Redis config here
+
+  orderQueue:
+    type: "aws/sqs/queue"
+    metadata:
+      displayName: Order Queue
+      labels:
+        workflow: orderQueue
+    linkSelector:
+      byLabel:
+        # Automatically will create the link between the SQS queue
+        # and any resources that an SQS queue can link to with the given label.
+        # This will most likely output as a concrete Serverless Function
+        # "Event" configuration for each SQS -> Lambda link.
+        workflow: orderQueue
+    spec:
+      queueName: "OrderQueue"
+      
+  orderTable:
+    type: "aws/dynamodb/table"
+    metadata:
+      displayName: Order Table
+      labels:
+        # This label allows resources with the orderQueue workflow label
+        # to link to this table. (e.g. lambda functions)
+        workflow: orderQueue
+        # This label allows resources with the orderApi app label
+        # to link this table. (e.g. lambda functions)
+        app: orderApi
+    spec:
+      attributeDefinitions:
+        - attributeName: "order_id"
+          attributeType: "N"
+        - attributeName: "product_id"
+          attributeType: "N"
+        - attributeName: "amount"
+          attributeType: "N"
+      keySchema:
+        - attributeName: "order_id"
+          keyType: "HASH"
+        - attributeName: "product_id"
+          keyType: "RANGE"
+      tableName: "orders"
+```
+
+Reasoning for k8s-like label selectors
+
+This allows access to resources outside the context of a current “blueprint” and removes the need to constantly reference .
+
+However for this to work, rules need to be defined about the different resource types that can be linked together.

@@ -6,16 +6,16 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Celerity',
+  tagline: 'The backend toolkit that gets you moving fast',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'facebook', // Usually your GitHub org/user name.
+  organizationName: 'two-hundred', // Usually your GitHub org/user name.
   projectName: 'docusaurus', // Usually your repo name.
-
+  themes: ["docusaurus-json-schema-plugin"],
   presets: [
     [
       'classic',
@@ -43,11 +43,12 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'My Site',
-        logo: {
-          alt: 'My Site Logo',
-          src: 'img/logo.svg',
-        },
+        title: 'Celerity',
+        // todo: prepare logo icon for light and dark mode
+        // logo: {
+        //   alt: 'My Site Logo',
+        //   src: 'img/logo.svg',
+        // },
         items: [
           {
             type: 'doc',
@@ -57,10 +58,22 @@ const config = {
           },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/facebook/docusaurus',
+            href: 'https://github.com/two-hundred/celerity',
             label: 'GitHub',
             position: 'right',
           },
+          {
+            type: 'dropdown',
+            label: 'Components',
+            position: 'left',
+            items: [
+              {
+                type: 'doc',
+                label: 'Blueprint Framework',
+                docId: 'blueprint/intro'
+              }
+            ]
+          }
         ],
       },
       footer: {
@@ -106,7 +119,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} The Celerity documentation authors.`,
       },
       prism: {
         theme: lightCodeTheme,
