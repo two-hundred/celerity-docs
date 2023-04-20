@@ -535,6 +535,40 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
+#### Starts With Operators ( starts with | not starts with )
+
+The same rules apply to the `starts with` and `not starts with` operators, `not contains` will be the negation of the behaviour for the comparisons described below.
+
+<br/>
+
+_field(string) **starts with** search(string)_
+
+When the field value is a string and the search value is a string, the field value must begin with a substring that is an exact match with the search value.
+
+<br/>
+
+Any other combinations of search value and field type outside of those listed above should be invalid.
+In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
+#### Ends With Operators ( ends with | not ends with )
+
+The same rules apply to the `ends with` and `not ends with` operators, `not ends with` will be the negation of the behaviour for the comparisons described below.
+
+<br/>
+
+_field(string) **ends with** search(string)_
+
+When the field value is a string and the search value is a string, the field value must end with a substring that is an exact match with the search value.
+
+<br/>
+
+Any other combinations of search value and field type outside of those listed above should be invalid.
+In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
 
 ```yaml
 version: 2021-10-20
