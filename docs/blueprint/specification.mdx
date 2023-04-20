@@ -188,7 +188,7 @@ dataSources:
       displayName: Network source
     filter:
       field: tags
-      operator: contains
+      operator: has key
       search: ${variables.environment}
     exports:
       subnets:
@@ -397,7 +397,8 @@ ___
 
 <p style={{fontSize: '1.2em'}}><strong>field (required)</strong></p>
 
-todo: fill in field name
+The name of the field in the external resource that should be compared to the search value(s) using the configured operator.
+Object paths using dot notation can be used for nested fields in external resources (e.g. `metadata.name`).
 
 **field type** 
 
@@ -407,7 +408,7 @@ ___
 
 <p style={{fontSize: '1.2em'}}><strong>operator (required)</strong></p>
 
-The operator used to compare the search value(s) with configured field in the external resource.
+The operator used to compare the search value(s) with the configured field in the external resource.
 
 Operators should be read with the field on the left and the search value(s) on the right.
 
@@ -432,22 +433,7 @@ A value or list of values that should be compared to the value of the configured
 
 string | integer | float | boolean | array[ ( string | integer | float | boolean ) ]
 
-___
-<p style={{fontSize: '1.2em'}}><strong>custom</strong></p>
-
-Custom is set aside for any custom metadata outside the scope of the blueprint specification
-implementation.
-
-An implementation of the spec should persist the custom metadata associated with a blueprint instance
-so that it can be accessed by other tools that may use the custom metadata.
-Providers can also make use of the custom metadata where annotations do not suffice, however its usage must be
-well documented.
-
-An example use case would be for visual information in a UI diagramming tool for resources and data sources.
-
-**field type** 
-
-mapping[string, ( string | object | integer | float | array | boolean )]
+<br/>
 
 ## Spec Behaviours
 
