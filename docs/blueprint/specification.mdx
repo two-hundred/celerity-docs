@@ -15,12 +15,14 @@ This is a specification of resources that can be deployed such as a Celerity app
 
 This specification is agnostic to the type of resources and is similar to tools like Terraform in the fact that it is abstract enough to support all kinds of resources (e.g. Cloud service resources, REST API resources, Docker containers etc.)
 
-A blueprint will typically contain a bundle of resources that represent a logical deployable unit. One  example of this would be a micro-service and its associated data stores.
+A blueprint will typically contain a bundle of resources that represent a logical deployable unit. One example of this would be a micro-service and its associated data stores.
 
-All the a way of defining labels and link selectors that can be used to automatically link resources together.
+The blueprint spec utilises a way of defining labels and link selectors that can be used to automatically link resources together without in-depth knowledge
+of what powers the relationships. 
+For example, this could abstract away a significant portion of dealing with permissions and networking for resources in a cloud provider.
 
 The purpose of the blueprint specification and supporting implementations is to provide the backbone of scalable
-code and infrastructure deployment tools and to be a part of an ecosystem of composable tools that super charge developers to deliver high quality at a fast pace.
+code and infrastructure deployment tools and to be a part of an ecosystem of composable tools that super charge developers to deliver high quality products and services at a fast pace.
 
 A blueprint can either be in JSON or YAML format.
 
@@ -168,10 +170,12 @@ variables:
 
 ### dataSources
 
-Data sources provide a way to source dynamic values to be used in resources from external sources that will have been created outside
+Data sources provide a way to source dynamic values to be used in resources and other data sources from external sources that will have been created outside
 the scope of a blueprint.
 
 Data sources can be from any provider configured in an implementation of the spec.
+
+The order in which data sources are resolved is implicitly determined by references between data sources.
 
 Data sources can be referenced in resources using the following syntax:
 ```
@@ -200,7 +204,7 @@ dataSources:
         aliasFor: vpcId
 ```
 
-You will be able to access the vpc id of the VPC that was found using the filter like so:
+You will be able to access the id of the VPC that was found using the filter like so:
 
 ```
 ${dataSources.network.vpc}
@@ -210,6 +214,205 @@ ${dataSources.network.vpc}
 
 mapping[string, [dataSourceDefinition](#datasourcedefinition)]
 
+**example**
+
+JSON
+
+```json
+{
+  "dataSources": {
+    "network": {
+      "type": "aws/vpc",
+      "metadata": {
+        "displayName": "Network source"
+      },
+      "filter": {
+        "field": "tags",
+        "operator": "has key",
+        "search": "${variables.environment}"
+      },
+      "exports": {
+        "subnets": {
+          "type": "array"
+        },
+        "securityGroups": {
+          "type": "array"
+        },
+        "vpc": {
+          "type": "string",
+          "aliasFor": "vpcId"
+        }
+      }
+    }
+  }
+}
+```
+
+YAML
+
+```yaml
+dataSources:
+  network:
+    type: aws/vpc
+    metadata:
+      displayName: Network source
+    filter:
+      field: tags
+      operator: has key
+      search: ${variables.environment}
+    exports:
+      subnets:
+        type: array
+      securityGroups:
+        type: array
+      vpc:
+        type: string
+        aliasFor: vpcId
+```
+
+<br/>
+
+### resources
+
+Resources are the most important part of the blueprint spec, providing a way to define the key components that make up a blueprint
+and the relationships between them.
+
+An implementation of the spec is responsible for managing the lifecycle of resources, synchronising with underlying services
+interfaced with through providers and keeping track of their state.
+
+Resources in the blueprint spec are not meant to be tied to any specific notion of a resource.
+If there is a resource/entity as a part of a domain model in any type of system and you can build
+a provider for it, then it can be represented as a resource in a blueprint.
+
+The most common use cases are likely to be managing cloud infrastructure and backend applications. (e.g. AWS services or a Celerity application)
+
+When defined in a blueprint, resources are mappings keyed by a name for the resource that is unique to a blueprint.
+
+**type**
+
+mapping[string, [resourceDefinition](#resourcedefinition)]
+
+**example**
+
+JSON
+
+```json
+{
+  "resources": {
+    "saveOrderFunction": {
+      "type": "aws/lambda/function",
+      "description": "The function responsible for saving a new order to the system.",
+      "metadata": {
+        "displayName": "Save Order Function",
+        "annotations": {
+          "aws.lambda.function.populateEnvVars": true
+        }
+      },
+      "linkSelector": {
+        "byLabel": {
+          "service": "ordersApi"
+        }
+      },
+      "spec": {
+        "functionName": "ordersApi-${variables.environment}-saveOrderFunction-v1",
+        "codeUri": "./orders",
+        "handler": "save_order.handler",
+        "runtime": "python3.9",
+        "tracing": "Active",
+        "architectures": "arm64",
+        "environment": {
+          "variables": {
+            "DATABASE_HOST": "${variables.databaseHost}",
+            "DATABASE_PORT": "${variables.databasePort}",
+            "DATABASE_USER": "${variables.databaseUser}",
+            "DATABASE_PASSWORD": "${variables.databasePassword}",
+            "DATABASE_NAME": "${variables.databaseName}"
+          }
+        },
+        "timeout": 120
+      }
+    }
+  }
+}
+```
+
+YAML
+  
+```yaml
+resources:
+  saveOrderFunction:
+    type: aws/lambda/function
+    description: The function responsible for saving a new order to the system.
+    metadata:
+      displayName: "Save Order Function"
+      annotations:
+        aws.lambda.function.populateEnvVars: true
+    linkSelector:
+      byLabel:
+        service: 'ordersApi'
+    spec:
+      functionName: ordersApi-${variables.environment}-saveOrderFunction-v1
+      codeUri: ./orders
+      handler: save_order.handler
+      runtime: python3.9
+      tracing: Active
+      architectures: arm64
+      environment:
+        variables:
+          DATABASE_HOST: ${variables.databaseHost}
+          DATABASE_PORT: ${variables.databasePort}
+          DATABASE_USER: ${variables.databaseUser}
+          DATABASE_PASSWORD: ${variables.databasePassword}
+          DATABASE_NAME: ${variables.databaseName}
+      timeout: 120
+```
+
+<br/>
+
+### exports
+
+Exports are a way to define a set of fields from resources that are publicly accessible attributes of
+the blueprint that can be used in other blueprints as data sources or in external applications or systems that interface with
+an implementation of the spec via an API.
+
+**type**
+
+mapping[string, [exportDefinition](#exportdefinition)]
+
+**example**
+
+JSON
+
+```json
+{
+  "exports": {
+    "saveOrdersFunctionArn": {
+      "type": "string",
+      "description": "The ARN of the function used to save orders to the system.",
+      "field": "resources.saveOrdersFunction.state.functionArn"
+    },
+    "saveOrdersFunctionName": {
+      "type": "string",
+      "description": "The name of the function used to save orders to the system.",
+      "field": "resources.saveOrdersFunction.spec.functionName"
+    }
+  }
+}
+```
+
+```yaml
+exports:
+  saveOrdersFunctionArn:
+    type: string
+    description: The ARN of the function used to save orders to the system.
+    field: resources.saveOrdersFunction.state.functionArn
+  saveOrdersFunctionName:
+    type: string
+    description: The name of the function used to save orders to the system.
+    field: resources.saveOrdersFunction.spec.functionName
+```
+
+<br/>
 
 ## Spec Data Types
 
@@ -221,7 +424,7 @@ The name of the variable is not in this definition as it is the key in the mappi
 The custom type (`{customType}`) referenced in the variable fields is a type defined by a specific provider in an implementation of the spec
 that exists for convenience when dealing with variables with a large set of fixed possible values.
 
-#### fields
+#### FIELDS
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -288,10 +491,10 @@ conditional based on "type" ( string | integer | float | boolean | {customType} 
 
 ### dataSourceDefinition
 
-A definition for a data source that can be referenced in resources and data sources in the spec.
+A definition for a data source that can be referenced in resources and other data sources in the spec.
 The name of the data source is not in this definition as it is the key in the mapping of data sources that makes use of this data type.
 
-#### fields
+#### FIELDS
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -311,10 +514,6 @@ Metadata provides useful information about the data source including things like
 annotations that can be used to provide extra context about the data source which can
 be used by provider implementations. 
 
-todo: move to annotations definition
-Annotations should be well documented by providers for data source
-and resource types to allow for easy discovery of the available options.
-
 **field type** 
 
 [dataSourceMetadataDefinition](#datasourcemetadatadefinition)
@@ -332,6 +531,22 @@ In the case there are multiple externally-managed resources that match the filte
 
 [dataSourceFilterDefinition](#datasourcefilterdefinition)
 
+___
+
+<p style={{fontSize: '1.2em'}}><strong>exports (required)</strong></p>
+
+Exports provides a way to define the fields that should be exported from the data source and exposed to resources
+and other data sources in a blueprint.
+
+The names of the fields exported from the data source should be the keys in the mapping of exports
+unless the `aliasFor` property is used, in which case the value of `aliasFor` should be a valid field name
+in the data source object.
+
+Object paths using dot notation can be used for exported field names (mapping keys) for nested fields in external resources (e.g. `metadata.name`)
+
+**field type** 
+
+mapping[name(string), [dataSourceExportDefinition](#datasourceexportdefinition)]
 
 <br/>
 <br/>
@@ -340,7 +555,7 @@ In the case there are multiple externally-managed resources that match the filte
 
 A definition for the metadata that can be associated with a data source.
 
-#### fields
+#### FIELDS
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>displayName</strong></p>
@@ -392,7 +607,7 @@ mapping[string, ( string | object | integer | float | array | boolean )]
 
 A definition of a filter that can be used to select a specific resource managed outside of the blueprint for a data source.
 
-#### fields
+#### FIELDS
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>field (required)</strong></p>
@@ -433,6 +648,388 @@ A value or list of values that should be compared to the value of the configured
 
 string | integer | float | boolean | array[ ( string | integer | float | boolean ) ]
 
+<br/>
+<br/>
+
+### dataSourceExportDefinition
+
+A definition of an exported field from a data source that is exposed to resources and other data sources in
+a blueprint.
+
+#### FIELDS
+___
+
+<p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
+
+The type of the field being exported from the data source.
+
+**field type** 
+
+array | string | integer | float | boolean
+
+_only arrays of primitive values are supported as exported data source fields._
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>aliasFor</strong></p>
+
+Determines the name of the field in the data source object that should be exported
+to the blueprint with an alias.
+
+When this field is set, the alias would be the key in the `dataSources` mapping.
+See the [dataSources](#datasources) examples for more information.
+
+Object paths using dot notation can be used for nested fields in external resources (e.g. `metadata.name`)
+
+**field type** 
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of the exported field that can be used to provide extra context in UI or CLI tools
+that make use of the blueprint specification.
+
+**field type** 
+
+string
+
+<br/>
+<br/>
+
+### resourceDefinition
+
+A definition for a resource in a blueprint.
+
+#### FIELDS
+___
+
+<p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
+
+The type of the resource, namespaced by its provider.
+
+The format for a resource type should be one of the following:
+
+`{provider}/{service}/{resourceType}` 
+
+`{provider}/{resourceType}`
+<br/>
+
+An example of a valid namespace for a resource type would be `aws/ec2/instance` or `celerity/handler`.
+
+**field type** 
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>metadata</strong></p>
+
+Metadata provides useful information about the resource including things like
+annotations and labels.
+
+For resources, annotations can be used to provide optional and required context for relationships between resources (linking).
+Find out more about annotations in the [annotations](#annotations) section.
+
+For resources, labels are essential for an implementation of the specification to be
+able to link resources together in an implicit, declarative fashion.
+Find out more about labels in the [labels and implicit linking](#labels-and-implicit-linking) section.
+
+**field type** 
+
+[resourceMetadataDefinition](#resourcemetadatadefinition)
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>linkSelector</strong></p>
+
+A specification of selectors that can be used to link to resources that match the given criteria where there is an implementation
+in a provider that facilitates the relationship.
+
+linkSelector should be set for a resource that is going to be making use of other resources that match the criteria.
+For example, a cloud function that will make use of a cloud data store will set a linkSelector criteria to link out to
+the cloud data store.
+
+**field type** 
+
+[linkSelectorDefinitions](#linkselectordefinitions)
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>spec</strong></p>
+
+The specification for the resource that will be used to create/update and synchronise blueprint lifecylce state with the resource in the provider.
+
+An example for a cloud function resource spec in AWS would be the spec object in the following:
+
+```yaml
+  saveOrderFunction:
+    type: aws/lambda/function
+    spec:
+      codeUri: ./orders
+      handler: save_order.handler
+      runtime: python3.9
+      tracing: Active
+      timeout: 120
+```
+
+The above example just shows a small subset of the fields avaiable for an AWS Lambda spec.
+Resource implementations should provide a fully featured spec that conforms to the API of the provider service.
+
+**field type** 
+
+mapping[string, ( string | object | integer | float | array | boolean ) ]
+
+___
+
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of the resource that can be used to provide extra context in UI or CLI tools
+that make use of the blueprint specification.
+
+**field type** 
+
+string
+
+<br/>
+<br/>
+
+### resourceMetadataDefinition
+
+A definition for the metadata that can be associated with a resource that primarily enables
+implicit linking between resources when combined with selectors.
+
+
+#### FIELDS
+___
+
+<p style={{fontSize: '1.2em'}}><strong>displayName</strong></p>
+
+A name of the resource that should be used when displaying it to the user in UI or CLI tools.
+
+**field type** 
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>annotations</strong></p>
+
+Annotations provide extra context that can be used in links that represent the relationships
+between resources.
+
+_All values that do not represent a property of a relationship between resources should be a part
+of the resource spec._
+
+Annotations should be well documented by providers for resources and their links
+to allow for easy discovery of the available options and required context needed for a data
+source to do its job.
+
+It is good practise to namespace annotation keys and use dot notation.
+
+**field type** 
+
+mapping[string, string]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>labels</strong></p>
+
+Labels provide a way of grouping resources that can be linked to by a selector based on predefined rules.
+
+For example, let's create a scenario where you have a serverless application that you want to deploy to a cloud service like AWS.
+In this scenario you have some lambda functions that need to talk to a DynamoDB table and a Secrets Manager store.
+In the blueprint specification, in order to make the DynamoDB table and SecretsManager store available to the cloud functions,
+you will set a shared label on the DynamoDB table and SecretsManager store and then set a selector on the cloud functions like the following.
+
+```yaml
+resources:
+
+  ordersTable:
+    type: aws/dynamodb/table
+    metadata:
+      labels:
+        displayName: "Orders Table"
+        service: "ordersApi"
+    spec:
+      attributeDefinitions:
+        - attributeName: "order_id"
+          attributeType: "N"
+        - attributeName: "product_id"
+          attributeType: "N"
+        - attributeName: "amount"
+          attributeType: "N"
+      keySchema:
+        - attributeName: "order_id"
+          keyType: "HASH"
+        - attributeName: "product_id"
+          keyType: "RANGE"
+      tableName: "orders"
+    
+  ordersSecrets:
+    type: aws/secretsmanager/secret
+    metadata:
+      displayName: "Orders Secrets"
+      labels:
+        displayName: "Orders Secrets"
+        service: "ordersApi"
+    spec:
+      secretName: "ordersApi"
+
+  getOrdersFunction:
+    type: aws/lambda/function
+    metadata:
+      displayName: "Get Orders Function"
+      annotations:
+        # A hypothetical annotation that indicates that
+        # each resource that meets the criteria of the link selector
+        # should be made available to the lambda function as an environment variable.
+        aws.lambda.function.populateEnvVars: true
+    linkSelector:
+      byLabel:
+        service: 'ordersApi'
+    spec:
+      codeUri: ./orders
+      handler: get_orders.handler
+      runtime: python3.9
+      tracing: Active
+      timeout: 120
+
+  saveOrderFunction:
+    type: aws/lambda/function
+    metadata:
+      displayName: "Save Order Function"
+      annotations:
+        aws.lambda.function.populateEnvVars: true
+    linkSelector:
+      byLabel:
+        service: 'ordersApi'
+    spec:
+      codeUri: ./orders
+      handler: save_order.handler
+      runtime: python3.9
+      tracing: Active
+      timeout: 120
+```
+
+Some predefined rules about the relationships between lambda functions and the resources they need to talk (e.g. DynamoDB tables and SecretsManager stores)
+will be used in the selection process to determine what links are supported.
+The link implementation will then be responsible for ensuring everything needed to "activate" the link is provisioned.
+In this example, this would include ensuring the correct roles and policies are attached to the lambda functions.
+With a set of enhacement annotations indicating env var names to store DB and secret store info in, 
+environment variables could also be pre-populated in lambda functions with DynamoDB and SecretsManager store details.
+
+**field type** 
+
+mapping[string, string]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>custom</strong></p>
+
+Custom is set aside for any custom metadata outside the scope of the blueprint specification
+implementation.
+
+An implementation of the spec should persist the custom metadata associated with a blueprint instance
+so that it can be accessed by other tools that may use the custom metadata.
+Providers can also make use of the custom metadata where annotations do not suffice, however its usage must be
+well documented.
+
+An example use case would be for visual information in a UI diagramming tool for resources and data sources.
+
+**field type** 
+
+mapping[string, ( string | object | integer | float | array | boolean )]
+
+<br/>
+<br/>
+
+### linkSelectorDefinitions
+
+A definition for supported link selectors that can be used to implicitly link resources together.
+
+In this version of the specification, the only supported linkSelector type is `byLabel`.
+
+
+#### FIELDS
+___
+
+<p style={{fontSize: '1.2em'}}><strong>byLabel</strong></p>
+
+A selector that can be used to select resources that match a set of labels.
+When multiple labels are defined, implementations of the specification should require **ALL** labels to match.
+
+**field type** 
+
+mapping[string, string]
+
+<br/>
+<br/>
+
+### exportDefinition
+
+A definition for a resource field exported from the blueprint that can be referenced outside of the blueprint.
+The name of the exported attribute is the key in the mapping in the [exports](#exports) section of the blueprint.
+
+#### FIELDS
+___
+
+<p style={{fontSize: '1.2em'}}><strong>type</strong></p>
+
+The type of the exported field.
+
+Implementations of the specification should explicitly fail with an informative error
+when the exported field type does not match the type of the field being exported.
+
+**field type**
+
+string
+
+**allowed values** 
+
+string | object | integer | float | array | boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>field</strong></p>
+
+The name/path of the resource field to export.
+Any attribute of a resource can be exported, it is not only limited to the
+deployed state of the resource.
+
+Fields from the final state of a resources can be referenced using the `state` property
+following this format:
+
+```
+resources.{resourceName}.state.{field}
+```
+
+**field type**
+
+string
+
+**examples** 
+
+`resources.saveOrderFunction.state.functionArn`
+
+`resources.saveOrderFunction.spec.functionName`
+
+`resources.saveOrderFunction.metadata.displayName`
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of the exported field that will help in navigating the blueprints, especially useful in UI and CLI tools built around the spec.
+
+**field type**
+
+string
+
+<br/>
 <br/>
 
 ## Spec Behaviours
@@ -569,54 +1166,6 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-
-```yaml
-version: 2021-10-20
-transform: {specTransform(string|array)}
-variables:
-  {variableName(string)}:
-    type: enum(string|integer|float|boolean)
-    description: {descriptionValue(string)}
-    # Boolean to indicate whether or not this variable is a secret.
-    secret: {secretValue(boolean)}
-    default: {defaultValue(string|integer|float|boolean)}
-# data sources provide data to all resources in a spec
-dataSources:
-  {dataSource(string)}
-    type: {dataSourceType(string)}
-    metadata:
-      displayName: {displayName(string)}
-      annotations:
-        {annotationName(string)}: {annotationValue(string)}
-      # Custom metadata used in your applications for data sources.
-      custom:
-        {property(string)}: {value(string|object|integer|float|array|boolean)}
-    exports:
-      {exportedFieldName(string)}:
-        type: enum(string|integer|float|boolean|object|array)
-        description: {descriptionValue(string)}
-resources:
-  {resourceName(string)}:
-    type: {resourceType(string)}
-    metadata:
-      displayName: {displayName(string)}
-      annotations:
-        {annotationName(string)}: {annotationValue(string)}
-      # labels provide a way of grouping/selecting and automatically
-      # linking resources based on predefined rules.
-      labels:
-        {labelName(string)}: {labelValue(string)}
-      # Custom metadata used in your applications.
-      # For example, this could include visual data for an infrastructure diagramming tool.
-      custom:
-        {property(string)}: {value(string|object|integer|float|array|boolean)}
-    linkSelector:
-      (byLabel):
-        {labelName(string)}: {labelValue(string)}  
-    spec:
-      {property(string)}: {value(string|integer|float|boolean|object|array)}
-```
-
 ## Resources
 
 ## Data Sources
@@ -626,6 +1175,8 @@ resources:
 ## Using Data Sources
 
 ## Labels and Implicit Linking
+
+## Annotations
 
 ## Providers and Namespaces
 
