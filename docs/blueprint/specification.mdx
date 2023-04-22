@@ -414,6 +414,37 @@ exports:
 
 <br/>
 
+
+### metadata
+
+Metadata is for blueprint-level metadata used in transformers and resource providers to carry out functionality
+that spans all resources in a blueprint.
+
+**type**
+
+mapping[string, ( string | object | array | boolean | float | integer ) ]
+
+**example**
+
+JSON
+
+```json
+{
+  "metadata": {
+    "function.builder": "ESM",
+    "function.builder.minify": false
+  }
+}
+```
+
+```yaml
+metadata:
+  function.builder: ESM
+  function.builder.minify: false
+```
+
+<br/>
+
 ## Spec Data Types
 
 ### variableDefinition
