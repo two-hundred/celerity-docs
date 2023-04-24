@@ -418,7 +418,7 @@ exports:
 ### metadata
 
 Metadata is for blueprint-level metadata used in transformers and resource providers to carry out functionality
-that spans all resources in a blueprint.
+that spans multiple resources in a blueprint.
 
 **type**
 
@@ -454,6 +454,9 @@ The name of the variable is not in this definition as it is the key in the mappi
 
 The custom type (`{customType}`) referenced in the variable fields is a type defined by a specific provider in an implementation of the spec
 that exists for convenience when dealing with variables with a large set of fixed possible values.
+
+A custom variable type must be of the format `{provider}/{type}`.
+An example of a custom variable type would be `aws/region` with a fixed set of supported AWS regions served by an AWS resource provider.
 
 #### FIELDS
 ___
