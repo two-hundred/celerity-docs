@@ -83,7 +83,8 @@ celerity-2023-04-20
 
 ### variables
 
-Variables provide a way to add dynamic values that can be referenced in resources and data sources in the spec.
+Variables provide a way to add dynamic values that can be referenced in resources, data sources in the spec along with the include section
+that allows importing child blueprints.
 
 Variables can be referenced in resources and data sources using the following syntax:
 
@@ -369,6 +370,81 @@ resources:
 
 <br/>
 
+### include
+
+Include provides a way to include other blueprints in a given blueprint.
+Included blueprints are treated as children and their properties can be accessed from the parent using `${children.{childName}.{property}}`.
+Child blueprints can be referenced in resources, as inputs to other child blueprints and in exports.
+
+This is the primary way to compose blueprints that is a part of the core specification, see [Modular Blueprints](#modular-blueprints) for other approaches.
+
+The order of deployment and change staging for child blueprints is determined based on references to the outputs of one child blueprint used as
+the input to another.
+
+**type**
+
+mapping[string, [includeDefinition](#includedefinition)]
+
+**example**
+
+JSON
+
+```json
+{
+  "include": {
+    "coreInfra": {
+      "path": "core-infra.yaml",
+      "description": "core infra (including database) for the Orders API",
+      "variables": {
+        "databaseName": "${variables.databaseName}"
+      },
+      "metadata": {
+        "sourceType": "aws/s3",
+        "bucket": "order-system-blueprints",
+        "region": "eu-west-1"
+      }
+    },
+    "ordersApi": {
+      "path": "api.yaml",
+      "description": "The stack for the Orders API",
+      "variables": {
+        "databaseHost": "${children.coreInfra.databaseHost}",
+        "databasePort": "${children.coreInfra.databasePort}",
+        "databaseUser": "${children.coreInfra.databaseUser}",
+        "databasePassword": "${children.coreInfra.databasePassword}",
+        "databaseName": "${variables.databaseName}"
+      }
+    }
+  }
+}
+```
+
+YAML
+
+```yaml
+include:
+  coreInfra:
+    path: core-infra.yaml
+    description: core infra (including database) for the Orders API
+    variables:
+      databaseName: ${variables.databaseName}
+    metadata:
+      sourceType: aws/s3
+      bucket: order-system-blueprints
+      region: eu-west-1
+  ordersApi:
+    path: api.yaml
+    description: The stack for the Orders API
+    variables:
+      databaseHost: ${children.coreInfra.databaseHost}
+      databasePort: ${children.coreInfra.databasePort}
+      databaseUser: ${children.coreInfra.databaseUser}
+      databasePassword: ${children.coreInfra.databasePassword}
+      databaseName: ${variables.databaseName}
+```
+
+<br/>
+
 ### exports
 
 Exports are a way to define a set of fields from resources that are publicly accessible attributes of
@@ -481,9 +557,12 @@ A list of allowed values for the variable.
 All possible values must be of the same type
 as the one defined for the field.
 
+_Boolean variables do not support allowed values as binary enumeration does not make much sense,
+it is better to set boolean variables that can be true or false and use other types for enumerable lists of options._
+
 **field type** 
 
-array[conditional based on "type" ( string | integer | float | boolean | {customType} )]
+array[conditional based on "type" ( string | integer | float | {customType} )]
 
 ___
 
@@ -1003,6 +1082,111 @@ mapping[string, string]
 <br/>
 <br/>
 
+### includeDefinition
+
+A definition for a child blueprint that should be included in the current blueprint.
+A child blueprint can be on the same file system as the parent blueprint or sourced remotely
+depending on the implementation of the spec.
+
+#### FIELDS
+___
+
+<p style={{fontSize: '1.2em'}}><strong>path (required)</strong></p>
+
+The path of the child blueprint to include.
+
+This can be a relative path to the current blueprint, relative to the current working directory in
+a tool implementing the spec or the key/name of the blueprint in a remote file system
+or object store.
+
+Relative path example:
+
+```
+-- main-blueprint.yaml
+-- child-blueprint.yaml
+```
+
+```yaml
+# main-blueprint.yaml
+include:
+  child:
+    path: child-blueprint.yaml
+```
+
+
+Working directory path example:
+
+
+```
+-- app_infra
+---- main-blueprint.yaml
+-- core_infra
+---- child-blueprint.yaml
+```
+
+```yaml
+# app_infra/main-blueprint.yaml
+include:
+  child:
+    path: ${workingDir}/core_infra/child-blueprint.yaml
+```
+
+Remote file system example:
+
+```yaml
+# main-blueprint.yaml
+include:
+  coreInfrastructure:
+    path: core-infra-2023-04-20.yaml
+    metadata:
+      sourceType: aws/s3
+      bucket: order-system-blueprints
+      region: eu-west-1
+```
+
+**field type**
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>variables</strong></p>
+
+A mapping of variable names to values to be used in the child blueprint.
+
+The names (mapping keys) must match the variable names defined in the child blueprint.
+The value type must match the same type as the variable definition in the child blueprint.
+
+**field type**
+
+mapping[string, ( string | integer | float | boolean ) ]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>metadata</strong></p>
+
+Metadata that is designed for implementations to provide custom context/information for dealing with a child
+blueprint.
+
+For example, an implementation would add metadata about a remote location to source a child blueprint from.
+
+**field type**
+
+mapping[string, ( string | object | array | boolean | float | integer ) ]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of the child blueprint providing context for its usage in the parent blueprint.
+
+**field type**
+
+string
+
+<br/>
+<br/>
+
 ### exportDefinition
 
 A definition for a resource field exported from the blueprint that can be referenced outside of the blueprint.
@@ -1199,3 +1383,373 @@ Any other combinations of search value and field type outside of those listed ab
 In these cases the filter operation should fail and the implementation should report an informative error to the user.
 <br/>
 <br/>
+
+## Modular Blueprints
+
+A blueprint does not neccessarily need to be a single file, it can be split into multiple files and directories.
+
+Making blueprints modular is useful for organising blueprints into logical groups and for reusing common parts of a blueprint across multiple blueprints.
+
+There are two ways in which you can make a blueprint modular, the first is to use the `include` property to reference another blueprint file.
+The second is to use a `blueprint` resource type provided by an implementation of the spec that allows the use of a blueprint with a pre-packaged set
+of resources and data sources as if it is a regular resource.
+
+The first of the two options must be available to users in all implementations of the spec, the second is optional and exactly how it is approached is at the discretion of the implementation.
+
+### Using Include
+
+The following section contains a set of examples of how you can pull in one or more blueprints from other local or remote files using the `include` property.
+
+#### In the Same Directory
+
+```
+-- main-blueprint.yaml
+-- core-infra.yaml
+-- app-infra.yaml
+```
+
+`main-blueprint.yaml`
+
+```yaml
+version: 2023-04-20
+
+variables:
+
+  orderTopicType:
+    type: string
+    description: The type of topic to be used for order events
+    default: "standard"
+    allowedValues:
+      - standard
+      - fifo
+
+  appRegion:
+    type: aws/region
+    description: The region in which the application will be deployed
+    default: "eu-west-1"
+
+include:
+
+  coreInfrastructure:
+    path: core-infra.yaml
+    variables:
+      orderTopicType: ${variables.orderTopicType}
+
+  appInfrastructure:
+    path: app-infra.yaml
+    variables:
+      # Implementations of the spec should allow users to reference exports from
+      # included blueprints, correctly determining the order in which blueprints
+      # are executed to ensure that exports are available when they are referenced.
+      # See the include section of the spec for more information on how this should
+      # work.
+      orderTopicId: ${children.coreInfrastructure.ordersTopicId}
+      region: ${variables.appRegion}
+
+exports:
+
+  coreOrdersTopic:
+    type: string
+    description: The unique identifier of the orders topic for the system
+    field: children.coreInfrastructure.ordersTopicId
+  
+  apiBaseUrl:
+    type: string
+    description: The base URL of the API for the system
+    field: children.appInfrastructure.apiBaseUrl
+
+```
+
+`core-infra.yaml`
+```yaml
+version: 2023-04-20
+
+variables:
+    orderTopicType:
+      type: string
+      description: The type of topic to be used for order events
+      default: "standard"
+      allowedValues:
+        - standard
+        - fifo
+
+resources:
+  ordersTopic:
+    type: aws/sns/topic
+    description: The topic to which order events will be published
+    spec:
+      topicType: ${variables.orderTopicType}
+
+exports:
+    ordersTopicId:
+      type: string
+      description: The unique identifier of the orders topic for the system
+      field: resources.ordersTopic.id
+```
+
+`app-infra.yaml`
+
+```yaml
+version: 2023-04-20
+
+variables:
+  region:
+    type: aws/region
+    description: The region in which the application will be deployed
+    default: "eu-west-1"
+
+resources:
+  api:
+    type: aws/api-gateway/rest-api
+    description: The API for the system
+    spec:
+      region: ${variables.region}
+
+exports:
+  apiBaseUrl:
+    type: string
+    description: The base URL of the API for the system
+    field: resources.api.endpoint
+```
+
+<br/>
+<br/>
+
+#### Relative to the Current Working Directory
+
+```
+-- app-infra
+  -- main-blueprint.yaml
+  -- api.yaml
+-- core-infra
+  -- topics.yaml
+  -- event-bus.yaml
+```
+
+`app-infra/main-blueprint.yaml`
+
+```yaml
+version: 2023-04-20
+
+variables:
+
+  orderTopicType:
+    type: string
+    description: The type of topic to be used for order events
+    default: "standard"
+    allowedValues:
+      - standard
+      - fifo
+
+  appRegion:
+    type: aws/region
+    description: The region in which the application will be deployed
+    default: "eu-west-1"
+
+include:
+
+  topics:
+    # Explicitly specifying working directory removes ambiguity around how paths are resolved.
+    path: ${workingDir}/core-infra/topics.yaml
+    variables:
+      orderTopicType: ${variables.orderTopicType}
+
+  eventBus:
+    path: ${workingDir}/core-infra/event-bus.yaml
+    variables:
+      eventBusName: ${variables.eventBusName}
+
+  appInfrastructure:
+    path: ${workingDir}/app-infra/api.yaml
+    variables:
+      orderTopicId: ${children.topics.ordersTopicId}
+      region: ${variables.appRegion}
+
+exports:
+
+  coreOrdersTopic:
+    type: string
+    description: The unique identifier of the orders topic for the system
+    field: children.topics.ordersTopicId
+
+  coreEventBus:
+    type: string
+    description: The unique identifier of the event bus for the system
+    field: children.eventBus.eventBusId
+  
+  apiBaseUrl:
+    type: string
+    description: The base URL of the API for the system
+    field: children.appInfrastructure.apiBaseUrl
+
+```
+
+
+`core-infra/topics.yaml`
+```yaml
+version: 2023-04-20
+
+variables:
+    orderTopicType:
+      type: string
+      description: The type of topic to be used for order events
+      default: "standard"
+      allowedValues:
+        - standard
+        - fifo
+
+resources:
+  ordersTopic:
+    type: aws/sns/topic
+    description: The topic to which order events will be published
+    spec:
+      topicType: ${variables.orderTopicType}
+
+exports:
+    ordersTopicId:
+      type: string
+      description: The unique identifier of the orders topic for the system
+      field: resources.ordersTopic.arn
+```
+
+`core-infra/event-bus.yaml`
+```yaml
+version: 2023-04-20
+
+variables:
+  eventBus:
+    type: string
+    description: The name of the event bus to be used for order events
+    default: "default"
+
+resources:
+  eventBus:
+    type: aws/eventbridge/event-bus
+    description: The event bus to which order events will be published
+    spec:
+      eventBusName: ${variables.eventBus}
+
+exports:
+    eventBusId:
+      type: string
+      description: The unique identifier of the event bus for the system
+      field: resources.eventBus.arn
+```
+
+`app-infra/api.yaml`
+
+```yaml
+version: 2023-04-20
+
+variables:
+  region:
+    type: aws/region
+    description: The region in which the application will be deployed
+    default: "eu-west-1"
+
+resources:
+  api:
+    type: aws/api-gateway/rest-api
+    description: The API for the system
+    spec:
+      region: ${variables.region}
+
+exports:
+  apiBaseUrl:
+    type: string
+    description: The base URL of the API for the system
+    field: resources.api.endpoint
+```
+
+<br/>
+<br/>
+
+#### From a Remote Source
+
+To pull in child blueprints from a remote source, implementations of the spec with their own CLIs, APIs or UIs
+must provide one or more ways to allow users to fetch blueprints from a remote source.
+
+An example would be allowing the use of a remote object store such as AWS S3 or Google Cloud Storage to store blueprints.
+
+Implementations are expected to implement support for remote sources using the metadata section of an include entry.
+
+For example, if the remote source was an AWS S3 bucket:
+
+```yaml
+include:
+  coreInfrastructure:
+    path: core-infra-2023-04-20.yaml
+    metadata:
+      sourceType: aws/s3
+      bucket: order-system-blueprints
+      region: eu-west-1
+```
+
+_This example is purely to show-case how remote sources could be implemented._
+
+You can find out more about this in the [include](#include) section.
+
+<br/>
+<br/>
+
+### With Blueprint Resources
+
+The following is an example of how an implementation might go about supporting blueprints as resources.
+
+
+```yaml
+version: 2023-04-20
+variables:
+
+  region:
+    type: aws/region
+    description: The region in which the application will be deployed
+    default: "eu-west-1"
+
+  orderTopicType:
+    type: string
+    description: The type of topic to be used for order events
+    default: "standard"
+    allowedValues:
+      - standard
+      - fifo
+
+resources:
+
+  api:
+    type: celerity/blueprint
+    description: The API for the system
+    spec:
+      # Assuming a celerity/blueprint provider has a module system
+      # for blueprint resources.
+      module:
+        name: company/ordersApi
+        version: 2.0
+      variables:
+        region: ${variables.region}
+        ordersTopicId: ${resources.coreInfra.ordersTopicId}
+
+  coreInfra:
+    type: celerity/blueprint
+    description: The core infrastructure for an orders system
+    spec:
+      # Assuming a celerity/blueprint provider has a module system
+      # for blueprint resources.
+      module:
+        name: company/ordersCoreInfra
+        version: 1.0
+      variables:
+        orderTopicType: ${variables.orderTopicType}
+
+exports:
+
+  apiBaseUrl:
+    type: string
+    description: The base URL of the API for the system
+    field: resources.api.endpoint
+
+  ordersTopicId:
+    type: string
+    description: The unique identifier of the orders topic for the system
+    field: resources.coreInfra.ordersTopicId
+```
