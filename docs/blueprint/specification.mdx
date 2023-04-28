@@ -534,6 +534,8 @@ that exists for convenience when dealing with variables with a large set of fixe
 A custom variable type must be of the format `{provider}/{type}`.
 An example of a custom variable type would be `aws/region` with a fixed set of supported AWS regions served by an AWS resource provider.
 
+With custom types, labels should be used as references to the values of the variable instead of the values themselves. Custom types should be treated as enums.
+
 #### FIELDS
 ___
 
@@ -556,6 +558,10 @@ ___
 A list of allowed values for the variable.
 All possible values must be of the same type
 as the one defined for the field.
+
+Allowed values can be used with custom variable types to restrict the set of the possible values further.
+
+_For custom types, allowed values must be provided as the label for an option._
 
 _Boolean variables do not support allowed values as binary enumeration does not make much sense,
 it is better to set boolean variables that can be true or false and use other types for enumerable lists of options._
@@ -593,6 +599,8 @@ ___
 <p style={{fontSize: '1.2em'}}><strong>default</strong></p>
 
 Provides a default value for the variable as a fallback when a value for the variable is not provided.
+
+_For custom types, the default value must be provided as the label for an option._
 
 **field type**
 
