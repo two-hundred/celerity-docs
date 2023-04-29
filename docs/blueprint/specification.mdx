@@ -1492,7 +1492,7 @@ exports:
     ordersTopicId:
       type: string
       description: The unique identifier of the orders topic for the system
-      field: resources.ordersTopic.id
+      field: resources.ordersTopic.state.id
 ```
 
 `app-infra.yaml`
@@ -1517,7 +1517,7 @@ exports:
   apiBaseUrl:
     type: string
     description: The base URL of the API for the system
-    field: resources.api.endpoint
+    field: resources.api.state.endpoint
 ```
 
 <br/>
@@ -1617,7 +1617,7 @@ exports:
     ordersTopicId:
       type: string
       description: The unique identifier of the orders topic for the system
-      field: resources.ordersTopic.arn
+      field: resources.ordersTopic.state.arn
 ```
 
 `core-infra/event-bus.yaml`
@@ -1641,7 +1641,7 @@ exports:
     eventBusId:
       type: string
       description: The unique identifier of the event bus for the system
-      field: resources.eventBus.arn
+      field: resources.eventBus.state.arn
 ```
 
 `app-infra/api.yaml`
@@ -1666,7 +1666,7 @@ exports:
   apiBaseUrl:
     type: string
     description: The base URL of the API for the system
-    field: resources.api.endpoint
+    field: resources.api.state.endpoint
 ```
 
 <br/>
@@ -1735,7 +1735,7 @@ resources:
         version: 2.0
       variables:
         region: ${variables.region}
-        ordersTopicId: ${resources.coreInfra.ordersTopicId}
+        ordersTopicId: ${resources.coreInfra.state.ordersTopicId}
 
   coreInfra:
     type: celerity/blueprint
@@ -1754,10 +1754,10 @@ exports:
   apiBaseUrl:
     type: string
     description: The base URL of the API for the system
-    field: resources.api.endpoint
+    field: resources.api.state.endpoint
 
   ordersTopicId:
     type: string
     description: The unique identifier of the orders topic for the system
-    field: resources.coreInfra.ordersTopicId
+    field: resources.coreInfra.state.ordersTopicId
 ```
