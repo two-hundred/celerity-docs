@@ -97,6 +97,8 @@ For example:
 ${variables.databaseHost}
 ```
 
+For more information about referencing variables, see the [references](#references) section.
+
 **type**
 
 mapping[name(string), [variableDefinition](#variabledefinition)]
@@ -210,6 +212,8 @@ You will be able to access the id of the VPC that was found using the filter lik
 ```
 ${dataSources.network.vpc}
 ```
+
+For more information about referencing data source fields, see the [references](#references) section.
 
 **type**
 
@@ -375,6 +379,7 @@ resources:
 Include provides a way to include other blueprints in a given blueprint.
 Included blueprints are treated as children and their properties can be accessed from the parent using `${children.{childName}.{property}}`.
 Child blueprints can be referenced in resources, as inputs to other child blueprints and in exports.
+See the [references](#references) section for more information on how values from child blueprints can be referenced.
 
 This is the primary way to compose blueprints that is a part of the core specification, see [Modular Blueprints](#modular-blueprints) for other approaches.
 
@@ -1233,6 +1238,8 @@ following this format:
 resources.{resourceName}.state.{field}
 ```
 
+See the [references](#references) section for more information on referencing resource values.
+
 **field type**
 
 string
@@ -1389,6 +1396,341 @@ When the field value is a string and the search value is a string, the field val
 
 Any other combinations of search value and field type outside of those listed above should be invalid.
 In these cases the filter operation should fail and the implementation should report an informative error to the user.
+<br/>
+<br/>
+
+## References
+
+In a blueprint, references are ways to access values from a number of different types of objects in a blueprint.
+References can be used to reference variables, resource fields, data source fields, and exported fields from child blueprints.
+
+In most cases references are made with the `${..}` syntax with a few exceptions such as the export
+"field" attribute which expects a reference to be made to a resource field as a regular string.
+
+
+### Accessing Nested Fields
+
+Nested properties that are a part of a field that is a mapping can be accessed with `.` notation.
+This is the same for accessing properties in nested mappings too.
+
+`[\d+]` can be used to access items in a field or a nested field property that is an array by index.
+`[]` can be used as shorthand in references to get the first item in an array. For example `${myResource.myArray[0]}` can be written as `${myResource.myArray[]}`.
+
+Example of accessing nested fields:
+
+```
+${resources.cacheCluster.state.hostConfig[].hostInfo.endpoints[]}
+```
+:::caution
+_Not all reference object types support deep nesting like this, be sure to check the documentation for the object type you are referencing._
+:::
+
+### Variable References
+
+Variable references are simple references that allow access to primitive values or custom enum types
+that have been defined in the blueprint.
+
+Variable values include strings, integers, floats, booleans, and {customType} enum labels.
+
+Variables must be referenced with the `variables.*` prefix.
+
+The following is an example of a variable reference:
+
+```
+${variables.saveOrderFunctionName}
+```
+
+Variables can not have any nested properties or array indexes as they are primitives.
+
+
+:::caution
+If you had a string variable containing serialised json, the following would not be valid:
+
+
+```
+${variables.cacheClusterConfig.host}
+```
+
+:::
+
+:::tip
+To reference a variable that contains serialised json, you can use the `fromjson` function to extract values from the serialised array or mapping.
+
+```
+${fromjson(variables.cacheClusterConfig, "host")}
+```
+:::
+
+### Resource References
+
+Resource references are those that allow access to fields on resources,
+where fields can be from the resource's current state or from the spec or metadata
+of the resource as defined in the blueprint.
+
+Resource field values can be strings, integers, floats, booleans, arrays, or mappings.
+
+Resources can be referenced directly by name or with the `resources.*` prefix.
+For example, `cacheCluster` and `resources.cacheCluster` are both valid ways to reference a resource named `cacheCluster`.
+
+Fields of a resource must be accessed via `.state.*`, `.spec.*` or `.metadata.*`.
+
+To access a field from the resource's current state, use `.state.*` like so:
+
+```
+${resources.cacheCluster.state.nodes[].endpoint}
+```
+
+To access a field from the resource's spec, use `.spec.*` like so:
+
+```
+${resources.cacheCluster.spec.clusterSize}
+```
+
+To access a field from the resource's metadata, use `.metadata.*` like so:
+
+```
+${resources.cacheCluster.metadata.annotations."myAnnotation.populateEnvVars"}
+```
+
+When accessing metadata for a resource, fields must be accessed from either `.metadata.labels`, `.metadata.annotations`, or `.metadata.custom`
+as per the specification. `.metadata.displayName` is also supported to reference the display name of a resource.
+
+
+:::tip
+Any fields with names that contain `.`, such as annotations where it is encouraged
+can be referenced using quotation marks like so:
+
+```
+${*.annotations."myAnnotation.populateEnvVars"}
+```
+:::
+
+### Data Source References
+
+Data source references are those that allow access to the exported fields of a data source.
+
+Data source field values can be strings, integers, floats, booleans or arrays of either one of the aforementioned primitives.
+
+Data sources must be referenced with the `datasources.*` prefix.
+
+A data source field must be accessed via `datasources.{name}.*`.
+
+The following is an example of a data source reference:
+
+```
+${datasources.network.vpc}
+```
+
+For a data source field that is an array, the following is an example of how to access the first item in the array:
+
+```
+${datasources.network.subnets[]}
+``` 
+
+
+### Child Blueprint References
+
+Child blueprint references are those that allow access to the exported fields of a child blueprint.
+
+Child blueprint field values can be strings, integers, floats, booleans, arrays or mappings.
+
+Child blueprints must be referenced with the `children.*` prefix.
+
+A child blueprint field must be accessed via `children.{name}.*`.
+
+The following is an example of a child blueprint reference:
+
+```
+${children.coreInfra.ordersTopicInfo.arn}
+```
+
+### Functions
+
+There are a set of utility functions that can be used in references when accessed
+via the `${..}` syntax.
+
+:::caution
+Functions are not supported in any other context where references might be used.
+They should only ever be used inside `${..}`.
+:::
+
+Functions are required to be inclusive of but not limited to the set of core functions defined in the spec;
+implementations are free to add additional functions as they see fit.
+
+The following is a list of the core utility functions that should be supported by all implementations of the spec.
+
+<br/>
+
+#### `fromjson`
+
+The `fromjson` function is used to extract values from a serialised json string.
+Implementations should use [json pointer notation](https://datatracker.ietf.org/doc/rfc6901/) to allow for the extraction of values from complex serialised structures.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the json string to extract values from.
+2. `string` - A valid [json pointer](https://datatracker.ietf.org/doc/rfc6901/) expression to extract the value from the json string.
+
+**Returns:**
+
+The value extracted from the json string.
+This could be a primitive value, an array, or a mapping.
+
+**Example:**
+
+```
+${fromjson(variables.cacheClusterConfig, "host")}
+```
+
+<br/>
+
+#### `jsondecode`
+
+The `jsondecode` function is used to decode a serialised json string into an array or mapping.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the json string to decode.
+
+**Returns:**
+
+The decoded json string.
+This could be an array, or a mapping.
+
+**Example:**
+
+```
+${jsondecode(variables.cacheClusterConfig)}
+```
+
+
+<br/>
+
+#### `len`
+
+The `len` function is used to get the length of a string, array, or mapping.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the string, array, or mapping to get the length of.
+
+**Returns:**
+
+The length of the string, array, or mapping.
+For a string, the length is the number of characters.
+For a mapping, the length is the number of key value pairs.
+
+**Example:**
+
+```
+${len(variables.cacheClusterConfig.endpoints)}
+```
+
+<br/>
+
+#### `substr`
+
+The `substr` function is used to get a substring from a string.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the string to get the substring from.
+2. `integer` - The index of the first character to include in the substring.
+3. `integer` _(optional)_ - The index of the last character to include in the substring. If not provided the substring will include all characters from the start index to the end of the string.
+
+**Returns:**
+
+The substring from the string.
+
+**Example:**
+
+```
+${substr(variables.cacheClusterConfig.host, 0, 3)}
+```
+
+<br/>
+
+#### `replace`
+
+The `replace` function is used to replace all occurrences of a substring in a string with another substring.
+
+**Parameters:**
+
+1. `string` - A valid reference representing an input string that contains a substring that needs replacing.
+2. `string` - The "search" substring to replace.
+3. `string` - The substring to replace the "search" substring with.
+
+**Returns:**
+
+The input string with all occurrences of the "search" substring replaced with the "replace" substring.
+
+**Example:**
+
+```
+${replace(variables.cacheClusterConfig.host, "http://", "https://")}
+```
+
+<br/>
+
+#### `trim`
+
+The `trim` function is used to remove all leading and trailing whitespace from a string.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the string to trim.
+
+**Returns:**
+
+The input string with all leading and trailing whitespace removed.
+
+**Example:**
+
+```
+${trim(variables.cacheClusterConfig.host)}
+```
+
+<br/>
+
+#### `trimprefix`
+
+The `trimprefix` function is used to remove a prefix from a string.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the string to remove the prefix from.
+2. `string` - The prefix to remove from the string.
+
+**Returns:**
+
+The input string with the prefix removed.
+
+**Example:**
+
+```
+${trimprefix(variables.cacheClusterConfig.host, "http://")}
+```
+
+<br/>
+
+#### `trimsuffix`
+
+The `trimsuffix` function is used to remove a suffix from a string.
+
+**Parameters:**
+
+1. `string` - A valid reference representing the string to remove the suffix from.
+
+**Returns:**
+
+The input string with the suffix removed.
+
+**Example:**
+
+```
+${trimsuffix(variables.cacheClusterConfig.host, ":3000")}
+```
+
 <br/>
 <br/>
 
