@@ -674,6 +674,17 @@ Object paths using dot notation can be used for exported field names (mapping ke
 
 mapping[name(string), [dataSourceExportDefinition](#datasourceexportdefinition)]
 
+___
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of a data source that can be used to provide extra context in UI or CLI tools
+that make use of the blueprint specification.
+
+**field type** 
+
+string
+
 <br/>
 <br/>
 
@@ -704,9 +715,9 @@ source to do its job.
 
 It is good practise to namespace annotation keys and use dot notation.
 
-**field type** 
+**field type**
 
-mapping[string, string]
+mapping[string, ( string | integer | float | boolean ) ]
 
 ___
 
@@ -958,7 +969,7 @@ It is good practise to namespace annotation keys and use dot notation.
 
 **field type** 
 
-mapping[string, string]
+mapping[string, ( string | integer | float | boolean ) ]
 
 ___
 
@@ -1208,7 +1219,7 @@ The name of the exported attribute is the key in the mapping in the [exports](#e
 #### FIELDS
 ___
 
-<p style={{fontSize: '1.2em'}}><strong>type</strong></p>
+<p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
 
 The type of the exported field.
 
@@ -1225,7 +1236,7 @@ string | object | integer | float | array | boolean
 
 ___
 
-<p style={{fontSize: '1.2em'}}><strong>field</strong></p>
+<p style={{fontSize: '1.2em'}}><strong>field (required)</strong></p>
 
 The name/path of the resource field to export.
 Any attribute of a resource can be exported, it is not only limited to the
@@ -1568,7 +1579,7 @@ Implementations should use [json pointer notation](https://datatracker.ietf.org/
 
 **Parameters:**
 
-1. `string` - A valid reference representing the json string to extract values from.
+1. `string` - A valid string literal, reference or function call yielding the json string to extract values from.
 2. `string` - A valid [json pointer](https://datatracker.ietf.org/doc/rfc6901/) expression to extract the value from the json string.
 
 **Returns:**
@@ -1576,10 +1587,22 @@ Implementations should use [json pointer notation](https://datatracker.ietf.org/
 The value extracted from the json string.
 This could be a primitive value, an array, or a mapping.
 
-**Example:**
+**Examples:**
 
+With a reference:
 ```
 ${fromjson(variables.cacheClusterConfig, "host")}
+```
+
+With a function call:
+```
+${fromjson(trim(variables.cacheClusterConfig), "host")}
+```
+
+With a string literal:
+
+```
+${fromjson("{\"host\":\"localhost\"}", "host")}
 ```
 
 <br/>
@@ -1590,7 +1613,7 @@ The `jsondecode` function is used to decode a serialised json string into an arr
 
 **Parameters:**
 
-1. `string` - A valid reference representing the json string to decode.
+1. `string` - A valid string literal, reference or function call yielding the json string to decode.
 
 **Returns:**
 
@@ -1612,7 +1635,7 @@ The `len` function is used to get the length of a string, array, or mapping.
 
 **Parameters:**
 
-1. `string` - A valid reference representing the string, array, or mapping to get the length of.
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string, array, or mapping to get the length of.
 
 **Returns:**
 
@@ -1634,7 +1657,7 @@ The `substr` function is used to get a substring from a string.
 
 **Parameters:**
 
-1. `string` - A valid reference representing the string to get the substring from.
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to get the substring from.
 2. `integer` - The index of the first character to include in the substring.
 3. `integer` _(optional)_ - The index of the last character to include in the substring. If not provided the substring will include all characters from the start index to the end of the string.
 
@@ -1656,7 +1679,7 @@ The `replace` function is used to replace all occurrences of a substring in a st
 
 **Parameters:**
 
-1. `string` - A valid reference representing an input string that contains a substring that needs replacing.
+1. `string` - A valid string literal, reference or function call yielding a return value representing an input string that contains a substring that needs replacing.
 2. `string` - The "search" substring to replace.
 3. `string` - The substring to replace the "search" substring with.
 
@@ -1678,7 +1701,7 @@ The `trim` function is used to remove all leading and trailing whitespace from a
 
 **Parameters:**
 
-1. `string` - A valid reference representing the string to trim.
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to trim.
 
 **Returns:**
 
@@ -1698,7 +1721,7 @@ The `trimprefix` function is used to remove a prefix from a string.
 
 **Parameters:**
 
-1. `string` - A valid reference representing the string to remove the prefix from.
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to remove the prefix from.
 2. `string` - The prefix to remove from the string.
 
 **Returns:**
@@ -1719,7 +1742,8 @@ The `trimsuffix` function is used to remove a suffix from a string.
 
 **Parameters:**
 
-1. `string` - A valid reference representing the string to remove the suffix from.
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to remove the suffix from.
+2. `string` - The suffix to remove from the string.
 
 **Returns:**
 
@@ -1730,6 +1754,358 @@ The input string with the suffix removed.
 ```
 ${trimsuffix(variables.cacheClusterConfig.host, ":3000")}
 ```
+
+### Complex Types
+
+References can be used to reference complex types including arrays and mappings.
+There is also the `jsondecode` function that can be used to decode a json string which will more often than not yield a complex type.
+
+Dynamic value substitution is always performed with the `${..}` syntax, this can be as a standalone string or part of a string interpolation;
+for example, `${cacheCluster.state.config.host}` or `https://${cacheCluster.state.config.host}:3000`.
+
+In the case of a reference that yields a complex type, string interpolation isn't particularly useful and can lead to unexpected results.
+For this reason, implementations of the spec should explicitly report informative errors to the user when string interpolation is attempted on a reference that yields a complex type.
+
+### ${..} Substitution Reference Usage
+
+There are restrictions on where reference substitutions can be used to simplify the specification and allow dynamic values to be provided
+where they are most useful.
+
+The following is a set of rules about the usage of reference substitutions.
+
+<br/>
+
+#### Keys/Property Names
+
+References can **not** be used in mapping keys/property names in any part of a blueprint specification.
+
+Some examples of this would be the following:
+
+:::danger ❌ Invalid
+```yaml
+resources:
+  ${variables.getOrderFunctionName}:
+    type: aws/ec2/instance
+```
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    spec:
+      ${variables.timeoutKey}: 3000
+```
+:::
+
+<br/>
+
+#### Resources
+
+References can **not** be used in the resource type property.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml
+resources:
+  getOrderFunction:
+    type: ${variables.functionType}
+```
+:::
+
+
+References can be used in any **value** in a resource spec.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    spec:
+      functionName: ${variables.environment}-${variables.getOrderFunctionName}
+      timeout: ${variables.timeout}
+      runtime: nodejs16.x
+      codeUri: ..
+      handler: index.handler
+```
+:::
+
+References can be used in the `description` of a resource, however it is not recommended
+for better readability of a blueprint.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    description: The function that ${variables.getOrdersAction} in the system.
+    spec:
+      functionName: ${variables.environment}-${variables.getOrderFunctionName}
+      timeout: ${variables.timeout}
+      runtime: nodejs16.x
+      codeUri: ..
+      handler: index.handler
+```
+:::
+
+References can be used in any **value** in a resource's metadata `displayName`, `custom` and `annotations` properties.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    spec:
+      functionName: Prod-getOrderFunction-v1
+      timeout: 3000
+      runtime: nodejs16.x
+      codeUri: ..
+      handler: index.handler
+    metadata:
+      displayName: ${variables.getOrderFunctionDisplayName}
+      annotations:
+        aws.cloudformation.roleArn: ${variables.getOrderFunctionRoleArn}
+      labels:
+        app: orderApi
+      custom:
+        customAppTag: ${variables.getOrderFunctionAppTag}
+```
+:::
+
+References can **not** be used in the `labels` property of a resource's metadata.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    spec:
+      functionName: Prod-getOrderFunction-v1
+      timeout: 3000
+      runtime: nodejs16.x
+      codeUri: ..
+      handler: index.handler
+    metadata:
+      displayName: Get Orders
+      labels:
+        app: ${variables.getOrderFunctionApp}
+```
+:::
+
+References can **not** be used in the `linkSelector` property of a resource.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    spec:
+      functionName: Prod-getOrderFunction-v1
+      timeout: 3000
+      runtime: nodejs16.x
+      codeUri: ..
+      handler: index.handler
+    metadata:
+      displayName: Get Orders
+    linkSelector:
+      byLabel:
+        app: ${variables.ordersApp}
+```
+:::
+
+<br/>
+
+#### Child Blueprint Includes
+
+References can be used in any **value** in a child blueprint include.
+This includes the path, variables and metadata properties.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+include:
+  coreInfrastructure:
+    path: core-infra-${variables.coreInfraVersion}.yaml
+    variables:
+      environment: ${variables.environment}
+      region: ${variables.region}
+    metadata:
+      sourceType: aws/s3
+      bucket: ${variables.blueprintsBucket}
+      region: ${variables.region}
+```
+:::
+
+#### Data Sources
+
+References can **not** be used in the data source type property.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml
+dataSources:
+  network:
+    type: ${variables.networkDataSourceType}
+```
+:::
+
+References can be used in the `description` of a data source, however it is not recommended
+for better readability of a blueprint.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+dataSources:
+  network:
+    type: aws/vpc
+    description: The network to deploy the ${variables.orderApiName} to.
+    filter:
+      field: subnets[].availabilityZone
+      operator: in
+      search:
+        - eu-west-1a
+        - eu-west-1b
+    exports:
+      vpc:
+        type: string
+        aliasFor: vpcId
+```
+:::
+
+References can be used in any **value** in a data source's metadata properties.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+dataSources:
+  network:
+    type: aws/vpc
+    filter:
+      field: subnets[].availabilityZone
+      operator: in
+      search:
+        - eu-west-1a
+        - eu-west-1b
+    exports:
+      vpc:
+        type: string
+        aliasFor: vpcId
+    metadata:
+      displayName: ${variables.getNetworkDataSourceDisplayName}
+      annotations:
+        aws.cloudformation.roleArn: ${variables.getNetworkDataSourceRoleArn}
+      custom:
+        customAppTag: ${variables.getNetworkDataSourceAppTag}
+```
+:::
+
+References can **not** be used in the `exports`, `filter.field` and `filter.operator` properties of a data source.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml
+dataSources:
+  network:
+    type: aws/vpc
+    filter:
+      field: subnets[].${variables.availabilityZoneField}
+      operator: ${variables.networkFilterOperator}
+      search:
+        - eu-west-1a
+        - eu-west-1b
+    exports:
+      vpc:
+        type: string
+        aliasFor: ${variables.vpcAliasFor}
+```
+:::
+
+References can be used in the `filter.search` property of a data source.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+dataSources:
+  network:
+    type: aws/vpc
+    filter:
+      field: subnets[0].availabilityZone
+      operator: in
+      search:
+        - ${variables.availabilityZone1}
+        - ${variables.availabilityZone2}
+    exports:
+      vpc:
+        type: string
+        aliasFor: vpcId
+```
+:::
+
+<br/>
+
+#### Blueprint Exports
+
+References can **not** be used in the export `type` or `field` properties;
+they can only be used in the `description` property but generally this is not recommended
+for readability of a blueprint.
+
+An example of an invalid export would be the following:
+
+:::danger ❌ Invalid
+```yaml
+exports:
+  saveOrdersFunctionArn:
+    type: ${variables.saveOrdersFunctionArnType}
+    description: The ARN of the function used to save orders to the system.
+    field: resources.saveOrdersFunction.${variables.functionArnFieldPath}
+```
+:::
+
+An example of a valid export would be the following:
+
+:::success ✅ Valid
+```yaml
+exports:
+  saveOrdersFunctionArn:
+    type: string
+    description: The ARN of the function used to ${variables.saveOrdersAction} to the system.
+    field: resources.saveOrdersFunction.state.functionArn
+```
+:::
+
+<br/>
+
+#### Blueprint Metadata
+
+References can be used in all **values** at any level of nesting in the metadata of a blueprint.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+metadata:
+  function.builder: ${variables.functionBuilder}
+  function.builder.minify: false
+  function.builder.buildArgs:
+    - --build-arg
+    - NODE_ENV=${variables.nodeEnvironment}
+```
+:::
 
 <br/>
 <br/>
