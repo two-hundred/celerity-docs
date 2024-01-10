@@ -4,6 +4,6 @@
   "compilerOptions": {
     "baseUrl": ".",
     "resolveJsonModule": true,
-    "types": ["node", "@docusaurus/module-type-aliases", "@docusaurus/theme-classic", "docusaurus-json-schema-plugin"]
+    "types": ["node", "@docusaurus/module-type-aliases", "@docusaurus/theme-classic"]
   }
 }

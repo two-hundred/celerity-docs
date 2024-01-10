@@ -1,9 +1,6 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
-
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Celerity',
@@ -15,10 +12,9 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'two-hundred', // Usually your GitHub org/user name.
   projectName: 'docusaurus', // Usually your repo name.
-  themes: ["docusaurus-json-schema-plugin"],
   presets: [
     [
-      'classic',
+      '@docusaurus/preset-classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
@@ -120,10 +116,6 @@ const config = {
           },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} The Celerity documentation authors.`,
-      },
-      prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
       },
     }),
 };
