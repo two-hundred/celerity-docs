@@ -2,9 +2,6 @@
 sidebar_position: 2
 ---
 
-import JSONSchemaViewer from "@theme/JSONSchemaViewer";
-import Schema from "@site/static/schemas/blueprint-spec-v2021-10-20.json";
-
 # Specification
 
 **v2023-04-20**
@@ -106,6 +103,7 @@ mapping[name(string), [variableDefinition](#variabledefinition)]
 **example**
 
 JSON
+
 ```json
 {
   "variables": {
@@ -171,7 +169,7 @@ variables:
 ```
 <br/>
 
-### dataSources
+### datasources
 
 Data sources provide a way to source dynamic values to be used in resources and other data sources from external sources that will have been created outside
 the scope of a blueprint.
@@ -182,13 +180,13 @@ The order in which data sources are resolved is implicitly determined by referen
 
 Data sources can be referenced in resources using the following syntax:
 ```
-${dataSources.[dataSourceName].[exportedField]}
+${datasources.[datasourceName].[exportedField]}
 ```
 
 For example, for a data source definition like the following:
 
 ```yaml
-dataSources:
+datasources:
   network:
     type: aws/vpc
     metadata:
@@ -210,14 +208,14 @@ dataSources:
 You will be able to access the id of the VPC that was found using the filter like so:
 
 ```
-${dataSources.network.vpc}
+${datasources.network.vpc}
 ```
 
 For more information about referencing data source fields, see the [references](#references) section.
 
 **type**
 
-mapping[string, [dataSourceDefinition](#datasourcedefinition)]
+mapping[string, [datasourceDefinition](#datasourcedefinition)]
 
 **example**
 
@@ -225,7 +223,7 @@ JSON
 
 ```json
 {
-  "dataSources": {
+  "datasources": {
     "network": {
       "type": "aws/vpc",
       "metadata": {
@@ -256,7 +254,7 @@ JSON
 YAML
 
 ```yaml
-dataSources:
+datasources:
   network:
     type: aws/vpc
     metadata:
@@ -554,7 +552,7 @@ string
 
 **allowed values** 
 
-string | integer |  float | boolean | {customType}
+string | integer |  float | boolean | `{customType}`
 
 ___
 
@@ -573,7 +571,7 @@ it is better to set boolean variables that can be true or false and use other ty
 
 **field type** 
 
-array[conditional based on "type" ( string | integer | float | {customType} )]
+`array[conditional based on "type" ( string | integer | float | {customType} )]`
 
 ___
 
@@ -609,13 +607,13 @@ _For custom types, the default value must be provided as the label for an option
 
 **field type**
 
-conditional based on "type" ( string | integer | float | boolean | {customType} )
+conditional based on "type" `( string | integer | float | boolean | {customType} )`
 
 
 <br/>
 <br/>
 
-### dataSourceDefinition
+### datasourceDefinition
 
 A definition for a data source that can be referenced in resources and other data sources in the spec.
 The name of the data source is not in this definition as it is the key in the mapping of data sources that makes use of this data type.
@@ -717,7 +715,7 @@ It is good practise to namespace annotation keys and use dot notation.
 
 **field type**
 
-mapping[string, ( string | integer | float | boolean ) ]
+`mapping[string, ( string | integer | float | boolean ) ]`
 
 ___
 
@@ -783,7 +781,7 @@ A value or list of values that should be compared to the value of the configured
 
 **field type** 
 
-string | integer | float | boolean | array[ ( string | integer | float | boolean ) ]
+`string | integer | float | boolean | array[ ( string | integer | float | boolean ) ]`
 
 <br/>
 <br/>
@@ -802,7 +800,7 @@ The type of the field being exported from the data source.
 
 **field type** 
 
-array | string | integer | float | boolean
+`array | string | integer | float | boolean`
 
 _only arrays of primitive values are supported as exported data source fields._
 
@@ -813,8 +811,8 @@ ___
 Determines the name of the field in the data source object that should be exported
 to the blueprint with an alias.
 
-When this field is set, the alias would be the key in the `dataSources` mapping.
-See the [dataSources](#datasources) examples for more information.
+When this field is set, the alias would be the key in the `datasources` mapping.
+See the [datasources](#datasources) examples for more information.
 
 Object paths using dot notation can be used for nested fields in external resources (e.g. `metadata.name`)
 
@@ -1183,7 +1181,7 @@ The value type must match the same type as the variable definition in the child 
 
 **field type**
 
-mapping[string, ( string | integer | float | boolean ) ]
+`mapping[string, ( string | integer | float | boolean ) ]`
 
 ___
 
@@ -1410,7 +1408,7 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-## References
+## References & Substitutions
 
 In a blueprint, references are ways to access values from a number of different types of objects in a blueprint.
 References can be used to reference variables, resource fields, data source fields, and exported fields from child blueprints.
@@ -1418,6 +1416,7 @@ References can be used to reference variables, resource fields, data source fiel
 In most cases references are made with the `${..}` syntax with a few exceptions such as the export
 "field" attribute which expects a reference to be made to a resource field as a regular string.
 
+`${..}` is a substitution that can be used for references and to apply one of a limited set of functions to a value.
 
 ### Accessing Nested Fields
 
@@ -1441,7 +1440,7 @@ _Not all reference object types support deep nesting like this, be sure to check
 Variable references are simple references that allow access to primitive values or custom enum types
 that have been defined in the blueprint.
 
-Variable values include strings, integers, floats, booleans, and {customType} enum labels.
+Variable values include strings, integers, floats, booleans, and `{customType}` enum labels.
 
 Variables must be referenced with the `variables.*` prefix.
 
@@ -1472,6 +1471,25 @@ ${fromjson(variables.cacheClusterConfig, "host")}
 ```
 :::
 
+
+#### Variable Reference Format
+
+The precise format for a variable reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
+
+```
+variable reference     =   "variables" , name accessor ;
+name accessor          =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes         =   { name in quotes char }- ;
+name in quotes char    =   letter | digit | "_" | "-" | "." ;
+name                   =   start name char , name chars ;
+name chars             =   { name char } ;
+name char              =   letter | digit | "_" | "-" ;
+start name char        =   letter | "_" ;
+letter                 =   ? [A-Za-z] ? ;
+digit                  =   ? [0-9] ? ;
+```
+
+
 ### Resource References
 
 Resource references are those that allow access to fields on resources,
@@ -1500,7 +1518,7 @@ ${resources.cacheCluster.spec.clusterSize}
 To access a field from the resource's metadata, use `.metadata.*` like so:
 
 ```
-${resources.cacheCluster.metadata.annotations."myAnnotation.populateEnvVars"}
+${resources.cacheCluster.metadata.annotations["myAnnotation.populateEnvVars"]}
 ```
 
 When accessing metadata for a resource, fields must be accessed from either `.metadata.labels`, `.metadata.annotations`, or `.metadata.custom`
@@ -1512,9 +1530,32 @@ Any fields with names that contain `.`, such as annotations where it is encourag
 can be referenced using quotation marks like so:
 
 ```
-${*.annotations."myAnnotation.populateEnvVars"}
+${*.annotations["myAnnotation.populateEnvVars"]}
 ```
 :::
+
+#### Resource Reference Format
+
+The precise format for a resource reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
+
+```
+resource reference    =   resource name , [ ( "." , resource path ) ] ;
+resource name         =   ( "resources." , name accessor ) | name ;
+resource path         =   "metadata.displayName" | ( resource path prefix , property path )  ;
+resource path prefix  =   "state" | "spec" | "metadata.labels" | "metadata.custom" | "metadata.annotations" ;
+property path         =   name accessor , { ( name accessor | index acessor ) } ;
+index accessor        =   "[" , [ natural number ] , "]" ;
+name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes        =   { name in quotes char }- ;
+name in quotes char   =   letter | digit | "_" | "-" | "." ;
+name                  =   start name char , name chars ;
+name chars            =   { name char } ;
+name char             =   letter | digit | "_" | "-" ;
+start name char       =   letter | "_" ;
+natural number        =   { digit }- ;
+letter                =   ? [A-Za-z] ? ;
+digit                 =   ? [0-9] ? ;
+```
 
 ### Data Source References
 
@@ -1538,6 +1579,24 @@ For a data source field that is an array, the following is an example of how to 
 ${datasources.network.subnets[]}
 ``` 
 
+#### Data Source Reference Format
+
+The precise format for a data source reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
+
+```
+data source reference     =   "datasources" , name accessor , name accessor , [ index accessor ] ;
+index accessor            =   "[" , [ natural number ] , "]" ;
+name accessor             =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes            =   { name in quotes char }- ;
+name in quotes char       =   letter | digit | "_" | "-" | "." ;
+name                      =   start name char , name chars ;
+name chars                =   { name char } ;
+name char                 =   letter | digit | "_" | "-" ;
+start name char           =   letter | "_" ;
+natural number            =   { digit }- ;
+letter                    =   ? [A-Za-z] ? ;
+digit                     =   ? [0-9] ? ;
+```
 
 ### Child Blueprint References
 
@@ -1555,6 +1614,26 @@ The following is an example of a child blueprint reference:
 ${children.coreInfra.ordersTopicInfo.arn}
 ```
 
+#### Child Blueprint Reference Format
+
+The precise format for a child blueprint reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
+
+```
+child blueprint reference     =   "children." , name accessor , { name accessor | index accessor }- ;
+index accessor                =   "[" , [ natural number ] , "]" ;
+name accessor                 =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes                =   { name in quotes char }- ;
+name in quotes char           =   letter | digit | "_" | "-" | "." ;
+name                          =   start name char , name chars ;
+name chars                    =   { name char } ;
+name char                     =   letter | digit | "_" | "-" ;
+start name char               =   letter | "_" ;
+natural number                =   { digit }- ;
+letter                        =   ? [A-Za-z] ? ;
+digit                         =   ? [0-9] ? ;
+```
+
+
 ### Functions
 
 There are a set of utility functions that can be used in references when accessed
@@ -1567,6 +1646,8 @@ They should only ever be used inside `${..}`.
 
 Functions are required to be inclusive of but not limited to the set of core functions defined in the spec;
 implementations are free to add additional functions as they see fit.
+
+#### Function Definitions
 
 The following is a list of the core utility functions that should be supported by all implementations of the spec.
 
@@ -1766,7 +1847,7 @@ for example, `${cacheCluster.state.config.host}` or `https://${cacheCluster.stat
 In the case of a reference that yields a complex type, string interpolation isn't particularly useful and can lead to unexpected results.
 For this reason, implementations of the spec should explicitly report informative errors to the user when string interpolation is attempted on a reference that yields a complex type.
 
-### ${..} Substitution Reference Usage
+### `${..}` Substitution Reference Usage
 
 There are restrictions on where reference substitutions can be used to simplify the specification and allow dynamic values to be provided
 where they are most useful.
@@ -1805,12 +1886,18 @@ References can **not** be used in the resource type property.
 An example of this would be the following:
 
 :::danger ❌ Invalid
-```yaml
+```yaml title="blueprint.yaml"
 resources:
   getOrderFunction:
     type: ${variables.functionType}
 ```
 :::
+
+```jsx
+const Component = () => {
+  return <></>;
+}
+```
 
 
 References can be used in any **value** in a resource spec.
@@ -1954,7 +2041,7 @@ An example of this would be the following:
 
 :::danger ❌ Invalid
 ```yaml
-dataSources:
+datasources:
   network:
     type: ${variables.networkDataSourceType}
 ```
@@ -1967,7 +2054,7 @@ An example of this would be the following:
 
 :::success ✅ Valid
 ```yaml
-dataSources:
+datasources:
   network:
     type: aws/vpc
     description: The network to deploy the ${variables.orderApiName} to.
@@ -1990,7 +2077,7 @@ An example of this would be the following:
 
 :::success ✅ Valid
 ```yaml
-dataSources:
+datasources:
   network:
     type: aws/vpc
     filter:
@@ -2018,7 +2105,7 @@ An example of this would be the following:
 
 :::danger ❌ Invalid
 ```yaml
-dataSources:
+datasources:
   network:
     type: aws/vpc
     filter:
@@ -2040,7 +2127,7 @@ An example of this would be the following:
 
 :::success ✅ Valid
 ```yaml
-dataSources:
+datasources:
   network:
     type: aws/vpc
     filter:
@@ -2109,6 +2196,52 @@ metadata:
 
 <br/>
 <br/>
+
+### Substitution Grammar
+
+Substitutions are made up of a small language that can be defined formally as a [context-free grammar](https://web.stanford.edu/class/archive/cs/cs103/cs103.1164/lectures/18/Small18.pdf).
+In this specification, [Extended Backus-Naur form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) is used to represent the grammar.
+
+Everything that goes in a `${..}` substitution block must adhere to the rules of this grammar.
+
+```
+substitution                 =   variable ref | datasource reference | child reference | resource reference | function call | literal ;
+function call                =   name , "(" , function args , ")" ;
+function args                =   [ substitution , { "," , substitution } ] ;
+variable reference           =   "variables" , name accessor ;
+data source reference        =   "datasources" , name accessor , name accessor , [ index accessor ] ;
+child blueprint reference    =   "children." , name accessor , { name accessor | index accessor }- ;
+resource reference           =   resource name , [ ( "." , resource path ) ] ;
+resource name                =   ( "resources." , name accessor ) | name ;
+resource path                =   "metadata.displayName" | ( resource path prefix , property path )  ;
+resource path prefix         =   "state" | "spec" | "metadata.labels" | "metadata.custom" | "metadata.annotations" ;
+property path                =   name accessor , { ( name accessor | index acessor ) } ;
+literal                      =   string literal | int literal | float literal | bool literal ;
+string literal               =   '"' , string chars , '"' ;
+bool literal                 =   "true" | "false" ;
+int literal                  =   [ "-" ] , natural number ;
+float literal                =   [ "-" ] , natural number , "." , natural number ;
+index accessor               =   "[" , [ natural number ] , "]" ;
+natural number               =   { digit }- ;
+string chars                 =   { string char } ;
+string char                  =   ? utf-8 char excluding quote ? | escaped quote ;
+escaped quote                =   "\" , '"' ;
+name accessor                =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes               =   { name in quotes char }- ;
+name in quotes char          =   letter | digit | "_" | "-" | "." ;
+name                         =   start name char , name chars ;
+name chars                   =   { name char } ;
+name char                    =   letter | digit | "_" | "-" ;
+start name char              =   letter | "_" ;
+letter                       =   ? [A-Za-z] ? ;
+digit                        =   ? [0-9] ? ;
+```
+
+### Caveats
+
+#### Dealing with environment variables
+
+The use of `${..}` conflicts with shell environment variables so attempts to pre-process a blueprint template file by expanding environment variables are not advised. Environment variables should instead be fed in at runtime and mapped to [variables](#variables) in the blueprint.
 
 ## Modular Blueprints
 
