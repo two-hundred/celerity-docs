@@ -1539,10 +1539,8 @@ ${*.annotations["myAnnotation.populateEnvVars"]}
 The precise format for a resource reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
 ```
-resource reference    =   resource name , [ ( "." , resource path ) ] ;
+resource reference    =   resource name , [ property path ] ;
 resource name         =   ( "resources." , name accessor ) | name ;
-resource path         =   "metadata.displayName" | ( resource path prefix , property path )  ;
-resource path prefix  =   "state" | "spec" | "metadata.labels" | "metadata.custom" | "metadata.annotations" ;
 property path         =   name accessor , { ( name accessor | index acessor ) } ;
 index accessor        =   "[" , [ natural number ] , "]" ;
 name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
@@ -2205,28 +2203,29 @@ In this specification, [Extended Backus-Naur form](https://en.wikipedia.org/wiki
 Everything that goes in a `${..}` substitution block must adhere to the rules of this grammar.
 
 ```
-substitution                 =   variable ref | datasource reference | child reference | resource reference | function call | literal ;
+substitution                 =   variable reference | datasource reference | child reference | resource reference | literal | function call ;
 function call                =   name , "(" , function args , ")" ;
 function args                =   [ substitution , { "," , substitution } ] ;
 variable reference           =   "variables" , name accessor ;
 data source reference        =   "datasources" , name accessor , name accessor , [ index accessor ] ;
-child blueprint reference    =   "children." , name accessor , { name accessor | index accessor }- ;
-resource reference           =   resource name , [ ( "." , resource path ) ] ;
+child blueprint reference    =   "children" , name accessor , { name accessor | index accessor }- ;
+resource reference           =   resource name , [ property path ] ;
 resource name                =   ( "resources." , name accessor ) | name ;
-resource path                =   "metadata.displayName" | ( resource path prefix , property path )  ;
-resource path prefix         =   "state" | "spec" | "metadata.labels" | "metadata.custom" | "metadata.annotations" ;
 property path                =   name accessor , { ( name accessor | index acessor ) } ;
-literal                      =   string literal | int literal | float literal | bool literal ;
+name accessor                =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+index accessor               =   "[" , [ natural number ] , "]" ;
+literal                      =   bool literal | float literal | int literal | string literal ;
+
+# Lex tokens
+
 string literal               =   '"' , string chars , '"' ;
 bool literal                 =   "true" | "false" ;
 int literal                  =   [ "-" ] , natural number ;
 float literal                =   [ "-" ] , natural number , "." , natural number ;
-index accessor               =   "[" , [ natural number ] , "]" ;
 natural number               =   { digit }- ;
 string chars                 =   { string char } ;
 string char                  =   ? utf-8 char excluding quote ? | escaped quote ;
 escaped quote                =   "\" , '"' ;
-name accessor                =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
 name in quotes               =   { name in quotes char }- ;
 name in quotes char          =   letter | digit | "_" | "-" | "." ;
 name                         =   start name char , name chars ;
