@@ -1539,9 +1539,8 @@ ${*.annotations["myAnnotation.populateEnvVars"]}
 The precise format for a resource reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
 ```
-resource reference    =   resource name , [ property path ] ;
+resource reference    =   resource name , [ ( name accessor , { ( name accessor | index acessor ) } ) ] ;
 resource name         =   ( "resources." , name accessor ) | name ;
-property path         =   name accessor , { ( name accessor | index acessor ) } ;
 index accessor        =   "[" , [ natural number ] , "]" ;
 name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
 name in quotes        =   { name in quotes char }- ;
@@ -2203,15 +2202,14 @@ In this specification, [Extended Backus-Naur form](https://en.wikipedia.org/wiki
 Everything that goes in a `${..}` substitution block must adhere to the rules of this grammar.
 
 ```
-substitution                 =   variable reference | datasource reference | child reference | resource reference | literal | function call ;
+substitution                 =   function call | variable reference | datasource reference | child reference | resource reference | literal ;
 function call                =   name , "(" , function args , ")" ;
 function args                =   [ substitution , { "," , substitution } ] ;
 variable reference           =   "variables" , name accessor ;
 data source reference        =   "datasources" , name accessor , name accessor , [ index accessor ] ;
 child blueprint reference    =   "children" , name accessor , { name accessor | index accessor }- ;
-resource reference           =   resource name , [ property path ] ;
+resource reference           =   resource name , [ ( name accessor , { ( name accessor | index acessor ) } ) ] ;
 resource name                =   ( "resources." , name accessor ) | name ;
-property path                =   name accessor , { ( name accessor | index acessor ) } ;
 name accessor                =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
 index accessor               =   "[" , [ natural number ] , "]" ;
 literal                      =   bool literal | float literal | int literal | string literal ;
