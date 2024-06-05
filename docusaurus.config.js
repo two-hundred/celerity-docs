@@ -40,11 +40,12 @@ const config = {
     ({
       navbar: {
         title: 'Celerity',
-        // todo: prepare logo icon for light and dark mode
-        // logo: {
-        //   alt: 'My Site Logo',
-        //   src: 'img/logo.svg',
-        // },
+        logo: {
+          alt: 'Celerity',
+          src: 'img/logo.svg',
+          srcDark: 'img/logo-dark.svg',
+          width: 50
+        },
         items: [
           {
             type: 'doc',
