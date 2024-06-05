@@ -33,7 +33,7 @@ What sets the blueprint specification apart from pre-existing specs of a similar
 with pre-defined rules about how resources can be linked together that are implemented as a part of providers in an implementation of the spec such as the blueprint framework.
 
 This means as a user, you will only have to define relationships between resources with labels, link selectors and accompanying annotations and not have to deal with the inner workings
-of said relationships. This is a huge advantage especially when dealing with resources with very complex relationships.
+of said relationships. This is a huge advantage especially when dealing with resources with very complex relationships that represent a standard practise or pattern that can be simplified.
 
 ## Spec
 
@@ -1876,6 +1876,41 @@ resources:
 
 <br/>
 
+#### Transforms
+
+References can **not** be used in any part of a transform.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml title="blueprint.yaml"
+transforms:
+  - ${variables.transform1}
+  - ${variables.transform2}
+```
+:::
+
+<br/>
+
+#### Variables
+
+References can **not** be used in any part of a variable definition.
+
+An example of this would be the following:
+:::danger ❌ Invalid
+```yaml title="blueprint.yaml"
+variables:
+  dynamoDBTable:
+    type: string
+    description: ${datasources.databases[0].description}
+  ordersTopicName:
+    type: string
+    description: ${datasources.topics[0].description}
+```
+:::
+
+<br/>
+
 #### Resources
 
 References can **not** be used in the resource type property.
@@ -1889,12 +1924,6 @@ resources:
     type: ${variables.functionType}
 ```
 :::
-
-```jsx
-const Component = () => {
-  return <></>;
-}
-```
 
 
 References can be used in any **value** in a resource spec.
@@ -2011,7 +2040,7 @@ resources:
 #### Child Blueprint Includes
 
 References can be used in any **value** in a child blueprint include.
-This includes the path, variables and metadata properties.
+This includes the path, variables, metadata and description properties.
 
 An example of this would be the following:
 
