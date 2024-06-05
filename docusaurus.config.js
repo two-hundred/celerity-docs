@@ -5,13 +5,15 @@
 const config = {
   title: 'Celerity',
   tagline: 'The backend toolkit that gets you moving fast',
-  url: 'https://your-docusaurus-test-site.com',
+  url: 'https://celerityframework.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'two-hundred', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  projectName: 'celerity', // Usually your repo name.
+  trailingSlash: false,
+  deploymentBranch: 'gh-pages',
   presets: [
     [
       '@docusaurus/preset-classic',
