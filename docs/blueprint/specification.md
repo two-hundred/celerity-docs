@@ -571,7 +571,7 @@ it is better to set boolean variables that can be true or false and use other ty
 
 **field type** 
 
-`array[conditional based on "type" ( string | integer | float | {customType} )]`
+`array[conditional based on "type" ( string | integer | float | boolean | {customType} )]`
 
 ___
 
@@ -893,7 +893,7 @@ the cloud data store.
 
 ___
 
-<p style={{fontSize: '1.2em'}}><strong>spec</strong></p>
+<p style={{fontSize: '1.2em'}}><strong>spec (required)</strong></p>
 
 The specification for the resource that will be used to create/update and synchronise blueprint lifecylce state with the resource in the provider.
 
