@@ -3,7 +3,7 @@
 The website that provides documentation along with a blog for the Celerity project.
 This contains general documentation for the high-level concepts and components of Celerity along with versioned documentation for the runtimes, packages and applications that make up Celerity.
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+This website is built using [Docusaurus 3](https://docusaurus.io/), a modern static website generator.
 
 ### Installation
 
@@ -44,6 +44,20 @@ To tag a new version of the Node.js runtime and SDK documentation use the follow
 
 ```bash
 yarn docusaurus docs:version:node-runtime <version>
+```
+
+This will generate versioned files from the current docs snapshot, you should then commit and push these changes to the repository.
+
+#### C# Runtime and SDK
+
+The C# runtime and SDK documentation have the same version and are organised under the `csharp-runtime` docs plugin ID.
+
+The "next" version docs are under the `csharp-runtime/docs` folder as per the Docusarus convention for multi-instance sites.
+
+To tag a new version of the C# runtime and SDK documentation use the following command:
+
+```bash
+yarn docusaurus docs:version:csharp-runtime <version>
 ```
 
 This will generate versioned files from the current docs snapshot, you should then commit and push these changes to the repository.
