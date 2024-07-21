@@ -103,8 +103,9 @@ For example, the build process will select the correct runtime image for Python 
 
 On startup, the runtime will locate the blueprint file via the `CELERITY_BLUEPRINT` environment variable that will be prepared by the Celerity Build process. The runtime will then attempt to load and parse the blueprint file.
 
+In this process, it will read the `celerity/api` resource and determine that it needs to set up a HTTP server to handle incoming requests. It will then read the `celerity/handler` resources and load each handler module dynamically based on the `codeLocation` and `handler` fields in the resource and wire them up to the corresponding route defined in the `httpApiRoute` definition.
 
-
+The HTTP server will then listen for incoming requests and route them to the appropriate handler based on the method and path of the request.
 
 ## Supported Languages
 
