@@ -34,7 +34,18 @@ const config = {
       }),
     ],
   ],
-
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'node-runtime',
+        path: 'node-runtime',
+        routeBasePath: 'node-runtime',
+        sidebarPath: require.resolve('./sidebars-node-runtime.js'),
+        // ... other options
+      },
+    ],
+  ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -65,11 +76,33 @@ const config = {
             position: 'left',
             items: [
               {
-                type: 'doc',
                 label: 'Blueprint Framework',
-                docId: 'blueprint/intro'
+                activeBasePath: "/docs/blueprint",
+                to: 'docs/blueprint/intro'
+              },
+              {
+                label: 'Celerity Runtime',
+                activeBasePath: "/docs/runtime",
+                to: 'docs/runtime/intro'
               }
             ]
+          },
+          {
+            type: "dropdown",
+            label: "Runtimes & SDKs",
+            position: "left",
+            items: [
+              {
+                label: "Node.js",
+                activeBasePath: "/node-runtime",
+                to: "/node-runtime/docs/intro",
+              }
+            ]
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Node.js SDK Version",
+            docsPluginId: "node-runtime"
           }
         ],
       },
