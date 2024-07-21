@@ -41,7 +41,6 @@ const config = {
         path: "node-runtime",
         routeBasePath: "node-runtime",
         sidebarPath: require.resolve("./sidebars-node-runtime.js"),
-        // ... other options
       },
     ],
     [
@@ -51,7 +50,15 @@ const config = {
         path: "csharp-runtime",
         routeBasePath: "csharp-runtime",
         sidebarPath: require.resolve("./sidebars-csharp-runtime.js"),
-        // ... other options
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "python-runtime",
+        path: "python-runtime",
+        routeBasePath: "python-runtime",
+        sidebarPath: require.resolve("./sidebars-python-runtime.js"),
       },
     ],
   ],
@@ -115,6 +122,11 @@ const config = {
                 activeBasePath: "/csharp-runtime",
                 to: "/csharp-runtime/docs/intro",
               },
+              {
+                label: "Python",
+                activeBasePath: "/python-runtime",
+                to: "/python-runtime/docs/intro",
+              },
             ],
           },
           {
@@ -126,6 +138,11 @@ const config = {
             type: "docsVersionDropdown",
             title: "C# SDK Version",
             docsPluginId: "csharp-runtime",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Python SDK Version",
+            docsPluginId: "python-runtime",
           },
         ],
       },
