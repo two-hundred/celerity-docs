@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # `celerity/api`
@@ -640,11 +640,11 @@ resources:
                             - "https://identity.twohundred.cloud/api/manage/v1/"
 ```
 
-[^1]: Examples of Serverless API Gateways include [Amazon API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html), [Google Cloud API Gateway](https://cloud.google.com/api-gateway), and [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-key-concepts).
-
 ## ⚠️ Limitations
 
 There are limitations when it comes to deploying a `celerity/api` in Serverless environments. Only Amazon API Gateway supports the WebSocket protocol when opting for an architecture where handlers are deployed as serverless functions (e.g. AWS Lambda).
 Azure and Google Cloud do not have an equivalent for WebSocket APIs in their Serverless API Gateway/Management offerings.
 
 Azure API Management supports WebSocket APIs where the upstream backend is itself a WebSocket server. In this situation, you would have a Celerity runtime instance as your backend WebSocket server. Celerity **_does not_** manage this for you, as arguably, the runtime takes care of a lot of the API management features that would be provided by Azure API Management.
+
+[^1]: Examples of Serverless API Gateways include [Amazon API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html), [Google Cloud API Gateway](https://cloud.google.com/api-gateway), and [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-key-concepts).
