@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # `celerity/api`
 
-**v2024-07-22**
+**v2024-07-22 (draft)**
 
 **blueprint transform:** `celerity-2024-07-22`
 
@@ -292,6 +292,7 @@ ___
 <p style={{fontSize: '1.2em'}}><strong>defaultGuard</strong></p>
 
 The identifier of the guard that should be used as the default guard for the API.
+This should only be set when you want to use the same guard for all endpoints of the API.
 
 **field type**
 
@@ -421,7 +422,7 @@ In a WebSocket message a token in the message data would be `$.data.apiKey`, ass
 
 **field type**
 
-string
+string | [valueSourceConfiguration](#valuesourceconfiguration)
 
 **examples**
 
@@ -434,6 +435,13 @@ string
 `$.cookies.apiKey`
 
 `$.data.apiKey`
+
+```yaml
+- protocol: "http"
+  source: "$.headers.Th-Api-Key"
+- protocol: "websocket"
+  source: "$.data.apiKey"
+```
 ___
 
 ### valueSourceConfiguration
@@ -639,4 +647,4 @@ resources:
 There are limitations when it comes to deploying a `celerity/api` in Serverless environments. Only Amazon API Gateway supports the WebSocket protocol when opting for an architecture where handlers are deployed as serverless functions (e.g. AWS Lambda).
 Azure and Google Cloud do not have an equivalent for WebSocket APIs in their Serverless API Gateway/Management offerings.
 
-Azure API Management supports WebSocket APIs where the upstream backend is itself a WebSocket server. In this situation, you would have a Celerity runtime instance as your backend WebSocket server. Celerity **_does not_** manage this for you as arguably, the runtime takes care of a lot of the API management features that would be provided by Azure API Management.
+Azure API Management supports WebSocket APIs where the upstream backend is itself a WebSocket server. In this situation, you would have a Celerity runtime instance as your backend WebSocket server. Celerity **_does not_** manage this for you, as arguably, the runtime takes care of a lot of the API management features that would be provided by Azure API Management.
