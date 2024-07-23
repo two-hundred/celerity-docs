@@ -82,6 +82,27 @@ boolean
 
 ## Examples
 
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    ordersQueue:
+        type: string
+resources:
+    ordersConsumer:
+        type: "celerity/consumer"
+        metadata:
+            displayName: Orders Consumer
+        linkSelector:
+            byLabel:
+                application: "orders"
+        spec:
+            sourceId: "${variables.ordersQueue}"
+            batchSize: 10
+            visibilityTimeout: 30
+            waitTimeSeconds: 20
+            partialFailures: true
+```
 
 ## Configuration Mappings
 
