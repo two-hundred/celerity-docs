@@ -73,13 +73,14 @@ resources:
             displayName: Save Order Handler
             labels:
                 application: "orders"
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.path: "/orders"
+                celerity.handler.http.method: POST
         spec:
             codeLocation: "./orders_api"
             handler: "handlers.save_order"
             runtime: python3.12
-            httpApiRoute:
-                method: "POST"
-                path: "/orders"
     
     getOrderHandler:
         type: "celerity/handler"
@@ -87,13 +88,14 @@ resources:
             displayName: Get Order Handler
             labels:
                 application: "orders"
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.path: "/orders/{order_id}"
+                celerity.handler.http.method: GET
         spec:
             codeLocation: "./orders_api"
             handler: "handlers.get_order"
             runtime: python3.12
-            httpApiRoute:
-                method: "GET"
-                path: "/orders/{order_id}"
 ```
 
 ### Evaluating the Example Application

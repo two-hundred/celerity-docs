@@ -110,13 +110,42 @@ resources:
 
 The following is a table of `celerity/consumer` configuration fields and how they map to different target environments when the Celerity application is deployed as a Serverless event-driven flow[^1].
 
-Celerity Consumer      | AWS SQS                                                  | Google Cloud Pub/Sub         | Azure Storage Queue
----------------------- | -------------------------------------------------------- | ---------------------------- | -------------------
-batchSize              | batchSize (default: `10`, min: `1`, max: `10000`)        | N/A                          | batchSize (default: `16`, max: `32`)
-visibilityTimeout      | N/A                                                      | N/A                          | visibilityTimeout (default: `0s`)
-waitTimeSeconds        | N/A                                                      | N/A                          | maxPollingInterval (default: `60s`, min: `100ms`)
-functionResponseTypes  | functionResponseTypes                                    | N/A                          | N/A
-
+<table>
+    <thead>
+        <tr>
+        <th>Celerity Consumer</th>
+        <th>AWS SQS</th>
+        <th>Google Cloud Pub/Sub</th>
+        <th>Azure Storage Queue</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+        <td>batchSize</td>
+        <td>batchSize (default: `10`, min: `1`, max: `10000`)</td>
+        <td>N/A</td>
+        <td>batchSize (default: `16`, max: `32`)</td>
+        </tr>
+        <tr>
+        <td>visibilityTimeout</td>
+        <td>N/A</td>
+        <td>N/A</td>
+        <td>visibilityTimeout (default: `0s`)</td>
+        </tr>
+        <tr>
+        <td>waitTimeSeconds</td>
+        <td>N/A</td>
+        <td>N/A</td>
+        <td>maxPollingInterval (default: `60s`, min: `100ms`)</td>
+        </tr>
+        <tr>
+        <td>partialFailures</td>
+        <td>functionResponseTypes</td>
+        <td>N/A</td>
+        <td>N/A</td>
+        </tr>
+    </tbody>
+</table>
 
 ## Further Configuration
 

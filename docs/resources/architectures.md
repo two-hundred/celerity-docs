@@ -33,7 +33,8 @@ These events are configured as part of the `celerity/handler` resource type dire
 
 When a Celerity application is deployed to FaaS[^2] environments, the event triggers are configured as you would expect for the specific cloud provider.
 
-When a Celerity application is deployed to containerised environments, the Celerity runtime hooks up Cloud Service event triggers to a queue or message broker that is then polled by the runtime.
+When a Celerity application is deployed to containerised environments, the Celerity runtime hooks up Cloud Service event triggers to a queue or message broker that is then polled by the runtime. For a subset of supported stream services[^3], the runtime will act as a direct consumer of the stream.
 
 [^1]: Environments in this context covers Function-as-a-service offerings such as AWS Lambda, Google Cloud Functions, and Azure Functions, as well as containerised environments such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 [^2]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
+[^3]: Supported stream services include Amazon Kinesis and Azure Event Hubs.
