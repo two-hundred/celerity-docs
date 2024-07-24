@@ -236,6 +236,22 @@ Tracing is not enabled by default.
 
 `false`
 
+### environmentVariables
+
+A mapping of environment variables that will be available to the handler at runtime.
+
+**type**
+
+mapping[string, string]
+
+**examples**
+
+```yaml
+envVars:
+  DB_HOST: "${variables.dbHost}"
+  DB_PORT: "${variables.dbPort}"
+```
+
 ### events
 
 A mapping of cloud service event configurations that the handler will respond to,
