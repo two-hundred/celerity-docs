@@ -239,6 +239,11 @@ Tracing is not enabled by default.
 ### environmentVariables
 
 A mapping of environment variables that will be available to the handler at runtime.
+When a Celerity application is deployed to containerised or custom server environments, environment variables shared between functions will be merged and made available to the runtime.
+
+:::warning
+If you define an environment variable with the same key in multiple handlers, the value of the environment variable will be taken from the last handler that is loaded by the runtime.
+:::
 
 **type**
 
