@@ -501,6 +501,8 @@ metadata:
 
 In the above example, all handlers in the blueprint will share the same runtime, memory, timeout, and environment variables unless they are overridden in the handler definition.
 
+The shared handler config has the same structure as the `spec` field of the `celerity/handlerConfig` resource type. You can find the available fields by taking a look at the [specification](/docs/resources/celerity-handler-config#specification) section of the `celerity/handlerConfig` documentation.
+
 ## Examples
 
 The following set of examples include different configurations for the `celerity/handler` resource type
