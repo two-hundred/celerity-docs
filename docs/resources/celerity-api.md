@@ -110,6 +110,7 @@ auth:
     defaultGuard: "jwt"
     guards:
         jwt:
+            type: jwt
             issuer: "https://identity.twohundred.cloud/oauth2/v1/"
             tokenSource: "$.headers.Authorization"
             audience:
@@ -214,11 +215,18 @@ and route requests to different APIs based on the base path.
 
 **field type**
 
-array[string]
+array[( string | [basePathConfiguration ](#basepathconfiguration))]
 
 **default value**
 
 `["/"]`
+
+```yaml
+- protocol: "http"
+  basePath: "/api"
+- protocol: "websocket"
+  basePath: "/ws"
+```
 
 ___
 
@@ -503,6 +511,44 @@ string
 `$.data.apiKey`
 ___
 
+### basePathConfiguration
+
+Configuration for a base path of an API that allows you to map base paths
+to different protocols.
+
+#### FIELDS
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>protocol (required)</strong></p>
+
+The protocol that the base path should serve.
+This can be either `http` or `websocket`.
+
+**field type**
+
+string
+
+**allowed values**
+
+`http` | `websocket`
+___
+
+<p style={{fontSize: '1.2em'}}><strong>basePath (required)</strong></p>
+
+The base path to configure for the specified protocol in the API.
+
+**field type**
+
+string
+
+**examples**
+
+`/api`
+
+`/ws`
+___
+
 ## Examples
 
 ### HTTP API
@@ -536,7 +582,7 @@ resources:
                 maxAge: 3600
             domain:
                 domainName: "api.example.com"
-                basePath:
+                basePaths:
                     - "/"
                 normalizeBasePath: false
                 certificateId: "${variables.certificateId}"
@@ -546,6 +592,7 @@ resources:
                 defaultGuard: "jwt"
                 guards:
                     jwt:
+                        type: jwt
                         issuer: "https://identity.twohundred.cloud/oauth2/v1/"
                         tokenSource: "$.headers.Authorization"
                         audience:
@@ -566,14 +613,14 @@ resources:
             byLabel:
                 application: "orders"
         spec:
-            protocols: ["websockets"]
+            protocols: ["websocket"]
             cors:
                 allowOrigins:
                     - "https://example.com"
                     - "https://another.example.com"
             domain:
                 domainName: "api.example.com"
-                basePath:
+                basePaths:
                     - "/"
                 normalizeBasePath: false
                 certificateId: "${variables.certificateId}"
@@ -583,6 +630,7 @@ resources:
                 defaultGuard: "jwt"
                 guards:
                     jwt:
+                        type: jwt
                         issuer: "https://identity.twohundred.cloud/oauth2/v1/"
                         tokenSource: "$.data.token"
                         audience:
@@ -620,8 +668,11 @@ resources:
                 maxAge: 3600
             domain:
                 domainName: "api.example.com"
-                basePath:
-                    - "/"
+                basePaths:
+                    - protocol: "http"
+                      basePath: "/api"
+                    - protocol: "websocket"
+                      basePath: "/ws"
                 normalizeBasePath: false
                 certificateId: "${variables.certificateId}"
                 securityPolicy: "TLS_1_2"
@@ -630,6 +681,7 @@ resources:
                 defaultGuard: "jwt"
                 guards:
                     jwt:
+                        type: jwt
                         issuer: "https://identity.twohundred.cloud/oauth2/v1/"
                         tokenSource:
                             - protocol: "http"

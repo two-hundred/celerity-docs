@@ -853,6 +853,7 @@ The format for a resource type should be one of the following:
 <br/>
 
 An example of a valid namespace for a resource type would be `aws/ec2/instance` or `celerity/handler`.
+When the `{resourceType}` segment contains multiple words, `lowerCamelCase` should be used. An example of this would be `aws/ec2/autoScalingGroup`.
 
 **field type** 
 

@@ -13,7 +13,8 @@ It's important to understand that Celerity resources (`celerity/*`) do not cover
 Alternatively, you could use a service like [TwoHundred Architect](https://architect.twohundred.cloud) to define your entire application including infrastructure and application resources in a single blueprint and deploy them together.
 One of the key benefits of this approach is that you can connect your Celerity application resources to your infrastructure resources with minimal effort utilising links that figure out the necessary configuration for you.
 
-There are 4 resource types for a Celerity application including [`celerity/api`](/docs/resources/celerity-api), [`celerity/consumer`](/docs/resources/celerity-consumer), [`celerity/schedule`](/docs/resources/celerity-schedule) and [`celerity/handler`](/docs/resources/celerity-handler).
+There are 4 main resource types for a Celerity application including [`celerity/api`](/docs/resources/celerity-api), [`celerity/consumer`](/docs/resources/celerity-consumer), [`celerity/schedule`](/docs/resources/celerity-schedule) and [`celerity/handler`](/docs/resources/celerity-handler).
+In addition to these, there is also a convenience [`celerity/handlerConfig`](/docs/resources/celerity-handler-config) resource type that can be used to define shared configuration for a set of handlers.
 Each of these resources are versioned over time, the implementation of these resource types are spread across the Celerity runtime and build engine.
 The runtime and build engine projects will indicate which resource versions are supported for a given version of the software.
 

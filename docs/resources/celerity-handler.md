@@ -46,6 +46,9 @@ ___
 <p style={{fontSize: '1.2em'}}><strong>celerity.handler.http.path</strong></p>
 
 The HTTP path that the handler will respond to, this can include path parameters.
+Path parameters are defined using curly braces `{}`.
+For example, when defining a path parameter for an order ID, the path could be `/orders/{order_id}`.
+Wildcard paths are supported to capture multiple path segments after a prefix such as `/{proxy+}` or `/api/v1/{proxy+}`.
 
 **type**
 
@@ -56,6 +59,11 @@ string
 `/orders`
 
 `/orders/{order_id}`
+
+`/{proxy+}`
+
+`/api/v1/{proxy+}`
+
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>celerity.handler.websocket</strong></p>
@@ -83,7 +91,7 @@ string
 
 `$default`
 
-`action`
+`myAction`
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>celerity.handler.guard.protectedBy</strong></p>
@@ -252,7 +260,7 @@ mapping[string, string]
 **examples**
 
 ```yaml
-envVars:
+environmentVariables:
   DB_HOST: "${variables.dbHost}"
   DB_PORT: "${variables.dbPort}"
 ```
@@ -313,17 +321,21 @@ This supports object storage services such as AWS S3, Google Cloud Storage, and 
 #### FIELDS
 ___
 
-<p style={{fontSize: '1.2em'}}><strong>event (required)</strong></p>
+<p style={{fontSize: '1.2em'}}><strong>events (required)</strong></p>
 
-The object storage event that should trigger the handler.
+The object storage events that should trigger the handler.
 
 **field type**
 
-string
+array[string]
 
 **allowed values**
 
 `created` | `deleted` | `metadataUpdated`
+
+**examples**
+
+`["created", "deleted"]`
 ___
 
 
@@ -457,6 +469,37 @@ This is only supported in some target environments, see the [configuration mappi
 
 boolean
 ___
+
+## Sharing Handler Configuration
+
+There are often times when you want to share common configuration across multiple handlers.
+Examples of shared configuration include environment variables, runtime, memory, and timeout values.
+
+There are multiple approaches to sharing handler configuration in a Celerity application blueprint:
+
+1. Use a `celerity/handlerConfig` resource type to define shared handler configuration and link it to specific handlers. This approach is useful when you want different groups of handlers to share different configurations.
+2. Use a `metadata` field in the blueprint to define shared handler configuration that is applied to all handlers in the blueprint. This approach is useful when you want all handlers in the blueprint to share the same configuration.
+
+For approach 1, see the [celerity/handlerConfig](/docs/resources/celerity-handler-config) resource type documentation.
+
+For approach 2, you would define a metadata section in the blueprint like this:
+
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+resources:
+   # ...
+metadata:
+    sharedHandlerConfig:
+        runtime: python3.12.x
+        memory: 256
+        timeout: 60
+        environmentVariables:
+            DB_HOST: "${variables.dbHost}"
+            DB_PORT: "${variables.dbPort}"
+```
+
+In the above example, all handlers in the blueprint will share the same runtime, memory, timeout, and environment variables unless they are overridden in the handler definition.
 
 ## Examples
 
