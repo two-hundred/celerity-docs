@@ -174,8 +174,13 @@ resources:
     getOrder:
         type: "celerity/handler"
         metadata:
+            displayName: "Get Order Handler"
             labels:
                 app: "payments"
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.method: "GET"
+                celerity.handler.http.path: "/orders/{orderId}"
         spec:
             handler: "orders.get_order"
         linkSelector:
@@ -185,8 +190,13 @@ resources:
     createOrder:
         type: "celerity/handler"
         metadata:
+            displayName: "Create Order Handler"
             labels:
                 app: "payments"
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.method: "POST"
+                celerity.handler.http.path: "/orders"
         spec:
             handler: "orders.create_order"
         linkSelector:
@@ -196,8 +206,13 @@ resources:
     getInvoice:
         type: "celerity/handler"
         metadata:
+            displayName: "Get Invoice Handler"
             labels:
                 app: "payments"
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.method: "GET"
+                celerity.handler.http.path: "/invoices/{invoiceId}"
         spec:
             handler: "billing.get_invoice"
         linkSelector:
@@ -207,8 +222,13 @@ resources:
     createInvoice:
         type: "celerity/handler"
         metadata:
+            displayName: "Create Invoice Handler"
             labels:
                 app: "payments"
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.method: "POST"
+                celerity.handler.http.path: "/invoices"
         spec:
             handler: "billing.create_invoice"
         linkSelector:
@@ -218,6 +238,7 @@ resources:
     billingHandlerConfig:
         type: celerity/handlerConfig
         metadata:
+            displayName: Billing Handlers Configuration
             labels:
                 handlerGroup: billing
         spec:
@@ -233,6 +254,7 @@ resources:
     ordersHandlerConfig:
         type: celerity/handlerConfig
         metadata:
+            displayName: Order Handlers Configuration
             labels:
                 handlerGroup: orders
         spec:
