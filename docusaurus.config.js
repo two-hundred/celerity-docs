@@ -1,3 +1,7 @@
+import { config as dotenvConfig } from 'dotenv';
+
+dotenvConfig({ silent: true });
+
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
@@ -34,6 +38,15 @@ const config = {
     ],
   ],
   plugins: [
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "celerity-cli",
+        path: "cli",
+        routeBasePath: "cli",
+        sidebarPath: require.resolve("./sidebars-celerity-cli.js"),
+      },
+    ],
     [
       "@docusaurus/plugin-content-docs",
       {
@@ -75,20 +88,15 @@ const config = {
         },
         items: [
           {
-            position: "left",
             label: "Getting Started",
             to: "/docs/intro/getting-started",
-          },
-          { to: "/blog", label: "Blog", position: "left" },
-          {
-            href: "https://github.com/two-hundred/celerity",
-            label: "GitHub",
             position: "right",
           },
+          { to: "/blog", label: "Blog", position: "right" },
           {
             type: "dropdown",
             label: "Components",
-            position: "left",
+            position: "right",
             items: [
               {
                 label: "Blueprint",
@@ -103,14 +111,19 @@ const config = {
               {
                 label: "Resources",
                 activeBasePath: "/docs/resources",
-                to: "docs/resources/intro"
-              }
+                to: "docs/resources/intro",
+              },
+              {
+                label: "CLI",
+                activeBasePath: "/cli",
+                to: "/cli/docs/intro",
+              },
             ],
           },
           {
             type: "dropdown",
             label: "Runtimes & SDKs",
-            position: "left",
+            position: "right",
             items: [
               {
                 label: "Node.js",
@@ -130,21 +143,36 @@ const config = {
             ],
           },
           {
+            href: "https://github.com/two-hundred/celerity",
+            label: "GitHub",
+            position: "right",
+          },
+          {
             type: "docsVersionDropdown",
             title: "Node.js SDK Version",
             docsPluginId: "node-runtime",
+            position: "left",
           },
           {
             type: "docsVersionDropdown",
             title: "C# SDK Version",
             docsPluginId: "csharp-runtime",
+            position: "left",
           },
           {
             type: "docsVersionDropdown",
             title: "Python SDK Version",
             docsPluginId: "python-runtime",
+            position: "left",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Celerity CLI Version",
+            docsPluginId: "celerity-cli",
+            position: "left",
           },
         ],
+
       },
       footer: {
         style: "dark",
@@ -183,7 +211,28 @@ const config = {
         ],
         copyright: `Copyright © ${new Date().getFullYear()} The Celerity documentation authors.`,
       },
+      algolia: {
+        appId: process.env.ALGOLIA_APP_ID,
+        apiKey: process.env.ALGOLIA_SEARCH_API_KEY,
+        indexName: process.env.ALGOLIA_INDEX_NAME
+      },
     }),
+  customFields: {
+    customPluginContent: {
+      "celerity-cli": {
+        title: "Celerity CLI",
+      },
+      "node-runtime": {
+        title: "Node.js Runtime & SDK",
+      },
+      "csharp-runtime": {
+        title: "C# Runtime & SDK",
+      },
+      "python-runtime": {
+        title: "Python Runtime & SDK",
+      },
+    },
+  },
 };
 
 module.exports = config;
