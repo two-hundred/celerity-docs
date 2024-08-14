@@ -6,6 +6,12 @@
 }
 
 .featureSvg {
+  padding: 10px;
   height: 200px;
   width: 200px;
+}
+
+html[data-theme='dark'] .featureSvg {
+  background: var(--ifm-color-primary);
+  border-radius: 30px;
 }

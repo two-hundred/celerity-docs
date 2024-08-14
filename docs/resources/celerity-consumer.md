@@ -13,6 +13,23 @@ The `celerity/consumer` resource type is used to define an application where han
 A consumer can be deployed to different target environments such as a Serverless event-driven flow[^1], a containerised environment, or a custom server.
 For containerised and custom server environments, the Celerity runtime provides a polling mechanism to check for new messages in the queue or message broker.
 
+## Annotations
+
+### `celerity/consumer`
+
+The following are a set of annotations that are specific to the `celerity/consumer` resource type.
+These annotations are nothing to do with relationships between resources, but are used to configure the behaviour of the consumer.
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.app</strong></p>
+
+Provides a way to group consumers together that are part of the same application.
+This is especially useful when deploying to a containerised or custom server environment as it allows you to deploy multiple consumers as a part of a single deployed application.
+
+**type**
+
+boolean
+___
+
 ## Specification
 
 The specification is the structure of the resource definition that comes under the `spec` field of the resource in a blueprint.

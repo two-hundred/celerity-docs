@@ -10,32 +10,45 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    image: '/img/undraw_docusaurus_mountain.svg',
+    title: 'Move Fast',
+    image: '/img/undraw_to_the_stars_re_wq2x.svg',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Celerity is designed to help you move fast with its comprehensive
+        set of tools to shorten feedback loops and get you swiftly deploying
+        software you can trust will work.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    image: '/img/undraw_docusaurus_tree.svg',
+    title: 'Run Anywhere with Ease',
+    image: '/img/undraw_cloud_hosting_7xb1.svg',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Celerity lets you focus on the problems you are trying to solve,
+        you can write your applications once and run them on any cloud provider
+        as containerised or serverless applications.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    image: '/img/undraw_docusaurus_react.svg',
+    title: 'Useful Primitives',
+    image: '/img/undraw_building_blocks_re_5ahy.svg',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Build with a set of useful primitives focusing on common types of applications
+        such as a REST API, WebSocket API or a Pub/Sub Consumer.
+      </>
+    ),
+  },
+  {
+    title: 'IaC Simplified',
+    image: '/img/undraw_text_files_au1q.svg',
+    description: (
+      <>
+        Celerity Blueprints make it much easier to define your infrastructure.
+        They provide powerful abstractions where details such as networking and
+        permissions are taken care of following industry best practises.
       </>
     ),
   },
@@ -43,7 +56,7 @@ const FeatureList: FeatureItem[] = [
 
 function Feature({title, image, description}: FeatureItem) {
   return (
-    <div className={clsx('col col--4')}>
+    <div className={clsx('col col--3')}>
       <div className="text--center">
         <img className={styles.featureSvg} alt={title} src={image} />
       </div>

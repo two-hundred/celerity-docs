@@ -76,8 +76,8 @@ const config = {
         items: [
           {
             position: "left",
-            label: "Overview",
-            to: "/docs/overview",
+            label: "Getting Started",
+            to: "/docs/intro/getting-started",
           },
           { to: "/blog", label: "Blog", position: "left" },
           {
