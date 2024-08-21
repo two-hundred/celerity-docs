@@ -1067,3 +1067,6 @@ ${map(variables.cacheClusterConfig.hosts, trimprefix_g("http://"))}
 ```
 
 Only some of the core string manipulation functions have a composable version, this is because they are the most likely to be used in a composition context. Implementations are free to add composable versions of other functions as they see fit. A plugin system for functions could also be useful in allowing users of a tool implementing the spec to add their own functions.
+
+
+[^1]: The reasoning for the `_g` suffix for these functions is that `g` is commonly used in mathematics to denote a function in composition.

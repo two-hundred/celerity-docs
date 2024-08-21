@@ -2758,5 +2758,3 @@ exports:
     description: The unique identifier of the orders topic for the system
     field: resources.coreInfra.state.ordersTopicId
 ```
-
-[^1]: The reasoning for the `_g` suffix for these functions is that `g` is commonly used in mathematics to denote a function in composition.
