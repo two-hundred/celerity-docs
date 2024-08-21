@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+toc_max_heading_level: 4
 ---
 
 # Specification
@@ -66,11 +67,11 @@ One or more specialised transforms to be applied to the template at the preproce
 An example use case for a transform would be to provide "virtual" resources that abstract away a lot of complexity
 that can then be expanded into the underlying resources as a part of preprocessing.
 
-**type** 
+**type**
 
 string | array[string]
 
-**example** 
+**example**
 
 celerity-2023-04-20
 
@@ -80,7 +81,7 @@ celerity-2023-04-20
 
 ### variables
 
-Variables provide a way to add dynamic values that can be referenced in resources, data sources in the spec along with the include section
+Variables provide a way to add dynamic inputs to a blueprint that can be referenced in resources, data sources in the spec along with the include section
 that allows importing child blueprints.
 
 Variables can be referenced in resources and data sources using the following syntax:
@@ -169,6 +170,95 @@ variables:
 ```
 <br/>
 
+### values
+
+Values provide a way to define static and computed values that can be used in various sections of a blueprint such as resources, data sources and exports.
+Values are mostly useful for storing computed values that can be reused in multiple places
+or exported to be used in other blueprints or external systems.
+
+For example, a value could be used to store the names of a list of dynamically generated s3 bucket names to be exported from the blueprint as follows:
+
+```yaml
+resources:
+  s3Bucket1:
+    type: aws/s3/bucket
+    spec:
+      objectLockEnabled: true
+  
+  s3Bucket2:
+    type: aws/s3/bucket
+    spec:
+      objectLockEnabled: true
+
+  s3Bucket3:
+    type: aws/s3/bucket
+    spec:
+      objectLockEnabled: false
+
+values:
+  s3BucketNames:
+    type: array
+    value: |
+      ${list(
+        resources.s3Bucket1.state.name,
+        resources.s3Bucket2.state.name,
+        resources.s3Bucket3.state.name
+      )}
+
+exports:
+  s3Buckets:
+    type: array
+    field: values.s3BucketNames
+```
+
+
+
+Values can be referenced using the following syntax:
+```
+${values.[valueName]}
+```
+
+For more information about referencing values, see the [references](#references) section.
+
+:::tip
+Exports can not carry out any computation for the `field` property as it is a reference to a value that is **not** a part of a `${..}` substitution. Functions can only be called in `${..}` substitutions.
+
+To get around this limitation, you can use a value to store the computed value and then reference the value in the exports definition.
+:::
+
+**type**
+
+mapping[string, [valueDefinition](#valuedefinition)]
+
+**example**
+
+JSON
+
+```json
+{
+  "values": {
+    "s3BucketNames": {
+      "type": "array",
+      "value": "${list(resources.s3Bucket1.state.name, resources.s3Bucket2.state.name, resources.s3Bucket3.state.name)}"
+    }
+  }
+}
+```
+
+YAML
+
+```yaml
+values:
+  s3BucketNames:
+    type: array
+    value: |
+      ${list(
+        resources.s3Bucket1.state.name,
+        resources.s3Bucket2.state.name,
+        resources.s3Bucket3.state.name
+      )}
+```
+
 ### datasources
 
 Data sources provide a way to source dynamic values to be used in resources and other data sources from external sources that will have been created outside
@@ -178,7 +268,7 @@ Data sources can be from any provider configured in an implementation of the spe
 
 The order in which data sources are resolved is implicitly determined by references between data sources.
 
-Data sources can be referenced in resources using the following syntax:
+Data sources can be referenced using the following syntax:
 ```
 ${datasources.[datasourceName].[exportedField]}
 ```
@@ -539,7 +629,29 @@ An example of a custom variable type would be `aws/region` with a fixed set of s
 
 With custom types, labels should be used as references to the values of the variable instead of the values themselves. Custom types should be treated as enums.
 
-#### FIELDS
+:::tip
+Only scalar values are supported for variables. If you want to pass in complex structures such as arrays or objects, you will need to pass them in as strings and use the `json_decode` function in a substitution to interact with the array or object structure.
+
+For example, if you are using a provider with a custom function that takes a specific object structure as input you would do the following:
+
+```
+${custom_provider_function(
+  json_decode(variables.deploymentConfig)
+)}
+```
+
+Where `variables.deploymentConfig` would be a serialised JSON string defined in:
+
+```yaml
+variables:
+  deploymentConfig:
+    type: string
+    description: The deployment configuration for the service
+    default: '{"replicas": 3, "memory": 512}'
+```
+:::
+
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -613,12 +725,93 @@ conditional based on "type" `( string | integer | float | boolean | {customType}
 <br/>
 <br/>
 
+### valueDefinition
+
+A definition for a value that can be referenced in resources, data sources, exports and other values in the spec.
+The name of the value is not in this definition as it is the key in the mapping of values that makes use of this data type.
+
+Values can be scalar types, arrays or objects.
+
+Values can not have defaults as the `value` field is required and will always contain a static or computed value.
+
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
+___
+
+<p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
+
+The type of the value that can be referenced throughout the spec.
+
+**field type**
+
+string
+
+**allowed values** 
+
+string | integer | float | boolean | array | object
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>value (required)</strong></p>
+
+The computed or static value that can be accessed from other values, resources, data sources, exports and metadata in a blueprint.
+
+:::caution
+This contents of the value field must be in the form of a string. Objects and arrays must be derived from dynamic sources in a `${..}` substitution. Integers, floats and booleans are parsed from the string value, if the value type can not be parsed, an error should be thrown/returned.
+:::
+
+**field type**
+
+string
+
+**examples**
+
+```
+${list(
+  resources.s3Bucket1.state.name, 
+  resources.s3Bucket2.state.name, 
+  resources.s3Bucket3.state.name
+)}
+```
+
+`"t3.micro"`
+
+`"${variables.databaseHost}"`
+
+`${normalize(values.s3BucketNames)}`
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>description</strong></p>
+
+A description of the value, useful for providing context in tools built on top of the blueprint specification.
+
+**field type**
+
+string
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>secret</strong></p>
+
+Indicates whether or not the value is a secret. This is useful as it allows implementations to mask sensitive values in a blueprint.
+
+**field type** 
+
+boolean
+
+**default value**
+
+false
+
+<br/>
+<br/>
+
 ### datasourceDefinition
 
 A definition for a data source that can be referenced in resources and other data sources in the spec.
 The name of the data source is not in this definition as it is the key in the mapping of data sources that makes use of this data type.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -690,7 +883,7 @@ string
 
 A definition for the metadata that can be associated with a data source.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>displayName</strong></p>
@@ -742,7 +935,7 @@ mapping[string, ( string | object | integer | float | array | boolean )]
 
 A definition of a filter that can be used to select a specific resource managed outside of the blueprint for a data source.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>field (required)</strong></p>
@@ -791,7 +984,7 @@ A value or list of values that should be compared to the value of the configured
 A definition of an exported field from a data source that is exposed to resources and other data sources in
 a blueprint.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -838,7 +1031,7 @@ string
 
 A definition for a resource in a blueprint.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -939,7 +1132,7 @@ A definition for the metadata that can be associated with a resource that primar
 implicit linking between resources when combined with selectors.
 
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>displayName</strong></p>
@@ -1090,7 +1283,7 @@ A definition for supported link selectors that can be used to implicitly link re
 In this version of the specification, the only supported linkSelector type is `byLabel`.
 
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>byLabel</strong></p>
@@ -1111,7 +1304,7 @@ A definition for a child blueprint that should be included in the current bluepr
 A child blueprint can be on the same file system as the parent blueprint or sourced remotely
 depending on the implementation of the spec.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>path (required)</strong></p>
@@ -1215,7 +1408,7 @@ string
 A definition for a resource field exported from the blueprint that can be referenced outside of the blueprint.
 The name of the exported attribute is the key in the mapping in the [exports](#exports) section of the blueprint.
 
-#### FIELDS
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>type (required)</strong></p>
@@ -1285,7 +1478,7 @@ _It's worth noting that some contextual information about spec behaviour that ca
 
 The following sections describe how the operators should behave with different inputs.
 
-#### Equality Operators ( = | != )
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Equality Operators ( = | != )</strong></p>
 
 The same rules apply to the `=` and `!=` operators, `!=` will be the negation of the behaviour for the comparisons described below.
 
@@ -1309,7 +1502,7 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-#### In Operators ( in | not in )
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>In Operators ( in | not in )</strong></p>
 
 The same rules apply to the `in` and `not in` operators, `not in` will be the negation of the behaviour for the comparisons described below.
 
@@ -1328,7 +1521,7 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-#### Has Key Operators ( has key | not has key )
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Has Key Operators ( has key | not has key )</strong></p>
 
 The same rules apply to the `has key` and `not has key` operators, `not has key` will be the negation of the behaviour for the comparisons described below.
 
@@ -1346,7 +1539,7 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-#### Contains Operators ( contains | not contains )
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Contains Operators ( contains | not contains )</strong></p>
 
 The same rules apply to the `contains` and `not contains` operators, `not contains` will be the negation of the behaviour for the comparisons described below.
 
@@ -1375,7 +1568,7 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-#### Starts With Operators ( starts with | not starts with )
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Starts With Operators ( starts with | not starts with )</strong></p>
 
 The same rules apply to the `starts with` and `not starts with` operators, `not contains` will be the negation of the behaviour for the comparisons described below.
 
@@ -1392,7 +1585,7 @@ In these cases the filter operation should fail and the implementation should re
 <br/>
 <br/>
 
-#### Ends With Operators ( ends with | not ends with )
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Ends With Operators ( ends with | not ends with )</strong></p>
 
 The same rules apply to the `ends with` and `not ends with` operators, `not ends with` will be the negation of the behaviour for the comparisons described below.
 
@@ -1472,8 +1665,7 @@ ${fromjson(variables.cacheClusterConfig, "host")}
 ```
 :::
 
-
-#### Variable Reference Format
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Variable Reference Format</strong></p>
 
 The precise format for a variable reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
@@ -1490,6 +1682,45 @@ letter                 =   ? [A-Za-z] ? ;
 digit                  =   ? [0-9] ? ;
 ```
 
+### Value References
+
+Value references are references that allow access to static and computed values defined in a blueprint.
+
+Values can be strings, integers, floats, booleans, arrays, or mappings.
+
+Values must be referenced with the `values.*` prefix.
+
+The following is an example of a value reference:
+
+```
+${values.s3BucketNames}
+```
+
+An example of accessing an nested field in value would be:
+
+```
+${values.s3BucketConfig.buckets[0].name}
+```
+
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Value Reference Format</strong></p>
+
+The precise format for a value reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
+
+```
+value reference       =   value name , [ { ( name accessor | index accessor ) } ] ;
+value name            =   ( "values." , name accessor ) ;
+index accessor        =   "[" , [ natural number ] , "]" ;
+name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes        =   { name in quotes char }- ;
+name in quotes char   =   letter | digit | "_" | "-" | "." ;
+name                  =   start name char , name chars ;
+name chars            =   { name char } ;
+name char             =   letter | digit | "_" | "-" ;
+start name char       =   letter | "_" ;
+natural number        =   { digit }- ;
+letter                =   ? [A-Za-z] ? ;
+digit                 =   ? [0-9] ? ;
+```
 
 ### Resource References
 
@@ -1535,12 +1766,12 @@ ${*.annotations["myAnnotation.populateEnvVars"]}
 ```
 :::
 
-#### Resource Reference Format
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Resource Reference Format</strong></p>
 
 The precise format for a resource reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
 ```
-resource reference    =   resource name , [ ( name accessor , { ( name accessor | index acessor ) } ) ] ;
+resource reference    =   resource name , [ ( name accessor , { ( name accessor | index accessor ) } ) ] ;
 resource name         =   ( "resources." , name accessor ) | name ;
 index accessor        =   "[" , [ natural number ] , "]" ;
 name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
@@ -1577,7 +1808,7 @@ For a data source field that is an array, the following is an example of how to 
 ${datasources.network.subnets[]}
 ``` 
 
-#### Data Source Reference Format
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Data Source Reference Format</strong></p>
 
 The precise format for a data source reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
@@ -1612,7 +1843,7 @@ The following is an example of a child blueprint reference:
 ${children.coreInfra.ordersTopicInfo.arn}
 ```
 
-#### Child Blueprint Reference Format
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Child Blueprint Reference Format</strong></p>
 
 The precise format for a child blueprint reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
@@ -1645,13 +1876,31 @@ They should only ever be used inside `${..}`.
 Functions are required to be inclusive of but not limited to the set of core functions defined in the spec;
 implementations are free to add additional functions as they see fit.
 
+A lot of the core functions have two definitions in the spec, one for direct function calls and one for function composition. The `_g`[^1] suffix is used to denote a function to be used for composition that takes static arguments and produces a function that takes the dynamic value to be transformed.
+
+A direct usage example would be:
+
+```
+${trimprefix(variables.cacheClusterConfig.host, "http://")}
+```
+
+A composition usage example would be:
+
+```
+${map(variables.cacheClusterConfig.hosts, trimprefix_g("http://"))}
+```
+
+Only some of the core string manipulation functions have a composable version, this is because they are the most likely to be used in a composition context. Implementations are free to add composable versions of other functions as they see fit. A plugin system for functions could also be useful in allowing users of a tool implementing the spec to add their own functions.
+
+Regular expressions are not supported in the core functions, however, implementations are free to add regular expression support in their own functions.
+
 #### Function Definitions
 
-The following is a list of the core utility functions that should be supported by all implementations of the spec.
+The following section contains the defnitions of the core utility functions that should be supported by all implementations of the spec.
 
 <br/>
 
-#### `fromjson`
+##### `fromjson`
 
 The `fromjson` function is used to extract values from a serialised json string.
 Implementations should use [json pointer notation](https://datatracker.ietf.org/doc/rfc6901/) to allow for the extraction of values from complex serialised structures.
@@ -1662,6 +1911,8 @@ Implementations should use [json pointer notation](https://datatracker.ietf.org/
 2. `string` - A valid [json pointer](https://datatracker.ietf.org/doc/rfc6901/) expression to extract the value from the json string.
 
 **Returns:**
+
+`any`
 
 The value extracted from the json string.
 This could be a primitive value, an array, or a mapping.
@@ -1686,7 +1937,30 @@ ${fromjson("{\"host\":\"localhost\"}", "host")}
 
 <br/>
 
-#### `jsondecode`
+##### `fromjson_g`
+
+The `fromjson_g` is a composable version of the `fromjson` function that takes a json pointer expression as a static argument and returns a function that takes the json string to extract values from.
+Like with `fromjson`, implementations should use [json pointer notation](https://datatracker.ietf.org/doc/rfc6901/) to allow for the extraction of values from complex serialised structures.
+
+**Parameters:**
+
+1. `string` - A valid [json pointer](https://datatracker.ietf.org/doc/rfc6901/) expression to extract the value from the json string.
+
+**Returns:**
+
+`func (string) -> any`
+
+A function that takes a json string and extracts a value from it using the pre-configured json pointer expression.
+
+**Examples:**
+
+```
+${map(variables.cacheClusterConfigDefs, fromjson_g("host"))}
+```
+
+<br/>
+
+##### `jsondecode`
 
 The `jsondecode` function is used to decode a serialised json string into an array or mapping.
 
@@ -1696,8 +1970,10 @@ The `jsondecode` function is used to decode a serialised json string into an arr
 
 **Returns:**
 
+`any`
+
 The decoded json string.
-This could be an array, or a mapping.
+This could be a primitive value, an array, or a mapping.
 
 **Example:**
 
@@ -1708,7 +1984,7 @@ ${jsondecode(variables.cacheClusterConfig)}
 
 <br/>
 
-#### `len`
+##### `len`
 
 The `len` function is used to get the length of a string, array, or mapping.
 
@@ -1717,6 +1993,8 @@ The `len` function is used to get the length of a string, array, or mapping.
 1. `string` - A valid string literal, reference or function call yielding a return value representing the string, array, or mapping to get the length of.
 
 **Returns:**
+
+`integer`
 
 The length of the string, array, or mapping.
 For a string, the length is the number of characters.
@@ -1730,7 +2008,7 @@ ${len(variables.cacheClusterConfig.endpoints)}
 
 <br/>
 
-#### `substr`
+##### `substr`
 
 The `substr` function is used to get a substring from a string.
 
@@ -1742,6 +2020,8 @@ The `substr` function is used to get a substring from a string.
 
 **Returns:**
 
+`string`
+
 The substring from the string.
 
 **Example:**
@@ -1752,7 +2032,30 @@ ${substr(variables.cacheClusterConfig.host, 0, 3)}
 
 <br/>
 
-#### `replace`
+##### `substr_g`
+
+`substr_g` is a composable version of the `substr` function that takes the start and end indexes as static arguments and returns a function that takes the string to get the substring from.
+
+**Parameters:**
+
+1. `integer` - The index of the first character to include in the substring.
+2. `integer` _(optional)_ - The index of the last character to include in the substring. If not provided the substring will include all characters from the start index to the end of the string.
+
+**Returns:**
+
+`func (string) -> string`
+
+A function that takes a string and returns the substring from the string using the pre-configured start and end positions.
+
+**Example:**
+
+```
+${map(variables.cacheClusterConfig.hosts, substr_g(0, 3))}
+```
+
+<br/>
+
+##### `replace`
 
 The `replace` function is used to replace all occurrences of a substring in a string with another substring.
 
@@ -1764,6 +2067,8 @@ The `replace` function is used to replace all occurrences of a substring in a st
 
 **Returns:**
 
+`string`
+
 The input string with all occurrences of the "search" substring replaced with the "replace" substring.
 
 **Example:**
@@ -1774,7 +2079,30 @@ ${replace(variables.cacheClusterConfig.host, "http://", "https://")}
 
 <br/>
 
-#### `trim`
+##### `replace_g`
+
+`replace_g` is a composable version of the `replace` function that takes the search and replace substrings as static arguments and returns a function that takes the string to replace the substrings in.
+
+**Parameters:**
+
+1. `string` - The "search" substring to replace.
+2. `string` - The substring to replace the "search" substring with.
+
+**Returns:**
+
+`func (string) -> string`
+
+The input string with all occurrences of the "search" substring replaced with the "replace" substring.
+
+**Example:**
+
+```
+${map(variables.cacheClusterConfig.hosts, replace_g("http://", "https://"))}
+```
+
+<br/>
+
+##### `trim`
 
 The `trim` function is used to remove all leading and trailing whitespace from a string.
 
@@ -1794,7 +2122,7 @@ ${trim(variables.cacheClusterConfig.host)}
 
 <br/>
 
-#### `trimprefix`
+##### `trimprefix`
 
 The `trimprefix` function is used to remove a prefix from a string.
 
@@ -1815,7 +2143,29 @@ ${trimprefix(variables.cacheClusterConfig.host, "http://")}
 
 <br/>
 
-#### `trimsuffix`
+##### `trimprefix_g`
+
+`trimprefix_g` is a composable version of the `trimprefix` function that takes the prefix as a static argument and returns a function that takes the string to remove the prefix from.
+
+**Parameters:**
+
+1. `string` - The prefix to remove from the string.
+
+**Returns:**
+
+`func (string) -> string`
+
+A function that takes a string and returns the input string with the prefix removed.
+
+**Example:**
+
+```
+${map(variables,cacheClusterConfig.hosts, trimprefix_g("http://"))}
+```
+
+<br/>
+
+##### `trimsuffix`
 
 The `trimsuffix` function is used to remove a suffix from a string.
 
@@ -1833,6 +2183,784 @@ The input string with the suffix removed.
 ```
 ${trimsuffix(variables.cacheClusterConfig.host, ":3000")}
 ```
+<br/>
+
+##### `trimsuffix_g`
+
+`trimsuffix_g` is a composable version of the `trimsuffix` function that takes the suffix as a static argument and returns a function that takes the string to remove the suffix from.
+
+**Parameters:**
+
+1. `string` - The suffix to remove from the string.
+
+**Returns:**
+
+`func (string) -> string`
+
+A function that takes a string and returns the input string with the suffix removed.
+
+**Example:**
+
+```
+${map(variables.cacheClusterConfig.hosts, trimsuffix_g("/config"))}
+```
+<br/>
+
+##### `split`
+
+The `split` function is used to split a string into an array of substrings based on a delimiter.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to split.
+2. `string` - The delimiter to split the string by.
+
+**Returns:**
+
+`array`
+
+An array of substrings that have been split by the delimiter.
+
+**Example:**
+
+```
+${split(variables.cacheClusterConfig.hosts, ",")}
+```
+
+<br/>
+
+##### `split_g`
+
+`split_g` is a function that takes the delimiter as a static argument and returns a function that takes the string to split.
+
+**Parameters:**
+
+1. `string` - The delimiter to split the string by.
+
+**Returns:**
+
+`func (string) -> array`
+
+A function that takes a string and returns an array of substrings that have been split by the delimiter.
+
+**Example:**
+
+```
+${flatmap(variables.cacheClusterConfig.multiClusterHosts, split_g(","))}
+```
+
+<br/>
+
+##### `join`
+
+The `join` function is used to join an array of strings into a single string using a delimiter.
+
+**Parameters:**
+
+1. `array` - A reference or function call yielding a return value representing an array of strings to join together.
+2. `string` - The delimiter to join the strings with.
+
+**Returns:**
+
+`string`
+
+The array of strings joined together with the delimiter.
+
+**Example:**
+
+```
+${join(variables.cacheClusterConfig.hosts, ",")}
+```
+
+<br/>
+
+##### `index`
+
+The `index` function is used to get the first index of a substring in a given string.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to search for the substring in.
+2. `string` - The substring to search for in the string.
+
+**Returns:**
+
+`integer`
+
+The index of the first occurrence of the substring in the string.
+This will be -1 if the substring is not found in the string.
+
+**Example:**
+
+```
+${index(variables.cacheClusterConfig.host, ":3000")}
+```
+
+<br/>
+
+##### `last_index`
+
+The `last_index` function is used to get the last index of a substring in a given string.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to search for the substring in.
+2. `string` - The substring to search for in the string.
+
+**Returns:**
+
+`integer`
+
+The index of the last occurrence of the substring in the string.
+This will be -1 if the substring is not found in the string.
+
+**Example:**
+
+```
+${last_index(variables.cacheClusterConfig.host, ":3000")}
+```
+
+<br/>
+
+##### `to_upper`
+
+The `to_upper` function converts all characters of a string to upper case.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to convert to upper case.
+
+**Returns:**
+
+`string`
+
+The input string with all characters converted to upper case.
+
+**Example:**
+
+```
+${to_upper(variables.cacheClusterConfig.hostName)}
+```
+<br/>
+
+##### `to_lower`
+
+The `to_lower` function converts all characters of a string to lower case.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to convert to lower case.
+
+**Returns:**
+
+`string`
+
+The input string with all characters converted to lower case.
+
+**Example:**
+
+```
+${to_lower(variables.cacheClusterConfig.hostId)}
+```
+<br/>
+
+##### `has_prefix`
+
+The `has_prefix` function is used to check if a string starts with a given substring.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to check.
+2. `string` - The prefix to check for at the start of the string.
+
+**Returns:**
+
+`bool`
+
+True, if the string starts with the prefix, false otherwise.
+
+**Example:**
+
+```
+${has_prefix(variables.cacheClusterConfig.host, "http://")}
+```
+
+<br/>
+
+##### `has_prefix_g`
+
+`has_prefix_g` is a composable version of the `has_prefix` function that takes the prefix as a static argument and returns a function that takes the string to check.
+
+**Parameters:**
+
+1. `string` - The prefix to check for at the start of the string.
+
+**Returns:**
+
+`func (string) -> bool`
+
+A function that takes a string and returns true if the string starts with the prefix, false otherwise.
+
+**Example:**
+
+```
+${filter(
+  variables.cacheClusterConfig.hosts,
+  has_prefix_g("http://")
+)}
+```
+
+<br/>
+
+##### `has_suffix`
+
+The `has_suffix` function is used to check if a string ends with a given substring.
+
+**Parameters:**
+
+1. `string` - A valid string literal, reference or function call yielding a return value representing the string to check.
+2. `string` - The suffix to check for at the end of the string.
+
+**Returns:**
+
+`bool`
+
+True, if the string ends with the suffix, false otherwise.
+
+**Example:**
+
+```
+${has_suffix(variables.cacheClusterConfig.host, "/config")}
+```
+
+<br/>
+
+##### `has_suffix_g`
+
+`has_suffix_g` is a composable version of the `has_suffix` function that takes the suffix as a static argument and returns a function that takes the string to check.
+
+**Parameters:**
+
+1. `string` - The suffix to check for at the end of the string.
+
+**Returns:**
+
+`func (string) -> bool`
+
+A function that takes a string and returns true if the string ends with the suffix, false otherwise.
+
+**Example:**
+
+```
+${filter(
+  variables.cacheClusterConfig.hosts,
+  has_suffix_g("/config")
+)}
+```
+
+<br/>
+
+##### `contains`
+
+The `contains` function is used to check if a string contains a given substring or if an array contains a given value.
+
+**Parameters:**
+
+1. `string | array` - A valid string literal, reference or function call yielding a return value representing a string or array to search.
+2. `string | ArrayElem` - The substring or value to search for in the string or array.
+
+**Returns:**
+
+`bool`
+
+True, if the substring or value is found in the string or array, false otherwise.
+
+**Example:**
+
+```
+${contains(variables.cacheClusterConfig.host, "celerityframework.com")}
+```
+
+<br/>
+
+##### `contains_g`
+
+`contains_g` is a composable version of the `contains` function that takes the substring or value as a static argument and returns a function that takes the string or array to check.
+
+**Parameters:**
+
+1. `string | ArrayElem` - The substring or value to search for in the string or array.
+
+**Returns:**
+
+`func (string | array) -> bool`
+
+A function that takes a string or array and returns true if the substring or value is found in the string or array, false otherwise.
+
+**Example:**
+
+```
+${filter(
+  variables.cacheClusterConfig.hosts,
+  contains_g("celerityframework.com")
+)}
+```
+
+<br/>
+
+##### `list`
+
+Creates a list of values from arguments of the same type.
+
+**Parameters:**
+
+N arguments of the same type that will be used to create a list.
+
+**Returns:**
+
+`array`
+
+An array of values that have been passed as arguments.
+
+**Example:**
+
+```
+${list(
+  "item1",
+  "item2",
+  "item3",
+  "item4"
+)}
+```
+
+<br/>
+
+##### `object`
+
+Creates an object from named arguments.
+
+**Parameters:**
+
+N named arguments that will be used to create an object/mapping.
+When no arguments are passed, an empty object should be returned.
+
+:::caution
+Named function arguments are a special case that are only used in the `object` function.
+It is not syntactically invalid to use named arguments in other functions but the names will be
+ignored and the values passed in will be treated as positional arguments.
+:::
+
+**Returns:**
+
+`object`
+
+An object containing attributes that have been passed as named arguments.
+
+**Example:**
+
+```
+${object(
+  id = "subnet-1234",
+  label = "Subnet 1234"
+)}
+```
+
+<br/>
+
+##### `keys`
+
+Produces an array of keys from a mapping or attribute names from an object.
+
+**Parameters:**
+
+1. `mapping` - A mapping to extract keys from. (This can also be an object with known attributes, the two are interchangeable up to the point of validating parameters and return values)
+
+**Returns:**
+
+`array`
+
+An array of keys or attributes from the mapping or object.
+
+**Example:**
+
+```
+${keys(datasources.network.subnets)}
+```
+
+<br/>
+
+##### `vals`
+
+Produces an array of values from a mapping where the values are of the same type.
+
+_This function is named `vals` to avoid conflicting with the `values` keyword used for blueprint values._
+
+**Parameters:**
+
+1. `mapping` - A mapping to extract values from. For extracting values, this is `not` interchangeable with an object with known attributes.
+
+**Returns:**
+
+`array`
+
+An array of values extracted from the provided mapping.
+
+**Example:**
+
+```
+${vals(datasources.network.subnets)}
+```
+
+<br/>
+
+##### `map`
+
+Maps a list of values to a new list of values using a function.
+
+**Parameters:**
+
+1. `array` - An array of items where all items are of the same type to map.
+2. `func<Item, NewItem>(Item, integer?) -> NewItem` - A function that will be applied to each item in the array, the function must match the type of the items in the array. A runtime error should be returned if the function does not match this type. This function can optionally take an index as a second argument.
+
+**Returns:**
+
+`array`
+
+An array of values that have been transformed by the function.
+
+**Example:**
+
+```
+${map(
+  datasources.network.subnets,
+  compose(to_upper, getattr("id"))
+)}
+```
+
+<br/>
+
+##### `filter`
+
+Filters a list of values based on a predicate function.
+
+**Parameters:**
+
+1. `array` - An array of items where all items are of the same type to map.
+2. `func<Item>(Item) -> bool` - A function that will be applied to each item in the array, the function must return a boolean value.
+
+**Returns:**
+
+`array`
+
+An array of filtered values based on the predicate function.
+
+**Example:**
+
+```
+${filter(
+  datasources.network.subnets,
+  hasprefix_g("subnet-402948-")
+)}
+```
+
+<br/>
+
+##### `reduce`
+
+Reduces a list of values to a single value using a function.
+There are no core functions that have the signature of a reducer function,
+the `reduce` function is in the core spec to provide the tools for implementations and end users
+to be able to apply more complex transformations of data in blueprints.
+
+**Parameters:**
+
+1. `array` - An array of items where all items are of the same type to map.
+2. `func<Item, Accum>(Accum, Item, integer?) -> Accum` - A function that will be applied to each item in the array, accumulating a single value. This function can optionally take an index as a third argument.
+3. `Accum` - The initial value to start the accumulation with.
+
+**Returns:**
+
+`any`
+
+The accumulated value as a result of applying the reducer function to each item in the array.
+
+**Example:**
+
+```
+${reduce(
+  datasources.network.subnets,
+  extract_crucial_network_info,
+  object()
+)}
+```
+
+<br/>
+
+##### `sort`
+
+Sorts a list of values based on a comparison function.
+There are no core functions that have the signature of a comparison function,
+the `sort` function is in the core spec to provide the tools for implementations and end users
+to sort arrays of values based on a custom comparison function.
+
+**Parameters:**
+
+1. `array` - An array of items where all items are of the same type to sort.
+2. `func<Item>(Item, Item, integer?) -> integer` - The comparison function that is expected to return a negative integer if the first item should come before the second item, a positive integer if the first item should come after the second item, and zero if the items are equal. This function can optionally take an index as a third argument.
+
+**Returns:**
+
+`array`
+
+An array of sorted values based on the comparison function.
+
+**Example:**
+
+```
+${sort(
+  datasources.network.subnets,
+  compare_cidr_ranges,
+)}
+```
+
+<br/>
+
+##### `flatmap`
+
+Maps a list of values to a new list of values using a function and flattens the result.
+
+One example where this is useful would be where you have a list of strings where each string is a comma separated list of values and you want to split each string into a list of values and then flatten the result into a single output list.
+
+To illustrate this, for input:
+
+```
+values.hosts = ["host1,example.com:3049", "host2,example.com:4095"]
+```
+
+Applying the flat map function like so:
+```
+${flatmap(
+  values.hosts,
+  split_g(",")
+)}
+```
+
+Would result in the following output:
+```
+["host1", "example.com:3049", "host2", "example.com:4095"]
+```
+
+**Parameters:**
+
+1. `array` - An array of items where all items are of the same type to map.
+2. `func<Item, NewItem extends array>(Item, integer?) -> NewItem` - A function that will be applied to each item in the array, the function must match the type of the items in the array. A runtime error should be returned if the function does not match this type. This function can optionally take an index as a second argument.
+
+**Returns:**
+
+`array`
+
+An array of values that have been transformed by the function
+and flattened into a one-dimensional array.
+
+**Example:**
+
+```
+${flatmap(
+  variables.cacheClusterConfig.hosts,
+  split_g(",")
+)}
+```
+
+<br/>
+
+##### `compose`
+
+`compose` is a higher-order function that combines N functions into a single function,
+where the output of one function is passed in as the input to the previous function.
+The call order of the functions is from right to left.
+
+**Parameters:**
+
+N functions that will be composed together from right to left.
+The return type of each function must match the input type of the function to the left.
+
+**Returns:**
+
+`func (any) -> any`
+
+A function that takes the input value of the right-most function and returns the output value of the left-most function.
+
+**Example:**
+
+```
+${map(
+  datasources.network.subnets,
+  compose(to_upper, getattr("id"))
+)}
+```
+
+<br/>
+
+##### `pipe`
+
+`pipe` is a higher-order function that combines N functions into a single function,
+where the output of one function is passed in as the input to the next function.
+The call order of the functions is from left to right, which is generally seen as more intuitive than the right to left order of `compose`.
+
+**Parameters:**
+
+N functions that will be piped together from left to right.
+The return type of each function must match the input type of the function to the right.
+
+**Returns:**
+
+`func (any) -> any`
+
+A function that takes the input value of the left-most function and returns the output value of the right-most function.
+
+**Example:**
+
+```
+${map(
+  datasources.network.subnets,
+  pipe(getattr("id"), to_upper)
+)}
+```
+
+<br/>
+
+##### `getattr`
+
+A higher-order function that returns a function that extracts a named attribute from an object or a mapping. This is useful in situations where you want to map an array of objects to an array of values of a specific attribute such as IDs.
+
+It can also be used to extract values from an object or mapping but the `.` or `[]` notation is more appropriate for this use case. 
+```
+datasources.network.subnets[].id
+```
+is more concise and readable than:
+```
+getattr("id")(datasources.network.subnets[])
+```
+
+**Parameters:**
+
+1. `string` - The name of the attribute to extract from the object or mapping.
+
+**Returns:**
+
+`func (object | mapping) -> any`
+
+A function that takes an object or mapping and returns the value of the named attribute.
+
+**Example:**
+
+```
+${map(
+  datasources.network.subnets,
+  compose(getattr("id"), getattr("definition"))
+)}
+```
+
+This example would take a list of subnets that would be of the following form:
+
+```json
+[{
+  "definition": {
+    "id": "subnet-1234"
+  }
+}, {
+  "definition": {
+    "id": "subnet-5678"
+  }
+}]
+```
+
+And return a list of ids:
+
+```json
+["subnet-1234", "subnet-5678"]
+```
+
+<br/>
+
+##### `getelem`
+
+A higher-order function that returns a function that extracts an element from an array. This is useful in situations where you want to map a two-dimensional array to an array of values of a specific element.
+
+It can also be used to extract values from an array but the `[]` notation is more appropriate for this use case. 
+```
+datasources.network.subnets[2]
+```
+is more concise and readable than:
+```
+getelem(2)(datasources.network.subnets)
+```
+
+**Parameters:**
+
+1. `integer` - The position of the element to extract from the array.
+
+**Returns:**
+
+`func (array) -> any`
+
+A function that takes an array and returns the value at the provided position.
+
+**Example:**
+
+```
+${map(
+  datasources.network.subnets,
+  compose(get_attr("id"), getelem(0))
+)}
+```
+
+This example would take a list of subnets that would be of the following form:
+
+```json
+[[
+  {
+    "id": "subnet-1234",
+    "label": "Subnet 1234"
+  },
+  "10.0.0.0/16"
+], [
+  {
+    "id": "subnet-5678",
+    "label": "Subnet 5678"
+  },
+  "172.31.0.0/16"
+]]
+```
+
+And return a list of ids:
+
+```json
+["subnet-1234", "subnet-5678"]
+```
+
+<br/>
+
+#### Complex Return Types
+
+Functions can return complex types such as arrays and mappings.
+
+When a function returns an array, the array items can be accessed with an index accessor `[]`.
+
+For example:
+```
+${map(variables.cacheClusterConfig.hosts, trimprefix_g("http://"))[0]}
+```
+
+
+When a function returns a mapping, the mapping can be accessed with a name accessors `.` and `[]`.
+
+For example:
+```
+${get_network_config(resources.vpc.state).info["host"]}
+```
+
+As displayed in the example above, multiple levels of nesting within a more complex structure can be accessed with the `.` and `[]` accessors.
 
 ### Complex Types
 
@@ -1912,6 +3040,49 @@ variables:
 
 <br/>
 
+#### Values
+
+References can **not** be used in the value type property.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml title="blueprint.yaml"
+values:
+  s3BucketName:
+    type: ${variables.bucketType}
+```
+:::
+
+
+References can be used in the **value** field which stores the contents of the value.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+values:
+  s3BucketName:
+    type: string
+    value: ${resources.s3Bucket.state.name}
+```
+:::
+
+References can be used in the `description` of a value, however it is not recommended
+for better readability of a blueprint.
+
+An example of this would be the following:
+
+:::caution Not Recommended
+```yaml
+values:
+  s3BucketName:
+    type: string
+    value: ${resources.s3Bucket.state.name}
+    description: The name of the ${variables.environment} s3 bucket.
+```
+:::
+
 #### Resources
 
 References can **not** be used in the resource type property.
@@ -1950,7 +3121,7 @@ for better readability of a blueprint.
 
 An example of this would be the following:
 
-:::success ✅ Valid
+:::caution Not Recommended
 ```yaml
 resources:
   getOrderFunction:
@@ -2079,7 +3250,7 @@ for better readability of a blueprint.
 
 An example of this would be the following:
 
-:::success ✅ Valid
+:::caution Not Recommended
 ```yaml
 datasources:
   network:
@@ -2232,10 +3403,13 @@ In this specification, [Extended Backus-Naur form](https://en.wikipedia.org/wiki
 Everything that goes in a `${..}` substitution block must adhere to the rules of this grammar.
 
 ```
-substitution                 =   function call | variable reference | datasource reference | child reference | resource reference | literal ;
-function call                =   name , "(" , function args , ")" ;
-function args                =   [ substitution , { "," , substitution } ] ;
+substitution                 =   function call expr | variable reference | datasource reference | child reference | resource reference | literal ;
+function call expr           =   name , "(" , function args , ")" , [ { ( name accessor | index accessor ) } ] ;
+function args                =   [ ( substitution | named function arg ) , { "," , ( substitution | named function arg ) } ] ;
+named function arg           =   name , "=" , substitution ;
 variable reference           =   "variables" , name accessor ;
+value reference              =   value name , [ { ( name accessor | index accessor ) } ] ;
+value name                   =   ( "values." , name accessor ) ;
 data source reference        =   "datasources" , name accessor , name accessor , [ index accessor ] ;
 child blueprint reference    =   "children" , name accessor , { name accessor | index accessor }- ;
 resource reference           =   resource name , [ ( name accessor , { ( name accessor | index acessor ) } ) ] ;
@@ -2639,3 +3813,5 @@ exports:
     description: The unique identifier of the orders topic for the system
     field: resources.coreInfra.state.ordersTopicId
 ```
+
+[^1]: The reasoning for the `_g` suffix for these functions is that `g` is commonly used in mathematics to denote a function in composition.
