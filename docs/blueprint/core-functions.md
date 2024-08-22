@@ -30,18 +30,18 @@ This could be a primitive value, an array, or a mapping.
 
 With a reference:
 ```
-${fromjson(variables.cacheClusterConfig, "host")}
+${fromjson(variables.cacheClusterConfig, "/host")}
 ```
 
 With a function call:
 ```
-${fromjson(trim(variables.cacheClusterConfig), "host")}
+${fromjson(trim(variables.cacheClusterConfig), "/host")}
 ```
 
 With a string literal:
 
 ```
-${fromjson("{\"host\":\"localhost\"}", "host")}
+${fromjson("{\"host\":\"localhost\"}", "/host")}
 ```
 
 <br/>
@@ -64,7 +64,7 @@ A function that takes a json string and extracts a value from it using the pre-c
 **Examples:**
 
 ```
-${map(variables.cacheClusterConfigDefs, fromjson_g("host"))}
+${map(variables.cacheClusterConfigDefs, fromjson_g("/host"))}
 ```
 
 <br/>

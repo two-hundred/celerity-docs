@@ -2350,7 +2350,7 @@ Everything that goes in a `${..}` substitution block must adhere to the rules of
 ```
 substitution                 =   function call expr | variable reference | datasource reference | child reference | resource reference | literal ;
 function call expr           =   name , "(" , function args , ")" , [ { ( name accessor | index accessor ) } ] ;
-function args                =   [ ( substitution | named function arg ) , { "," , ( substitution | named function arg ) } ] ;
+function args                =   [ ( named function arg | substitution ) , { "," , ( named function arg | substitution ) } ] ;
 named function arg           =   name , "=" , substitution ;
 variable reference           =   "variables" , name accessor ;
 value reference              =   value name , [ { ( name accessor | index accessor ) } ] ;
