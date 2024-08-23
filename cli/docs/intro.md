@@ -8,30 +8,35 @@ The Celerity CLI provides tooling for every stage of development for Celerity ap
 
 ## Installation
 
-## Getting Started
+To install the Celerity CLI (including build engine), run the following command:
 
-Get started by **creating a new site**.
-
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
-
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**:
-
-```shell
-npm init docusaurus@latest my-website classic
+```bash
+# placeholder for installation script
+sh -c "$(curl -fsSL https://get-celerity.dev)"
 ```
 
-## Start your site
+### Package Managers
 
-Run the development server:
+TODO: Add instructions for installing the CLI using OS package managers.
 
-```shell
-cd my-website
+### Binaries
 
-npx docusaurus start
+TODO: Add installer link for user's current platform.
+
+TODO: Add links to binaries for all supported platform architectures.
+
+## Running the CLI
+
+Once installed, the CLI can be run by executing the `celerity` command in the terminal.
+
+For information on all the available options and commands, run:
+
+```bash
+celerity help
 ```
 
-Your site starts at `http://localhost:3000`.
+To get usage information for a specific subcommand, run:
 
-Open `docs/intro.md` and edit some lines: the site **reloads automatically** and displays your changes.
+```bash
+celerity [subcommand] --help
+```

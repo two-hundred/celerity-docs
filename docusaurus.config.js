@@ -1,4 +1,4 @@
-import { config as dotenvConfig } from 'dotenv';
+import { config as dotenvConfig } from "dotenv";
 
 dotenvConfig({ silent: true });
 
@@ -50,6 +50,24 @@ const config = {
     [
       "@docusaurus/plugin-content-docs",
       {
+        id: "build-engine",
+        path: "build-engine",
+        routeBasePath: "build-engine",
+        sidebarPath: require.resolve("./sidebars-build-engine.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "blueprint-framework",
+        path: "blueprint-framework",
+        routeBasePath: "blueprint-framework",
+        sidebarPath: require.resolve("./sidebars-blueprint-framework.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
         id: "node-runtime",
         path: "node-runtime",
         routeBasePath: "node-runtime",
@@ -92,10 +110,9 @@ const config = {
             to: "/docs/intro/getting-started",
             position: "right",
           },
-          { to: "/blog", label: "Blog", position: "right" },
           {
             type: "dropdown",
-            label: "Components",
+            label: "Concepts",
             position: "right",
             items: [
               {
@@ -113,13 +130,31 @@ const config = {
                 activeBasePath: "/docs/resources",
                 to: "docs/resources/intro",
               },
+            ],
+          },
+          {
+            type: "dropdown",
+            label: "Components",
+            position: "right",
+            items: [
               {
                 label: "CLI",
                 activeBasePath: "/cli",
                 to: "/cli/docs/intro",
               },
+              {
+                label: "Build Engine",
+                activeBasePath: "/build-engine",
+                to: "/build-engine/docs/intro",
+              },
+              {
+                label: "Blueprint Framework",
+                activeBasePath: "/blueprint-framework",
+                to: "/blueprint-framework/docs/intro",
+              }
             ],
           },
+
           {
             type: "dropdown",
             label: "Runtimes & SDKs",
@@ -131,7 +166,7 @@ const config = {
                 to: "/node-runtime/docs/intro",
               },
               {
-                label: "C#",
+                label: "C#/.NET",
                 activeBasePath: "/csharp-runtime",
                 to: "/csharp-runtime/docs/intro",
               },
@@ -140,8 +175,24 @@ const config = {
                 activeBasePath: "/python-runtime",
                 to: "/python-runtime/docs/intro",
               },
+              {
+                label: "Java",
+                activeBasePath: "/java-runtime",
+                to: "/java-runtime/docs/intro",
+              },
+              {
+                label: "Rust SDK",
+                activeBasePath: "/rust-sdks",
+                to: "/rust-sdk/docs/intro",
+              },
+              {
+                label: "Go SDK",
+                activeBasePath: "/go-sdk",
+                to: "/go-sdk/docs/intro",
+              },
             ],
           },
+          { to: "/blog", label: "Blog", position: "right" },
           {
             href: "https://github.com/two-hundred/celerity",
             label: "GitHub",
@@ -171,8 +222,19 @@ const config = {
             docsPluginId: "celerity-cli",
             position: "left",
           },
+          {
+            type: "docsVersionDropdown",
+            title: "Build Engine Version",
+            docsPluginId: "build-engine",
+            position: "left",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Blueprint Framework Version",
+            docsPluginId: "blueprint-framework",
+            position: "left",
+          },
         ],
-
       },
       footer: {
         style: "dark",
@@ -214,7 +276,7 @@ const config = {
       algolia: {
         appId: process.env.ALGOLIA_APP_ID,
         apiKey: process.env.ALGOLIA_SEARCH_API_KEY,
-        indexName: process.env.ALGOLIA_INDEX_NAME
+        indexName: process.env.ALGOLIA_INDEX_NAME,
       },
     }),
   customFields: {
@@ -226,10 +288,16 @@ const config = {
         title: "Node.js Runtime & SDK",
       },
       "csharp-runtime": {
-        title: "C# Runtime & SDK",
+        title: "C#/.NET Runtime & SDK",
       },
       "python-runtime": {
         title: "Python Runtime & SDK",
+      },
+      "build-engine": {
+        title: "Build Engine",
+      },
+      "blueprint-framework": {
+        title: "Blueprint Framework",
       },
     },
   },

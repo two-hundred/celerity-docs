@@ -1081,6 +1081,10 @@ linkSelector should be set for a resource that is going to be making use of othe
 For example, a cloud function that will make use of a cloud data store will set a linkSelector criteria to link out to
 the cloud data store.
 
+:::caution
+The linkSelector query is only applied to resources within the same blueprint, it can **not** select resources that match the criteria in another blueprint. For example, resources in a child blueprint can **not** be selected by a linkSelector in a parent blueprint. Instead, blueprints must share data through [`variables`](#variables) and [`exports`](#exports).
+:::
+
 **field type** 
 
 [linkSelectorDefinitions](#linkselectordefinitions)

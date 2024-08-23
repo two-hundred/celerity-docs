@@ -48,7 +48,7 @@ const FeatureList: FeatureItem[] = [
       <>
         Celerity Blueprints make it much easier to define your infrastructure.
         They provide powerful abstractions where details such as networking and
-        permissions are taken care of following industry best practises.
+        permissions are taken care of while following industry best practises.
       </>
     ),
   },

@@ -13,6 +13,7 @@ This document contains the definitions of the core `${..}` substitution utility 
 
 The `fromjson` function is used to extract values from a serialised json string.
 Implementations should use [json pointer notation](https://datatracker.ietf.org/doc/rfc6901/) to allow for the extraction of values from complex serialised structures.
+**This only works for extracting values when the root of the json string is an object.**
 
 **Parameters:**
 
@@ -64,14 +65,14 @@ A function that takes a json string and extracts a value from it using the pre-c
 **Examples:**
 
 ```
-${map(variables.cacheClusterConfigDefs, fromjson_g("/host"))}
+${map(values.cacheClusterConfigDefs, fromjson_g("/host"))}
 ```
 
 <br/>
 
 ## `jsondecode`
 
-The `jsondecode` function is used to decode a serialised json string into an array or mapping.
+The `jsondecode` function is used to decode a serialised json string into a primitive value, array or mapping.
 
 **Parameters:**
 
@@ -87,7 +88,7 @@ This could be a primitive value, an array, or a mapping.
 **Example:**
 
 ```
-${jsondecode(variables.cacheClusterConfig)}
+${jsondecode(values.cacheClusterConfig)}
 ```
 
 
@@ -112,7 +113,7 @@ For a mapping, the length is the number of key value pairs.
 **Example:**
 
 ```
-${len(variables.cacheClusterConfig.endpoints)}
+${len(values.cacheClusterConfig.endpoints)}
 ```
 
 <br/>
@@ -136,7 +137,7 @@ The substring from the string.
 **Example:**
 
 ```
-${substr(variables.cacheClusterConfig.host, 0, 3)}
+${substr(values.cacheClusterConfig.host, 0, 3)}
 ```
 
 <br/>
@@ -159,7 +160,7 @@ A function that takes a string and returns the substring from the string using t
 **Example:**
 
 ```
-${map(variables.cacheClusterConfig.hosts, substr_g(0, 3))}
+${map(values.cacheClusterConfig.hosts, substr_g(0, 3))}
 ```
 
 <br/>
@@ -183,7 +184,7 @@ The input string with all occurrences of the "search" substring replaced with th
 **Example:**
 
 ```
-${replace(variables.cacheClusterConfig.host, "http://", "https://")}
+${replace(values.cacheClusterConfig.host, "http://", "https://")}
 ```
 
 <br/>
@@ -206,7 +207,7 @@ The input string with all occurrences of the "search" substring replaced with th
 **Example:**
 
 ```
-${map(variables.cacheClusterConfig.hosts, replace_g("http://", "https://"))}
+${map(values.cacheClusterConfig.hosts, replace_g("http://", "https://"))}
 ```
 
 <br/>
@@ -226,7 +227,7 @@ The input string with all leading and trailing whitespace removed.
 **Example:**
 
 ```
-${trim(variables.cacheClusterConfig.host)}
+${trim(values.cacheClusterConfig.host)}
 ```
 
 <br/>
@@ -247,7 +248,7 @@ The input string with the prefix removed.
 **Example:**
 
 ```
-${trimprefix(variables.cacheClusterConfig.host, "http://")}
+${trimprefix(values.cacheClusterConfig.host, "http://")}
 ```
 
 <br/>
@@ -290,7 +291,7 @@ The input string with the suffix removed.
 **Example:**
 
 ```
-${trimsuffix(variables.cacheClusterConfig.host, ":3000")}
+${trimsuffix(values.cacheClusterConfig.host, ":3000")}
 ```
 <br/>
 
@@ -311,7 +312,7 @@ A function that takes a string and returns the input string with the suffix remo
 **Example:**
 
 ```
-${map(variables.cacheClusterConfig.hosts, trimsuffix_g("/config"))}
+${map(values.cacheClusterConfig.hosts, trimsuffix_g("/config"))}
 ```
 <br/>
 
@@ -333,7 +334,7 @@ An array of substrings that have been split by the delimiter.
 **Example:**
 
 ```
-${split(variables.cacheClusterConfig.hosts, ",")}
+${split(values.cacheClusterConfig.hosts, ",")}
 ```
 
 <br/>
@@ -355,7 +356,7 @@ A function that takes a string and returns an array of substrings that have been
 **Example:**
 
 ```
-${flatmap(variables.cacheClusterConfig.multiClusterHosts, split_g(","))}
+${flatmap(values.cacheClusterConfig.multiClusterHosts, split_g(","))}
 ```
 
 <br/>
@@ -378,7 +379,7 @@ The array of strings joined together with the delimiter.
 **Example:**
 
 ```
-${join(variables.cacheClusterConfig.hosts, ",")}
+${join(values.cacheClusterConfig.hosts, ",")}
 ```
 
 <br/>
@@ -402,7 +403,7 @@ This will be -1 if the substring is not found in the string.
 **Example:**
 
 ```
-${index(variables.cacheClusterConfig.host, ":3000")}
+${index(values.cacheClusterConfig.host, ":3000")}
 ```
 
 <br/>
@@ -426,7 +427,7 @@ This will be -1 if the substring is not found in the string.
 **Example:**
 
 ```
-${last_index(variables.cacheClusterConfig.host, ":3000")}
+${last_index(values.cacheClusterConfig.host, ":3000")}
 ```
 
 <br/>
@@ -448,7 +449,7 @@ The input string with all characters converted to upper case.
 **Example:**
 
 ```
-${to_upper(variables.cacheClusterConfig.hostName)}
+${to_upper(values.cacheClusterConfig.hostName)}
 ```
 <br/>
 
@@ -469,7 +470,7 @@ The input string with all characters converted to lower case.
 **Example:**
 
 ```
-${to_lower(variables.cacheClusterConfig.hostId)}
+${to_lower(values.cacheClusterConfig.hostId)}
 ```
 <br/>
 
@@ -491,7 +492,7 @@ True, if the string starts with the prefix, false otherwise.
 **Example:**
 
 ```
-${has_prefix(variables.cacheClusterConfig.host, "http://")}
+${has_prefix(values.cacheClusterConfig.host, "http://")}
 ```
 
 <br/>
@@ -514,7 +515,7 @@ A function that takes a string and returns true if the string starts with the pr
 
 ```
 ${filter(
-  variables.cacheClusterConfig.hosts,
+  values.cacheClusterConfig.hosts,
   has_prefix_g("http://")
 )}
 ```
@@ -539,7 +540,7 @@ True, if the string ends with the suffix, false otherwise.
 **Example:**
 
 ```
-${has_suffix(variables.cacheClusterConfig.host, "/config")}
+${has_suffix(values.cacheClusterConfig.host, "/config")}
 ```
 
 <br/>
@@ -562,7 +563,7 @@ A function that takes a string and returns true if the string ends with the suff
 
 ```
 ${filter(
-  variables.cacheClusterConfig.hosts,
+  values.cacheClusterConfig.hosts,
   has_suffix_g("/config")
 )}
 ```
@@ -587,7 +588,7 @@ True, if the substring or value is found in the string or array, false otherwise
 **Example:**
 
 ```
-${contains(variables.cacheClusterConfig.host, "celerityframework.com")}
+${contains(values.cacheClusterConfig.host, "celerityframework.com")}
 ```
 
 <br/>
@@ -610,7 +611,7 @@ A function that takes a string or array and returns true if the substring or val
 
 ```
 ${filter(
-  variables.cacheClusterConfig.hosts,
+  values.cacheClusterConfig.hosts,
   contains_g("celerityframework.com")
 )}
 ```
@@ -875,7 +876,7 @@ and flattened into a one-dimensional array.
 
 ```
 ${flatmap(
-  variables.cacheClusterConfig.hosts,
+  values.cacheClusterConfig.hosts,
   split_g(",")
 )}
 ```
@@ -1050,6 +1051,41 @@ And return a list of ids:
 
 <br/>
 
+## `link`
+
+A function to retrieve the state of a link between two resources.
+
+**Parameters:**
+
+1. `string | ResourceRef` - Resource A in the relationship, can be a string literal of the resource name or a reference to a resource.
+2. `string | ResourceRef` - Resource B in the relationship, can be a string literal of the resource name or a reference to a resource.
+
+**Returns:**
+
+`object`
+
+An object containing all the information about the link between the two resources made available by the provider that powers the link.
+
+**Example:**
+
+Using resource references:
+```
+${link(resources.orderApi, resources.createOrderFunction)}
+```
+
+Using implict resource references (identifiers without a namespace are either resources or functions):
+```
+${link(orderApi, listOrdersFunction)}
+```
+
+Using string literals:
+
+```
+${link("orderApi", "deleteOrderFunction")}
+```
+
+<br/>
+
 ## Clarification on `_g` functions
 
 A lot of the core functions have two definitions in the spec, one for direct function calls and one for function composition. The `_g`[^1] suffix is used to denote a function to be used for composition that takes static arguments and produces a function that takes the dynamic value to be transformed.
@@ -1057,13 +1093,13 @@ A lot of the core functions have two definitions in the spec, one for direct fun
 A direct usage example would be:
 
 ```
-${trimprefix(variables.cacheClusterConfig.host, "http://")}
+${trimprefix(values.cacheClusterConfig.host, "http://")}
 ```
 
 A composition usage example would be:
 
 ```
-${map(variables.cacheClusterConfig.hosts, trimprefix_g("http://"))}
+${map(values.cacheClusterConfig.hosts, trimprefix_g("http://"))}
 ```
 
 Only some of the core string manipulation functions have a composable version, this is because they are the most likely to be used in a composition context. Implementations are free to add composable versions of other functions as they see fit. A plugin system for functions could also be useful in allowing users of a tool implementing the spec to add their own functions.
