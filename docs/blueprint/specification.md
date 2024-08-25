@@ -95,7 +95,7 @@ For example:
 ${variables.databaseHost}
 ```
 
-For more information about referencing variables, see the [references](#references) section.
+For more information about referencing variables, see the [references](#references--substitutions) section.
 
 **type**
 
@@ -218,7 +218,7 @@ Values can be referenced using the following syntax:
 ${values.[valueName]}
 ```
 
-For more information about referencing values, see the [references](#references) section.
+For more information about referencing values, see the [references](#references--substitutions) section.
 
 :::tip
 Exports can not carry out any computation for the `field` property as it is a reference to a value that is **not** a part of a `${..}` substitution. Functions can only be called in `${..}` substitutions.
@@ -301,7 +301,7 @@ You will be able to access the id of the VPC that was found using the filter lik
 ${datasources.network.vpc}
 ```
 
-For more information about referencing data source fields, see the [references](#references) section.
+For more information about referencing data source fields, see the [references](#references--substitutions) section.
 
 **type**
 
@@ -467,7 +467,7 @@ resources:
 Include provides a way to include other blueprints in a given blueprint.
 Included blueprints are treated as children and their properties can be accessed from the parent using `${children.{childName}.{property}}`.
 Child blueprints can be referenced in resources, as inputs to other child blueprints and in exports.
-See the [references](#references) section for more information on how values from child blueprints can be referenced.
+See the [references](#references--substitutions) section for more information on how values from child blueprints can be referenced.
 
 This is the primary way to compose blueprints that is a part of the core specification, see [Modular Blueprints](#modular-blueprints) for other approaches.
 
@@ -630,13 +630,13 @@ An example of a custom variable type would be `aws/region` with a fixed set of s
 With custom types, labels should be used as references to the values of the variable instead of the values themselves. Custom types should be treated as enums.
 
 :::tip
-Only scalar values are supported for variables. If you want to pass in complex structures such as arrays or objects, you will need to pass them in as strings and use the `json_decode` function in a substitution to interact with the array or object structure.
+Only scalar values are supported for variables. If you want to pass in complex structures such as arrays or objects, you will need to pass them in as strings and use the `jsondecode` function in a substitution to interact with the array or object structure.
 
 For example, if you are using a provider with a custom function that takes a specific object structure as input you would do the following:
 
 ```
 ${custom_provider_function(
-  json_decode(variables.deploymentConfig)
+  jsondecode(variables.deploymentConfig)
 )}
 ```
 
@@ -1069,6 +1069,94 @@ Find out more about labels in the [labels and implicit linking](#labels-and-impl
 **field type** 
 
 [resourceMetadataDefinition](#resourcemetadatadefinition)
+___
+
+<p style={{fontSize: '1.2em'}}><strong>condition</strong></p>
+
+Condition provides a way to conditionally create resources based on the state of other resources,
+variables, values or data sources in the blueprint.
+
+The condition can be defined in 2 ways. 1, as a boolean expression in a `${..}` substitution that evaluates to `true` or `false`; 2, as a condition object that allows conditions to be combined with `and`, `or` and `not` operators.
+
+:::tip
+`${..}` substitutions can also support more complex logical expression utilising the `and`, `or` and
+`not` functions. 
+
+For example:
+
+```
+${or(
+  eq(variables.deploymentTarget,"container"),
+  eq(variables.deploymentTarget, "cloudFunctions")
+)}
+```
+:::
+
+An example of a condition for a resource would be:
+
+```yaml
+resources:
+  saveOrderFunction:
+    type: aws/lambda/function
+    condition:
+      and:
+        - ${eq(variables.deploymentTarget, "serverless")}
+        - ${eq(variables.environment, "production")}
+    spec:
+      functionName: ordersApi-${variables.environment}-saveOrderFunction-v1
+      codeUri: ./orders
+      handler: save_order.handler
+      runtime: python3.12
+      tracing: Active
+      architectures: arm64
+      environment:
+        variables:
+          DATABASE_HOST: ${variables.databaseHost}
+          DATABASE_PORT: ${variables.databasePort}
+          DATABASE_USER: ${variables.databaseUser}
+          DATABASE_PASSWORD: ${variables.databasePassword}
+          DATABASE_NAME: ${variables.databaseName}
+      timeout: 120
+```
+
+
+**field type** 
+
+string | [conditionDefinition](#conditiondefinition)
+___
+
+<p style={{fontSize: '1.2em'}}><strong>each</strong></p>
+
+Provides a way to create multiple resources based on a list of values that can be referenced in the blueprint. The current item in the list can be accessed by referencing `elem` in a `${..}` substitution. The current index can be accessed by referencing `i` in a `${..}` substitution.
+
+See the [references](#references--substitutions) section for more information on how to reference the current item (`elem`) and current index (`i`) in the each array.
+
+:::tip
+`each` does not support substitution references that resolve to objects or mappings, you can do the following to feed an object into an `each`:
+
+```
+${vals(values.bucketsConfig)}
+```
+:::
+
+An example of using `each` for a resource would be:
+
+```yaml
+resources:
+  s3Buckets:
+    type: aws/s3/bucket
+    each: ${values.bucketsToCreate}
+    spec:
+      bucketName: ${elem.bucketName}
+      objectLockEnabled: ${elem.objectLockEnabled}
+      tags:
+        - key: "bucketNumber"
+          value: bucket-${i}
+```
+
+**field type** 
+
+string
 
 ___
 
@@ -1280,6 +1368,44 @@ mapping[string, ( string | object | integer | float | array | boolean )]
 <br/>
 <br/>
 
+### conditionDefinition
+
+A definition for a condition that can be used to conditionally create resources based on the state of other resources, variables, values or data sources in the blueprint.
+
+<p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
+___
+
+<p style={{fontSize: '1.2em'}}><strong>or</strong></p>
+
+A list of conditions that should be evaluated with a logical OR operator.
+
+**field type** 
+
+array[[conditionDefinition](#conditiondefinition) | string]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>and</strong></p>
+
+A list of conditions that should be evaluated with a logical AND operator.
+
+**field type** 
+
+array[[conditionDefinition](#conditiondefinition) | string]
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>not</strong></p>
+
+A condition that should be evaluated with a logical NOT operator, negating the result of the condition.
+
+**field type** 
+
+[conditionDefinition](#conditiondefinition) | string
+
+<br/>
+<br/>
+
 ### linkSelectorDefinitions
 
 A definition for supported link selectors that can be used to implicitly link resources together.
@@ -1445,7 +1571,7 @@ following this format:
 resources.{resourceName}.state.{field}
 ```
 
-See the [references](#references) section for more information on referencing resource values.
+See the [references](#references--substitutions) section for more information on referencing resource values.
 
 **field type**
 
@@ -1480,7 +1606,7 @@ _It's worth noting that some contextual information about spec behaviour that ca
 
 ### Operator Behaviours
 
-The following sections describe how the operators should behave with different inputs.
+The following sections describe how the operators in [data source filters](#datasourcefilterdefinition) should behave with different inputs.
 
 <p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Equality Operators ( = | != )</strong></p>
 
@@ -1831,6 +1957,62 @@ letter                    =   ? [A-Za-z] ? ;
 digit                     =   ? [0-9] ? ;
 ```
 
+### Current Element References (each)
+
+Current element references are those that allow access the current element in an array that is being iterated over with the [`each`](#resourcedefinition) feature of a resource.
+
+`elem` is the keyword used to reference the current element in an array, if `elem` is used outside of a resource type with the `each` property set, the implementation should report an informative error to the user.
+
+Element values can be strings, integers, floats, booleans, arrays or objects.
+
+Elements must be referenced with the `elem.*` prefix.
+
+The following is an example of an element reference:
+
+```
+${elem["config"].attrs[0]}
+```
+
+For an element that is an array, the following is an example of how to access the first item in the array:
+
+```
+${elem[]}
+``` 
+
+For an element that is a primitive value you can reference it directly like so:
+
+```
+${elem}
+```
+
+The index of the current element can be accessed with the `i` keyword.
+
+The following is an example of how to access the index of the current element:
+
+```
+${i}
+```
+
+<p style={{fontSize: "var(--ifm-h4-font-size)"}}><strong>Element Reference Format</strong></p>
+
+The precise format for an element reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
+
+```
+elem reference        =   "elem" , [ { ( name accessor | index accessor ) } ] ;
+elem index reference  =   "i" ;
+index accessor        =   "[" , [ natural number ] , "]" ;
+name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
+name in quotes        =   { name in quotes char }- ;
+name in quotes char   =   letter | digit | "_" | "-" | "." ;
+name                  =   start name char , name chars ;
+name chars            =   { name char } ;
+name char             =   letter | digit | "_" | "-" ;
+start name char       =   letter | "_" ;
+natural number        =   { digit }- ;
+letter                =   ? [A-Za-z] ? ;
+digit                 =   ? [0-9] ? ;
+```
+
 ### Child Blueprint References
 
 Child blueprint references are those that allow access to the exported fields of a child blueprint.
@@ -2046,6 +2228,42 @@ resources:
 ```
 :::
 
+References can be used in any **value** in a resource condition.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    condition: 
+      and:
+        - ${variables.getOrderFunctionCondition}
+        - ${variables.getOrdersActionCondition}
+    spec:
+      functionName: Prod-getOrderFunction-v1
+      timeout: 3000
+      runtime: nodej20.x
+      codeUri: ..
+      handler: index.handler
+```
+:::
+
+References can be used in the **each** property of a resource.
+
+An example of this would be the following:
+
+:::success ✅ Valid
+```yaml
+resources:
+  getOrderFunction:
+    type: aws/s3/bucket
+    each: ${jsondecode(variables.buckets)}
+    spec:
+      bucketName: ${elem}
+```
+:::
 
 References can be used in any **value** in a resource spec.
 
@@ -2359,6 +2577,8 @@ named function arg           =   name , "=" , substitution ;
 variable reference           =   "variables" , name accessor ;
 value reference              =   value name , [ { ( name accessor | index accessor ) } ] ;
 value name                   =   ( "values." , name accessor ) ;
+elem reference               =   "elem" , [ { ( name accessor | index accessor ) } ] ;
+elem index reference         =   "i" ;
 data source reference        =   "datasources" , name accessor , name accessor , [ index accessor ] ;
 child blueprint reference    =   "children" , name accessor , { name accessor | index accessor }- ;
 resource reference           =   resource name , [ ( name accessor , { ( name accessor | index acessor ) } ) ] ;
