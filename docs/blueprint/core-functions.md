@@ -374,7 +374,7 @@ The `join` function is used to join an array of strings into a single string usi
 
 `string`
 
-The array of strings joined together with the delimiter.
+A single string that is the result of joining the array of strings with the delimiter.
 
 **Example:**
 
@@ -701,19 +701,19 @@ ${keys(datasources.network.subnets)}
 
 ## `vals`
 
-Produces an array of values from a mapping where the values are of the same type.
+Produces an array of values from a mapping or object with known attributes.
 
 _This function is named `vals` to avoid conflicting with the `values` keyword used for blueprint values._
 
 **Parameters:**
 
-1. `mapping` - A mapping to extract values from. For extracting values, this is `not` interchangeable with an object with known attributes.
+1. `mapping` - A mapping or object to extract values from.
 
 **Returns:**
 
 `array`
 
-An array of values extracted from the provided mapping.
+An array of values extracted from the provided mapping or object.
 
 **Example:**
 
@@ -755,7 +755,7 @@ Filters a list of values based on a predicate function.
 
 **Parameters:**
 
-1. `array` - An array of items where all items are of the same type to map.
+1. `array` - An array of items where all items are of the same type to filter.
 2. `func<Item>(Item) -> bool` - A function that will be applied to each item in the array, the function must return a boolean value.
 
 **Returns:**
@@ -1083,6 +1083,38 @@ Using string literals:
 ```
 ${link("orderApi", "deleteOrderFunction")}
 ```
+
+<br/>
+
+## `and`
+
+<br/>
+
+## `or`
+
+<br/>
+
+## `not`
+
+<br/>
+
+## `eq`
+
+<br/>
+
+## `gt`
+
+<br/>
+
+## `ge`
+
+<br/>
+
+## `lt`
+
+<br/>
+
+## `le`
 
 <br/>
 

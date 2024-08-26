@@ -92,6 +92,33 @@ const config = {
         sidebarPath: require.resolve("./sidebars-python-runtime.js"),
       },
     ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "java-runtime",
+        path: "java-runtime",
+        routeBasePath: "java-runtime",
+        sidebarPath: require.resolve("./sidebars-java-runtime.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "rust-sdk",
+        path: "rust-sdk",
+        routeBasePath: "rust-sdk",
+        sidebarPath: require.resolve("./sidebars-rust-sdk.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "go-sdk",
+        path: "go-sdk",
+        routeBasePath: "go-sdk",
+        sidebarPath: require.resolve("./sidebars-go-sdk.js"),
+      },
+    ],
   ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -181,12 +208,12 @@ const config = {
                 to: "/java-runtime/docs/intro",
               },
               {
-                label: "Rust SDK",
-                activeBasePath: "/rust-sdks",
+                label: "Rust",
+                activeBasePath: "/rust-sdk",
                 to: "/rust-sdk/docs/intro",
               },
               {
-                label: "Go SDK",
+                label: "Go",
                 activeBasePath: "/go-sdk",
                 to: "/go-sdk/docs/intro",
               },
@@ -214,6 +241,24 @@ const config = {
             type: "docsVersionDropdown",
             title: "Python SDK Version",
             docsPluginId: "python-runtime",
+            position: "left",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Java SDK Version",
+            docsPluginId: "java-runtime",
+            position: "left",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Rust SDK Version",
+            docsPluginId: "rust-sdk",
+            position: "left",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Go SDK Version",
+            docsPluginId: "go-sdk",
             position: "left",
           },
           {
@@ -292,6 +337,15 @@ const config = {
       },
       "python-runtime": {
         title: "Python Runtime & SDK",
+      },
+      "java-runtime": {
+        title: "Java Runtime & SDK",
+      },
+      "rust-sdk": {
+        title: "Rust SDK",
+      },
+      "go-sdk": {
+        title: "Go SDK",
       },
       "build-engine": {
         title: "Build Engine",

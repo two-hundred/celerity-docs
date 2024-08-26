@@ -15,7 +15,7 @@ The Build Engine is responsible for:
 - Deploying Celerity applications to supported platforms.
 - Deploying blueprints that go beyond Celerity applications, with a primary example being infrastructure as code.
 
-For the validation and deployment stages, at the centre of the Build Engine lies the [Blueprint Framework](../blueprint-framework/docs/intro) which is used to validate and deploy blueprints.
+For the validation and deployment stages, at the centre of the Build Engine lies the [Blueprint Framework](../../blueprint-framework/docs/intro) which is used to validate and deploy blueprints.
 A blueprint is used to define a Celerity application in a similar way an AWS SAM template is used to define a serverless application in AWS.
 
 The Build Engine contains a registry of resource types and other Blueprint Framework plugins that enable Celerity applications to be deployed to various platforms.

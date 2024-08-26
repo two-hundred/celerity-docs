@@ -1372,6 +1372,10 @@ mapping[string, ( string | object | integer | float | array | boolean )]
 
 A definition for a condition that can be used to conditionally create resources based on the state of other resources, variables, values or data sources in the blueprint.
 
+A condition **must** only have **one** of the following fields set: `or`, `and`, `not`.
+
+If more than one of the fields are set, an implementation of the spec should fail with an informative error.
+
 <p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
 
