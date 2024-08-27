@@ -784,7 +784,7 @@ to be able to apply more complex transformations of data in blueprints.
 
 **Parameters:**
 
-1. `array` - An array of items where all items are of the same type to map.
+1. `array` - An array of items where all items are of the same type to reduce over.
 2. `func<Item, Accum>(Accum, Item, integer?) -> Accum` - A function that will be applied to each item in the array, accumulating a single value. This function can optionally take an index as a third argument.
 3. `Accum` - The initial value to start the accumulation with.
 
@@ -816,7 +816,7 @@ to sort arrays of values based on a custom comparison function.
 **Parameters:**
 
 1. `array` - An array of items where all items are of the same type to sort.
-2. `func<Item>(Item, Item, integer?) -> integer` - The comparison function that is expected to return a negative integer if the first item should come before the second item, a positive integer if the first item should come after the second item, and zero if the items are equal. This function can optionally take an index as a third argument.
+2. `func<Item>(Item, Item) -> integer` - The comparison function that is expected to return a negative integer if the first item should come before the second item, a positive integer if the first item should come after the second item, and zero if the items are equal.
 
 **Returns:**
 
@@ -1088,33 +1088,185 @@ ${link("orderApi", "deleteOrderFunction")}
 
 ## `and`
 
+A function that acts as a logical AND operator on two boolean values.
+
+**Parameters:**
+
+1. `boolean` - The result of boolean expression A the left-hand side of the AND operation.
+2. `boolean` - The result of boolean expression B the right-hand side of the AND operation.
+
+**Returns:**
+
+`boolean`
+
+The result of the logical AND operation on the two boolean values.
+
+**Example:**
+
+```
+${and(resources.orderApi.state.isProd, eq(variables.environment, "prod"))}
+```
+
 <br/>
 
 ## `or`
+
+A function that acts as a logical OR operator on two boolean values.
+
+**Parameters:**
+
+1. `boolean` - The result of boolean expression A the left-hand side of the OR operation.
+2. `boolean` - The result of boolean expression B the right-hand side of the OR operation.
+
+**Returns:**
+
+`boolean`
+
+The result of the logical OR operation on the two boolean values.
+
+**Example:**
+
+```
+${or(resources.orderApi.state.isDev, eq(variables.environment, "dev"))}
+```
 
 <br/>
 
 ## `not`
 
+A function that negates a given boolean value.
+
+**Parameters:**
+
+1. `boolean` - The result of a boolean expression to negate.
+
+**Returns:**
+
+`boolean`
+
+The result of negating the provided boolean value.
+
+**Example:**
+
+```
+${not(eq(variables.environment, "prod"))}
+```
+
 <br/>
 
 ## `eq`
+
+A function that determines whether two values of the same type are equal.
+
+**Parameters:**
+
+1. `any` - The left-hand side of the equality comparison.
+2. `any` - The right-hand side of the equality comparison.
+
+**Returns:**
+
+`boolean`
+
+True, if the two values are equal, false otherwise.
+
+**Example:**
+
+```
+${eq(variables.environment, "prod")}
+```
 
 <br/>
 
 ## `gt`
 
+A function that determines whether a number is greater than another number.
+
+**Parameters:**
+
+1. `integer | float` - "a" in the expression "a > b".
+2. `integer | float` - "b" in the expression "a > b".
+
+**Returns:**
+
+`boolean`
+
+True, if the first number is greater than the second number, false otherwise.
+
+**Example:**
+
+```
+${gt(len(datasources.network.subnets), 10)}
+```
+
 <br/>
 
 ## `ge`
+
+A function that determines whether a number is greater than or equal to another number.
+
+**Parameters:**
+
+1. `integer | float` - "a" in the expression `a >= b`.
+2. `integer | float` - "b" in the expression `a >= b`.
+
+**Returns:**
+
+`boolean`
+
+True, if the first number is greater than or equal to the second number, false otherwise.
+
+**Example:**
+
+```
+${ge(len(datasources.network.subnets), 10)}
+```
 
 <br/>
 
 ## `lt`
 
+A function that determines whether a number is less than another number.
+
+**Parameters:**
+
+1. `integer | float` - "a" in the expression `a < b`.
+2. `integer | float` - "b" in the expression `a < b`.
+
+**Returns:**
+
+`boolean`
+
+True, if the first number is less than the second number, false otherwise.
+
+**Example:**
+
+```
+${lt(len(datasources.network.subnets), 10)}
+```
+
+
 <br/>
 
 ## `le`
+
+A function that determines whether a number is less than or equal to another number.
+
+**Parameters:**
+
+1. `integer | float` - "a" in the expression `a <= b`.
+2. `integer | float` - "b" in the expression `a <= b`.
+
+**Returns:**
+
+`boolean`
+
+True, if the first number is less than or equal to the second number, false otherwise.
+
+**Example:**
+
+```
+${le(len(datasources.network.subnets), 10)}
+```
 
 <br/>
 
