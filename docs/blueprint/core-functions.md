@@ -1092,8 +1092,8 @@ A function that acts as a logical AND operator on two boolean values.
 
 **Parameters:**
 
-1. `boolean` - The result of boolean expression A the left-hand side of the AND operation.
-2. `boolean` - The result of boolean expression B the right-hand side of the AND operation.
+1. `boolean` - The result of boolean expression A, the left-hand side of the AND operation.
+2. `boolean` - The result of boolean expression B, the right-hand side of the AND operation.
 
 **Returns:**
 
