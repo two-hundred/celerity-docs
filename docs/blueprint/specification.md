@@ -540,7 +540,7 @@ include:
 
 ### exports
 
-Exports are a way to define a set of fields from resources that are publicly accessible attributes of
+Exports are a way to define a set of values from the blueprint that are publicly accessible attributes of
 the blueprint that can be used in other blueprints as data sources or in external applications or systems that interface with
 an implementation of the spec via an API.
 
@@ -1539,7 +1539,7 @@ string
 
 ### exportDefinition
 
-A definition for a resource field exported from the blueprint that can be referenced outside of the blueprint.
+A definition for data exported from the blueprint that can be referenced by other blueprints or external systems.
 The name of the exported attribute is the key in the mapping in the [exports](#exports) section of the blueprint.
 
 <p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
@@ -1558,15 +1558,15 @@ string
 
 **allowed values** 
 
-string | object | integer | float | array | boolean
+string | integer | float | boolean | array | object
 
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>field (required)</strong></p>
 
-The name/path of the resource field to export.
-Any attribute of a resource can be exported, it is not only limited to the
-deployed state of the resource.
+The name/path of the resource field, data source field, child blueprint field, variable or value to export.
+
+When it comes to resources, any attribute can be exported, including fields in the state, spec and metadata.
 
 Fields from the final state of a resources can be referenced using the `state` property
 following this format:
@@ -1575,7 +1575,7 @@ following this format:
 resources.{resourceName}.state.{field}
 ```
 
-See the [references](#references--substitutions) section for more information on referencing resource values.
+See the [references](#references--substitutions) section for more information on referencing resources, data sources, child blueprints, variables and values.
 
 **field type**
 
@@ -1588,6 +1588,14 @@ string
 `resources.saveOrderFunction.spec.functionName`
 
 `resources.saveOrderFunction.metadata.displayName`
+
+`variables.environment`
+
+`values.contentBucketNames`
+
+`child.networking.vpcId`
+
+`datasources.secretStore.secetId`
 
 ___
 
