@@ -1593,7 +1593,7 @@ string
 
 `values.contentBucketNames`
 
-`child.networking.vpcId`
+`children.networking.vpcId`
 
 `datasources.secretStore.secetId`
 
