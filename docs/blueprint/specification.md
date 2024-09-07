@@ -943,6 +943,12 @@ ___
 The name of the field in the external resource that should be compared to the search value(s) using the configured operator.
 Object paths using dot notation can be used for nested fields in external resources (e.g. `metadata.name`).
 
+:::caution
+A filter `field` does **not** correspond to the field name in the data source specification for fields that can be exported from the data source.
+These fields can be any data type and are not limited to the fields that can be exported from the data source.
+You can check the documentation of a data source provider to see the fields that can be used in a filter.
+:::
+
 **field type** 
 
 string
@@ -1007,7 +1013,6 @@ to the blueprint with an alias.
 When this field is set, the alias would be the key in the `datasources` mapping.
 See the [datasources](#datasources) examples for more information.
 
-Object paths using dot notation can be used for nested fields in external resources (e.g. `metadata.name`)
 
 **field type** 
 
@@ -1152,6 +1157,12 @@ resources:
       tags:
         - key: "bucketNumber"
           value: bucket-${i}
+```
+
+Then to reference resources from an `each` resource template, you can use the following syntax:
+
+```
+${resources.s3Buckets[1].state.bucketName}
 ```
 
 **field type** 
@@ -1478,7 +1489,7 @@ Working directory path example:
 # app_infra/main-blueprint.yaml
 include:
   child:
-    path: ${workingDir}/core_infra/child-blueprint.yaml
+    path: ${cwd()}/core_infra/child-blueprint.yaml
 ```
 
 Remote file system example:
@@ -1895,6 +1906,12 @@ To access a field from the resource's metadata, use `.metadata.*` like so:
 ${resources.cacheCluster.metadata.annotations["myAnnotation.populateEnvVars"]}
 ```
 
+To access a resource element in an array from a resource template using the `each` property:
+
+```
+${resources.cacheClusters[].state.nodes[1].endpoint}
+```
+
 When accessing metadata for a resource, fields must be accessed from either `.metadata.labels`, `.metadata.annotations`, or `.metadata.custom`
 as per the specification. `.metadata.displayName` is also supported to reference the display name of a resource.
 
@@ -1913,7 +1930,7 @@ ${*.annotations["myAnnotation.populateEnvVars"]}
 The precise format for a resource reference notated in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) would be the following:
 
 ```
-resource reference    =   resource name , [ ( name accessor , { ( name accessor | index accessor ) } ) ] ;
+resource reference    =   resource name , [ { ( name accessor | index accessor ) } ] ;
 resource name         =   ( "resources." , name accessor ) | name ;
 index accessor        =   "[" , [ natural number ] , "]" ;
 name accessor         =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
@@ -2059,7 +2076,6 @@ natural number                =   { digit }- ;
 letter                        =   ? [A-Za-z] ? ;
 digit                         =   ? [0-9] ? ;
 ```
-
 
 ### Functions
 
@@ -2593,7 +2609,7 @@ elem reference               =   "elem" , [ { ( name accessor | index accessor )
 elem index reference         =   "i" ;
 data source reference        =   "datasources" , name accessor , name accessor , [ index accessor ] ;
 child blueprint reference    =   "children" , name accessor , { name accessor | index accessor }- ;
-resource reference           =   resource name , [ ( name accessor , { ( name accessor | index acessor ) } ) ] ;
+resource reference           =   resource name , [ { ( name accessor | index acessor ) } ] ;
 resource name                =   ( "resources." , name accessor ) | name ;
 name accessor                =   ( "." , name ) | ( "[" , name in quotes , "]" ) ;
 index accessor               =   "[" , [ natural number ] , "]" ;
@@ -2791,17 +2807,17 @@ include:
 
   topics:
     # Explicitly specifying working directory removes ambiguity around how paths are resolved.
-    path: ${workingDir}/core-infra/topics.yaml
+    path: ${cwd()}/core-infra/topics.yaml
     variables:
       orderTopicType: ${variables.orderTopicType}
 
   eventBus:
-    path: ${workingDir}/core-infra/event-bus.yaml
+    path: ${cwd()}/core-infra/event-bus.yaml
     variables:
       eventBusName: ${variables.eventBusName}
 
   appInfrastructure:
-    path: ${workingDir}/app-infra/api.yaml
+    path: ${cwd()}/app-infra/api.yaml
     variables:
       orderTopicId: ${children.topics.ordersTopicId}
       region: ${variables.appRegion}

@@ -1270,6 +1270,62 @@ ${le(len(datasources.network.subnets), 10)}
 
 <br/>
 
+## `cwd`
+
+A function that returns the user's current working directory as set on the host system, by a tool implementing the spec or by the user.
+
+**Parameters:**
+
+This function does not take any parameters.
+
+**Returns:**
+
+`string`
+
+The current working directory of the user.
+
+**Example:**
+
+```
+${cwd()}/blueprints/core-infra.blueprint.yaml
+```
+
+<br/>
+
+## `datetime`
+
+A function that returns the current date/time as per the host system's clock in the specified format.
+All times are normalised to UTC.
+
+The `datetime` function supports the following date/time formats:
+
+- `unix` - The number of seconds since the Unix epoch. (e.g. 1611312000)
+- `rfc3339` - The date/time in RFC3339 format. (e.g. 2023-01-02T15:04:05Z07:00)
+- `tag` - The date/time in a format suitable for use as a tag. (e.g. 2023-01-02--15-04-05)
+- `tagcompact` - The date/time in a compact format suitable for use as a tag. (e.g. 20230102150405)
+
+_`rfc3339` is a format derived from ISO 8601._
+
+This function is useful for generating timestamps that can be used for tagging and versioning resources. (e.g. Docker image tags, S3 object keys, etc.)
+
+**Parameters:**
+
+1. `string` - The date/time format to return the current date/time in. The format should be one of the valid formats defined above.
+
+**Returns:**
+
+`string`
+
+A string representing the current time in the requested format.
+
+**Example:**
+
+```
+${datetime("tag")}
+```
+
+<br/>
+
 ## Clarification on `_g` functions
 
 A lot of the core functions have two definitions in the spec, one for direct function calls and one for function composition. The `_g`[^1] suffix is used to denote a function to be used for composition that takes static arguments and produces a function that takes the dynamic value to be transformed.
