@@ -943,15 +943,6 @@ ${map(
 
 A higher-order function that returns a function that extracts a named attribute from an object or a mapping. This is useful in situations where you want to map an array of objects to an array of values of a specific attribute such as IDs.
 
-It can also be used to extract values from an object or mapping but the `.` or `[]` notation is more appropriate for this use case. 
-```
-datasources.network.subnets[].id
-```
-is more concise and readable than:
-```
-getattr("id")(datasources.network.subnets[])
-```
-
 **Parameters:**
 
 1. `string` - The name of the attribute to extract from the object or mapping.
@@ -996,15 +987,6 @@ And return a list of ids:
 ## `getelem`
 
 A higher-order function that returns a function that extracts an element from an array. This is useful in situations where you want to map a two-dimensional array to an array of values of a specific element.
-
-It can also be used to extract values from an array but the `[]` notation is more appropriate for this use case. 
-```
-datasources.network.subnets[2]
-```
-is more concise and readable than:
-```
-getelem(2)(datasources.network.subnets)
-```
 
 **Parameters:**
 
@@ -1346,3 +1328,19 @@ Only some of the core string manipulation functions have a composable version, t
 
 
 [^1]: The reasoning for the `_g` suffix for these functions is that `g` is commonly used in mathematics to denote a function in composition.
+
+## ⚠️ Function usage caveats {#function-usage-caveats}
+
+
+### Higher-order functions
+
+Functions that are returned when calling named functions, such as the result of `getattr("id")`, can not be called directly.
+
+For example, `getattr("id")(resource.state)` is **not** a valid expression. In this example, you would instead use `resource.state.id` to access the id attribute of the state object.
+
+Higher-order functions in the blueprint substitution language can only be used as arguments to other functions that accept functions as parameters. A valid usage of the `getattr` function would be as follows:
+
+```
+${map(datasources.network.subnets, getattr("id"))}
+```
+This example would map over a list of subnets and extract the `id` attribute from each subnet object, producing a list of IDs.
