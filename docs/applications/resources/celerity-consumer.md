@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # `celerity/consumer`
@@ -8,12 +8,23 @@ sidebar_position: 4
 
 **blueprint transform:** `celerity-2024-07-22`
 
-The `celerity/consumer` resource type is used to define an application where handlers are triggered by events in queues or message brokers.
+The `celerity/consumer` resource type is used to define a subscriber to messages on a `celerity/topic`, an externally defined queue or message broker.
 
 A consumer can be deployed to different target environments such as a Serverless event-driven flow[^1], a containerised environment, or a custom server.
-For containerised and custom server environments, the Celerity runtime provides a polling mechanism to check for new messages in the queue or message broker.
+For containerised and custom server environments, the Celerity runtime provides a polling mechanism to check for new messages in a queue or message broker.
+
+In some target environments, infrastructure resources are created for a consumer when the `sourceId` is a Celerity topic, this will often be a queue that subscribes to the topic to implement a reliable and scalable fan-out approach.
+When the `sourceId` is an external queue or message broker, the consumer is configured to listen to the external queue or message broker.
+
+:::note
+Links between consumers and topics are not supported as part of a blueprint.
+The reason for this is that pub/sub systems are designed to be decouple applications and a blueprint in the context of Celerity is to define a single application.
+A topic should be defined in blueprints for producer applications and a consumer should be defined in blueprints for consumer applications. The outputs of a topic can be used to configure a consumer. Multiple producers can publish to the same topic, different blueprints can define the same topic, read more about it in the [`celerity/topic` documentation](/docs/applications/resources/celerity-topic).
+:::
 
 ## Annotations
+
+Annotations define additional metadata that can determine the behaviour of the resource in relation to other resources in the blueprint or to add behaviour to a resource that is not in its spec.
 
 ### `celerity/consumer`
 
@@ -27,7 +38,7 @@ This is especially useful when deploying to a containerised or custom server env
 
 **type**
 
-boolean
+string
 ___
 
 ## Specification
@@ -38,7 +49,7 @@ The rest of this section lists fields that are available to configure the `celer
 ### sourceId (required)
 
 The source ID is a unique identifier for the queue or message broker that the consumer will listen to for messages.
-For example, this could be the URL of an Amazon SQS queue, a Google Cloud Pub/Sub topic, or a name of an Azure Storage Queue.
+For example, this could be a Celerity topic ID, the URL of an Amazon SQS queue, a Google Cloud Pub/Sub topic, or a name of an Azure Storage Queue.
 The type of source is based on the provided target environment at build/deploy time.
 
 **type**
@@ -46,6 +57,8 @@ The type of source is based on the provided target environment at build/deploy t
 string
 
 **examples**
+
+`celerity::topic::arn:aws:sns:us-east-1:123456789012:users-topic-NZJ5JSMVGFIE` - An Amazon SNS topic ARN prefixed with `celerity::topic::` to identify the source as a Celerity topic, which depending on the environment will require a queue to be created to subscribe to the topic. 
 
 `https://sqs.us-east-1.amazonaws.com/123456789012/my-queue`
 

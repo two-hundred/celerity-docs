@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 5
 ---
 
 # `celerity/handler`
@@ -8,134 +8,12 @@ sidebar_position: 6
 
 **blueprint transform:** `celerity-2024-07-22`
 
-The `celerity/handler` resource type is used to define a handler that processes HTTP requests, WebSocket messages or events from queues/message brokers, scheduled events, or cloud services.
+The `celerity/handler` resource type is used to define a handler that can carry out a step in a workflow, process HTTP requests, WebSocket messages, or events from queues/message brokers, scheduled events, or cloud services.
 
 Handlers can be deployed to different target environments such as FaaS[^1], containerised environments, or custom servers.
 For containerised and custom server environments, the Celerity runtime is responsible for setting up the appropriate server or polling mechanism to handle incoming requests or messages and route them to the appropriate handler.
 
-In addition to being wired up to `celerity/api`, `celerity/consumer` and `celerity/schedule` resource types, handlers can be configured directly to respond to specific events in cloud services such as object storage, database streams, and other services.
-
-## Annotations
-
-### `celerity/api` 🔗 `celerity/handler`
-
-The following are a set of annotations that activate a link that can be used to configure a handler to respond to HTTP requests or WebSocket messages for a Celerity API.
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.http</strong></p>
-
-Enables the handler to respond to HTTP requests for a Celerity API.
-
-**type**
-
-boolean
-___
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.http.method</strong></p>
-
-The HTTP method that the handler will respond to.
-
-**type**
-
-string
-
-**allowed values**
-
-`GET` | `POST` | `PUT` | `PATCH` | `DELETE` | `OPTIONS` | `HEAD` | `CONNECT` | `TRACE`
-___
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.http.path</strong></p>
-
-The HTTP path that the handler will respond to, this can include path parameters.
-Path parameters are defined using curly braces `{}`.
-For example, when defining a path parameter for an order ID, the path could be `/orders/{order_id}`.
-Wildcard paths are supported to capture multiple path segments after a prefix such as `/{proxy+}` or `/api/v1/{proxy+}`.
-
-**type**
-
-string
-
-**examples**
-
-`/orders`
-
-`/orders/{order_id}`
-
-`/{proxy+}`
-
-`/api/v1/{proxy+}`
-
-___
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.websocket</strong></p>
-
-Enables the handler to respond to WebSocket messages for a Celerity API.
-
-**type**
-
-boolean
-___
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.websocket.routeKey</strong></p>
-
-The route key that the handler will respond to for WebSocket messages.
-
-**type**
-
-string
-
-**examples**
-
-`$connect`
-
-`$disconnect`
-
-`$default`
-
-`myAction`
-___
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.guard.protectedBy</strong></p>
-
-Enables the handler to use a specified guard for incoming requests or messages.
-The guard must be defined in the linked `celerity/api` resource.
-
-**type**
-
-string
-___
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.guard.custom</strong></p>
-
-Marks the handler to be used as a custom guard for incoming requests or messages.
-
-**type**
-
-boolean
-
-### `celerity/consumer` 🔗 `celerity/handler`
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.consumer</strong></p>
-
-Marks the handler to be used with a consumer for incoming messages from a queue or message broker.
-This is only required when there is ambiguity where a handler is linked to any combination of consumers, apis or schedules. If the handler is only linked to consumers, this annotation is not required and the default behaviour is to use the handler with the consumer.
-
-**type**
-
-boolean
-
-### `celerity/schedule` 🔗 `celerity/handler`
-
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.schedule</strong></p>
-
-Marks the handler to be used with a schedule for handling scheduled events.
-This is only required when there is ambiguity where a handler is linked to any combination of consumers, apis or schedules. If the handler is only linked to a schedule, this annotation is not required and the default behaviour is to use the handler with the consumer.
-
-You should avoid using the same `linkSelector` for multiple schedules to avoid associating the wrong handler with a schedule, instead, it is best to be specific
-in selecting the handler to associate with a schedule.
-
-**type**
-
-boolean
+In addition to being wired up to `celerity/*` resource types in the [linked from](#linked-from) section, handlers can be configured to respond to specific events in cloud services such as object storage, database streams, and other services. The `events` property of a handler is used to wire up handlers to event sources created outside of a blueprint.
 
 ## Specification
 
@@ -198,7 +76,7 @@ string
 
 ### memory
 
-The amount of memory available to the handler at runtime. The default value is 128MB.
+The amount of memory available to the handler at runtime. The default value is 512MB.
 This value is used to configure the amount of memory available to the handler in a FaaS[^1] target environment. In containerised or custom server environments, the highest value across all handlers will be used as a guide to configure the memory available to the runtime.
 
 The minimum and maximum values available depend on the target environment.
@@ -209,7 +87,7 @@ The minimum and maximum values available depend on the target environment.
 
 **default value**
 
-`128`
+`512`
 
 **examples**
 
@@ -274,6 +152,168 @@ Depending on the target environment, the handler will be wired up to the appropr
 **type**
 
 mapping[string, [eventConfiguration](#eventconfiguration)]
+
+## Annotations
+
+Annotations define additional metadata that can determine the behaviour of the resource in relation to other resources in the blueprint or to add behaviour to a resource that is not in its spec.
+
+### `celerity/api` 🔗 `celerity/handler`
+
+The following are a set of annotations that activate a link that can be used to configure a handler to respond to HTTP requests or WebSocket messages for a Celerity API.
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.http</strong></p>
+
+Enables the handler to respond to HTTP requests for a Celerity API.
+
+**type**
+
+boolean
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.http.method</strong></p>
+
+The HTTP method that the handler will respond to.
+
+**type**
+
+string
+
+**allowed values**
+
+`GET` | `POST` | `PUT` | `PATCH` | `DELETE` | `OPTIONS` | `HEAD` | `CONNECT` | `TRACE`
+
+**default value**
+
+`GET`
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.http.path</strong></p>
+
+The HTTP path that the handler will respond to, this can include path parameters.
+Path parameters are defined using curly braces `{}`.
+For example, when defining a path parameter for an order ID, the path could be `/orders/{order_id}`.
+Wildcard paths are supported to capture multiple path segments after a prefix such as `/{proxy+}` or `/api/v1/{proxy+}`.
+
+**type**
+
+string
+
+**examples**
+
+`/orders`
+
+`/orders/{order_id}`
+
+`/{proxy+}`
+
+`/api/v1/{proxy+}`
+
+**default value**
+
+`/`
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.websocket</strong></p>
+
+Enables the handler to respond to WebSocket messages for a Celerity API.
+
+**type**
+
+boolean
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.websocket.route</strong></p>
+
+The route that the handler will respond to for WebSocket messages.
+This is the value of the configured `routeKey` of a WebSocket API.
+
+A WebSocket API comes with predefined connection life cycle route keys and a default route key to fall back to  `$connect`, `$disconnect`, and `$default`.
+
+**type**
+
+string
+
+**default value**
+
+`$default`
+
+**examples**
+
+`$connect`
+
+`$disconnect`
+
+`myAction`
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.guard.protectedBy</strong></p>
+
+Enables the handler to use a specified guard for incoming requests.
+The guard must be defined in the linked `celerity/api` resource.
+This is only supported for HTTP handlers, WebSockets are authenticated at the connection level.
+
+**type**
+
+string
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.guard.custom</strong></p>
+
+Marks the handler to be used as a custom guard for incoming requests or messages.
+
+**type**
+
+boolean
+
+### `celerity/queue` 🔗 `celerity/handler`
+
+### `celerity/schedule` 🔗 `celerity/handler`
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.schedule</strong></p>
+
+Marks the handler to be used with a schedule for handling scheduled events.
+This is only required when there is ambiguity where a handler is linked to any combination of consumers, apis or schedules. If the handler is only linked to a schedule, this annotation is not required and the default behaviour is to use the handler with the consumer.
+
+You should avoid using the same `linkSelector` for multiple schedules to avoid associating the wrong handler with a schedule, instead, it is best to be specific
+in selecting the handler to associate with a schedule.
+
+**type**
+
+boolean
+
+### `celerity/datastore` 🔗 `celerity/handler`
+
+### `celerity/bucket` 🔗 `celerity/handler`
+
+### `celerity/consumer` 🔗 `celerity/handler`
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.consumer</strong></p>
+
+Marks the handler to be used with a consumer for incoming messages from a queue or message broker.
+This is only required when there is ambiguity where a handler is linked to any combination of consumers, apis or schedules. If the handler is only linked to consumers, this annotation is not required and the default behaviour is to use the handler with the consumer.
+
+**type**
+
+boolean
+
+### `celerity/workflow` 🔗 `celerity/handler`
+
+### `celerity/vpc` 🔗 `celerity/handler`
+
+
+## Outputs
+
+### id
+
+A mapping of cloud service event configurations that the handler will respond to,
+this can include events from object storage, databases, and other services.
+Depending on the target environment, the handler will be wired up to the appropriate event source (e.g. AWS S3, Google Cloud Storage, Azure Blob Storage).
+
+**type**
+
+string
 
 ## Data Types
 
@@ -357,7 +397,7 @@ ___
 Configuration for a database stream event trigger that the handler will respond to.
 This supports NoSQL database streams/events such as DynamoDB Streams, Google Cloud Datastore, and Azure Cosmos DB based where the selected service is based on the target environment.
 
-You can find more information about the configuration mappings for database streams in the [configuration mappings](#serverless-database-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/resources/architectures#events---cloud-service-events)
+You can find more information about the configuration mappings for database streams in the [configuration mappings](#serverless-database-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/applications/resources/architectures#events---cloud-service-events)
 
 #### FIELDS
 ___
@@ -416,7 +456,7 @@ ___
 Configuration for data stream event triggers that the handler will respond to.
 This supports data stream services such as Amazon Kinesis and Azure Event Hubs, where the selected service is based on the target environment.
 
-You can find more information about the configuration mappings for data streams in the [configuration mappings](#serverless-data-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/resources/architectures#events---cloud-service-events)
+You can find more information about the configuration mappings for data streams in the [configuration mappings](#serverless-data-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/applications/resources/architectures#events---cloud-service-events)
 
 #### FIELDS
 ___
@@ -470,6 +510,44 @@ This is only supported in some target environments, see the [configuration mappi
 boolean
 ___
 
+## Linked From
+
+#### [`celerity/api`](/docs/applications/resources/celerity-api)
+
+#### [`celerity/queue`](/docs/applications/resources/celerity-queue)
+
+#### [`celerity/schedule`](/docs/applications/resources/celerity-schedule)
+
+#### [`celerity/datastore`](/docs/applications/resources/celerity-datastore)
+
+#### [`celerity/bucket`](/docs/applications/resources/celerity-bucket)
+
+#### [`celerity/consumer`](/docs/applications/resources/celerity-consumer)
+
+#### [`celerity/workflow`](/docs/applications/resources/celerity-workflow)
+
+#### [`celerity/vpc`](/docs/applications/resources/celerity-vpc)
+
+When deploying handlers as serverless functions, individual handlers may be deployed to specific VPCs for private access.
+When handlers are a part of a containerised or custom server application, the VPC associated with the application will be used and any links from VPCs to handlers will be ignored.
+
+## Links To
+
+#### [`celerity/queue`](/docs/applications/resources/celerity-queue)
+
+#### [`celerity/topic`](/docs/applications/resources/celerity-topic)
+
+#### [`celerity/datastore`](/docs/applications/resources/celerity-datastore)
+
+#### [`celerity/sqlDatabase`](/docs/applications/resources/celerity-sql-database)
+
+#### [`celerity/bucket`](/docs/applications/resources/celerity-bucket)
+
+#### [`celerity/cache`](/docs/applications/resources/celerity-cache)
+
+#### [`celerity/workflow`](/docs/applications/resources/celerity-workflow)
+
+
 ## Sharing Handler Configuration
 
 There are often times when you want to share common configuration across multiple handlers.
@@ -480,7 +558,7 @@ There are multiple approaches to sharing handler configuration in a Celerity app
 1. Use a `celerity/handlerConfig` resource type to define shared handler configuration and link it to specific handlers. This approach is useful when you want different groups of handlers to share different configurations.
 2. Use a `metadata` field in the blueprint to define shared handler configuration that is applied to all handlers in the blueprint. This approach is useful when you want all handlers in the blueprint to share the same configuration.
 
-For approach 1, see the [celerity/handlerConfig](/docs/resources/celerity-handler-config) resource type documentation.
+For approach 1, see the [celerity/handlerConfig](/docs/applications/resources/celerity-handler-config) resource type documentation.
 
 For approach 2, you would define a metadata section in the blueprint like this:
 
@@ -501,13 +579,12 @@ metadata:
 
 In the above example, all handlers in the blueprint will share the same runtime, memory, timeout, and environment variables unless they are overridden in the handler definition.
 
-The shared handler config has the same structure as the `spec` field of the `celerity/handlerConfig` resource type. You can find the available fields by taking a look at the [specification](/docs/resources/celerity-handler-config#specification) section of the `celerity/handlerConfig` documentation.
+The shared handler config has the same structure as the `spec` field of the `celerity/handlerConfig` resource type. You can find the available fields by taking a look at the [specification](/docs/applications/resources/celerity-handler-config#specification) section of the `celerity/handlerConfig` documentation.
 
 ## Examples
 
 The following set of examples include different configurations for the `celerity/handler` resource type
 along with resource types that can be linked to the handler resource type to add more context.
-
 
 ### Handlers for a HTTP API
 
@@ -517,13 +594,17 @@ along with resource types that can be linked to the handler resource type to add
 
 ### Handlers for a Message Queue
 
-### Handlers for a Hybrid Application (Queue, HTTP, WebSocket)
+### Handlers for a Pub/Sub System
+
+### Handlers for a Database Stream
+
+### Handlers for a Hybrid Application (Pub/Sub, HTTP, WebSocket)
 
 ### Handlers for Scheduled Events
 
-### Handlers for Cloud Object Storage Events
+### Handlers for Cloud Object Storage Events (External)
 
-### Handlers for Data Streams
+### Handlers for Data Streams (External)
 
 ## Runtimes
 
@@ -566,6 +647,22 @@ Azure Functions do not support OS-only runtimes where pre-compiled binaries are 
 Azure functions do support custom handlers that are compiled light-weight HTTP servers that run in the Azure Functions runtime environment.
 Celerity will map OS-only runtimes (`os.*`) to custom handlers in Azure Functions.
 :::
+
+## Target Environments
+
+### Celerity::1
+
+### AWS
+
+### AWS Serverless
+
+### Google Cloud
+
+### Google Cloud Serverless
+
+### Azure
+
+### Azure Serverless
 
 ## Configuration Mappings
 
@@ -646,6 +743,23 @@ The following is a table of data stream configuration fields and how they map to
         </tr>
     </tbody>
 </table>
+
+## Timeouts and long-running tasks
+
+In a Serverless environment, the maximum execution time for a handler is limited.
+Often, there are tasks that require more time to complete than the maximum timeout allowed by FaaS providers. In such cases, you can choose to deploy your application to the containerised alternative for your chosen cloud provider.
+
+In the case that your application is a `celerity/workflow`, you could consider breaking down the long-running task into smaller tasks, if that isn't possible, you can switch to the containerised environment where the Celerity workflow runtime will be used to orchestrate your workflows instead of the cloud service equivalent.
+
+:::note
+When using the Celerity workflow runtime, you can still define timeouts for individual tasks, the limits are a lot higher than those of FaaS providers.
+:::
+
+:::warning
+Using the Celerity workflow runtime as an alternative to cloud provider workflow orchestration services requires persistence of workflow state to a database, this is managed by Celerity but will use the resources in your cloud provider account. See the [`celerity/workflow`](/docs/applications/resources/celerity-workflow) documentation for more information.
+:::
+
+TODO: provide a table of timeout limits for different cloud providers and the Celerity runtime.
 
 [^1]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
 [^2]: Examples of Serverless stream flows include [Amazon DynamoDB Streams and AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html), [Google Cloud Datastore triggering Google Cloud Functions](https://cloud.google.com/datastore/docs/extend-with-functions-2nd-gen) and [Azure Cosmos DB Streams triggering Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb?toc=%2Fazure%2Fcosmos-db%2Ftoc.json&bc=%2Fazure%2Fcosmos-db%2Fbreadcrumb%2Ftoc.json&tabs=csharp).

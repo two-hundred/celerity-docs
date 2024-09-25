@@ -11,7 +11,7 @@ The Celerity runtime allows you to run your applications in environments other t
 
 The Celerity runtime is designed to be deployed in containerised environments, such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 
-The runtime supports applications that provide HTTP APIs, WebSocket APIs and those that poll messages from a queue or message broker.
+The runtime supports applications that provide HTTP APIs, WebSocket APIs, workflows, scheduled handlers, cloud event handlers and those that poll messages from a queue, message broker or data stream.
 
 ## How the runtime works
 
@@ -121,4 +121,4 @@ The Celerity runtime currently supports the following languages with tailored SD
 - Rust
 
 The runtime also supports any other language that can be compiled ahead of time into an executable binary.
-Languages such as C++, C or Zig can be used but lack the official SDK support that the languages listed above have. For these languages, you can use the [Core Runtime API](#) to interact with the runtime from your handler code.
+Languages such as C++, C or Zig can be used but lack the official SDK support that the languages listed above have. For these languages, you can use the [Local Runtime API](#) to interact with the runtime from your handler code.

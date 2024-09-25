@@ -2641,6 +2641,11 @@ digit                        =   ? [0-9] ? ;
 
 The use of `${..}` conflicts with shell environment variables so attempts to pre-process a blueprint template file by expanding environment variables are not advised. Environment variables should instead be fed in at runtime and mapped to [variables](#variables) in the blueprint.
 
+#### YAML Tags and Aliases
+
+The usage of YAML tags and aliases is not supported for blueprints in this version of the specification.
+The portable substitution language is sufficient for referencing elements in a blueprint and providing more advanced functionality with the extensible set of functions.
+
 ## Modular Blueprints
 
 A blueprint does not neccessarily need to be a single file, it can be split into multiple files and directories.

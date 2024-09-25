@@ -6,7 +6,9 @@ sidebar_position: 2
 
 Celerity supports a range of architectures for building multi-cloud applications that can run in multiple environments[^1].
 
-This includes applications that provide HTTP APIs, WebSocket APIs, pub/sub message handling, queue message handling, scheduled events and cloud service events.
+This includes applications that provide HTTP APIs, WebSocket APIs, pub/sub message handling, queue message handling, workflows, scheduled events and cloud service events.
+
+You can also define core infrastructure resources including databases, storage, queues, pub/sub, secret stores and network resources for your application.
 
 ## HTTP APIs
 
@@ -14,13 +16,13 @@ This includes applications that provide HTTP APIs, WebSocket APIs, pub/sub messa
 
 ## Events - Pub/Sub & Queues
 
-Pub/Sub and Queue events are messages that can be polled from a message broker or queue service.
+Pub/Sub and Queue events are messages that can be polled from a message broker or queue service that has been created outside of a blueprint.
 
-Pub/Sub and Queue triggers are configured as a part of the `celerity/consumer` resource type.
+External Pub/Sub and Queue triggers are configured as a part of the `celerity/consumer` resource type.
 
-### Multiple Consumers in Celerity Runtime
+### Multiple Consumers in Celerity Runtime (External Sources)
 
-Multiple `celerity/consumer` resources can be defined in a single blueprint to handle messages from different sources. To group multiple consumers into the same application you can use the `celerity.app` label to group them together in the same application. This is especially useful when deploying to a containerised or custom server environment as it allows you to deploy multiple consumers as a part of a single deployed application; in this scenario, a consumer polling loop for each message source will run in separate tasks across multiple threads.
+Multiple `celerity/consumer` resources can be defined in a single blueprint to handle messages from different sources that are created outside of a blueprint. To group multiple consumers into the same application you can use the `celerity.app` label to group them together in the same application. This is especially useful when deploying to a containerised or custom server environment as it allows you to deploy multiple consumers as a part of a single deployed application; in this scenario, a consumer polling loop for each message source will run in separate tasks across multiple threads.
 
 :::warning
 You should limit the amount of consumers defined in a single blueprint to avoid overloading the runtime with too many polling loops. If you need to handle a large number of message sources, consider breaking them up into separate applications.
@@ -97,6 +99,25 @@ When a Celerity application is deployed to FaaS[^2] environments, the event trig
 
 When a Celerity application is deployed to containerised environments, the Celerity runtime hooks up Cloud Service event triggers to a queue or message broker that is then polled by the runtime. For a subset of supported stream services[^3], the runtime will act as a direct consumer of the stream.
 
+## Workflows
+
+## Infrastructure Components
+
+### Secret Stores
+
+### SQL Databases
+
+### Data Stores (NoSQL)
+
+### Caches
+
+### Pub/Sub
+
+### Queues
+
+### Networking
+
 [^1]: Environments in this context covers Function-as-a-service offerings such as AWS Lambda, Google Cloud Functions, and Azure Functions, as well as containerised environments such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 [^2]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
 [^3]: Supported stream services include Amazon Kinesis and Azure Event Hubs.
+

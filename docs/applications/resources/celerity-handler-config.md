@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 6
 ---
 
 # `celerity/handlerConfig`
@@ -13,12 +13,12 @@ The `celerity/handlerConfig` resource type is used to define shared configuratio
 This is useful for sharing configurations between multiple handlers in a blueprint.
 
 :::note
-The [`metadata.sharedHandlerConfig`](/docs/resources/celerity-handler#sharing-handler-configuration) approach may be preferred when you want all handlers in the blueprint to share the same default configuration.
+The [`metadata.sharedHandlerConfig`](/docs/applications/resources/celerity-handler#sharing-handler-configuration) approach may be preferred when you want all handlers in the blueprint to share the same default configuration.
 :::
 
 ## Annotations
 
-There are no annotations required for linking other resources to a `celerity/handlerConfig` resource.
+There are no annotations required for linking other resources to a `celerity/handlerConfig` resource or modifying the behaviour of an API resource.
 `linkSelector.byLabel` can be used to target configuration resources for specific handlers based on their labels.
 
 ## Specification
@@ -119,9 +119,17 @@ environmentVariables:
   DB_PORT: "${variables.dbPort}"
 ```
 
+## Linked From
+
+[celerity/handler](/docs/applications/resources/celerity-handler)
+
+## Links To
+
+Handler configuration resources can not link to other resources.
+
 ## Runtimes
 
-See the [runtimes](/docs/resources/celerity-handler#runtimes) section of the `celerity/handler` resource type documentation for a list of supported runtimes.
+See the [runtimes](/docs/applications/resources/celerity-handler#runtimes) section of the `celerity/handler` resource type documentation for a list of supported runtimes.
 
 ## Examples
 

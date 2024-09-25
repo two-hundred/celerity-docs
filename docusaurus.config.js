@@ -68,6 +68,15 @@ const config = {
     [
       "@docusaurus/plugin-content-docs",
       {
+        id: "celerity-one",
+        path: "celerity-one",
+        routeBasePath: "celerity-one",
+        sidebarPath: require.resolve("./sidebars-celerity-one.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
         id: "node-runtime",
         path: "node-runtime",
         routeBasePath: "node-runtime",
@@ -153,9 +162,9 @@ const config = {
                 to: "docs/runtime/intro",
               },
               {
-                label: "Resources",
-                activeBasePath: "/docs/resources",
-                to: "docs/resources/intro",
+                label: "Applications",
+                activeBasePath: "/docs/applications",
+                to: "docs/applications/intro",
               },
             ],
           },
@@ -178,6 +187,11 @@ const config = {
                 label: "Blueprint Framework",
                 activeBasePath: "/blueprint-framework",
                 to: "/blueprint-framework/docs/intro",
+              },
+              {
+                label: "Celerity::1",
+                activeBasePath: "/celerity-one",
+                to: "/celerity-one/docs/intro",
               }
             ],
           },
@@ -279,6 +293,12 @@ const config = {
             docsPluginId: "blueprint-framework",
             position: "left",
           },
+          {
+            type: "docsVersionDropdown",
+            title: "Celerity::1 Version",
+            docsPluginId: "celerity-one",
+            position: "left",
+          },
         ],
       },
       footer: {
@@ -352,6 +372,9 @@ const config = {
       },
       "blueprint-framework": {
         title: "Blueprint Framework",
+      },
+      "celerity-one": {
+        title: "Celerity::1",
       },
     },
   },
