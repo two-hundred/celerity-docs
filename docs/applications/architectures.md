@@ -6,7 +6,7 @@ sidebar_position: 2
 
 Celerity supports a range of architectures for building multi-cloud applications that can run in multiple environments[^1].
 
-This includes applications that provide HTTP APIs, WebSocket APIs, pub/sub message handling, queue message handling, workflows, scheduled events and cloud service events.
+This includes applications that provide HTTP APIs, WebSocket APIs, pub/sub message handling, queue message handling, workflows, scheduled event triggers and responding to cloud service events.
 
 You can also define core infrastructure resources including databases, storage, queues, pub/sub, secret stores and network resources for your application.
 
