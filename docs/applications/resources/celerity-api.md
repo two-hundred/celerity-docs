@@ -1038,7 +1038,7 @@ Min and max node count along with the node size can be overridden in the deploy 
 When domain configuration is provided and the load balancer that powers the Ingress service is public-facing, a TLS certificate is generated with [Let's Encrypt](https://letsencrypt.org/) via [cert-manager](https://cert-manager.io/docs/installation/helm/) to provision certificates for domains associated with Ingress resources in Kubernetes. The certificate is used by the Ingress object to terminate TLS traffic. You will need to verify the domain ownership before the certificate can be used.
 
 When it comes to networking, the API will be deployed with the overlay network model in a public network as per the default AKS access mode. [Read about private and public clusters for AKS](https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/public-and-private-aks-clusters-demystified/ba-p/3716838).
-When you define a VPC and link it to the API, the API will be deployed as a private cluster using the VNET integration feature of AKS where the control plane will not be made available through a public endpoint. The `celerity.api.vpc.subnetType` annotation has **no** effect for AKS deployments as the networking model for Azure with it's managed Kubernetes offering is different from other cloud providers and all services running on a cluster are private by default, exposed to the internet through a load balancer or ingress controller. When `celerity.api.vpc.lbSubnetType` is set to `public`, an Ingress service is provisioned using the [nginx Ingress controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) that uses an external Azure Load Balancer under the hood. When `celerity.api.vpc.lbSubnetType` is set to `private`, the nginx Ingress controller is configured to use an internal Azure Load Balancer, [read more about the private ingress controller](https://learn.microsoft.com/en-us/azure/aks/create-nginx-ingress-private-controller).
+When you define a VPC and link it to the API, the API will be deployed as a private cluster using the VNET integration feature of AKS where the control plane will not be made available through a public endpoint. The `celerity.api.vpc.subnetType` annotation has **no** effect for AKS deployments as the networking model for Azure with it's managed Kubernetes offering is different from other cloud providers and all services running on a cluster are private by default, exposed to the internet through a load balancer or ingress controller. When `celerity.api.vpc.lbSubnetType` is set to `public`, an Ingress service is provisioned using the [nginx ingress controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) that uses an external Azure Load Balancer under the hood. When `celerity.api.vpc.lbSubnetType` is set to `private`, the nginx Ingress controller is configured to use an internal Azure Load Balancer, [read more about the private ingress controller](https://learn.microsoft.com/en-us/azure/aks/create-nginx-ingress-private-controller).
 
 Memory and CPU resources allocated to the API pod can be defined in the deploy configuration, if not specified, the API will derive memory and CPU from handlers configured for the API.
 If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. The pod that runs the API will be allocated a limit of 1GB of memory and 0.5 vCPUs.
@@ -1046,6 +1046,22 @@ If memory and CPU is not defined in the deploy configuration and can not be deri
 The [OpenTelemetry Operator](https://opentelemetry.io/docs/kubernetes/operator/) is used to configure a sidecar collector container for the API to collect traces and metrics. Traces will only be collected if tracing is enabled for the API.
 
 ### Azure Serverless
+
+In the Azure Serverless environment, REST/HTTP APIs are deployed as Azure API Management APIs with Azure Functions for the handlers.
+
+[JWT authentication](https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy) for API Management Gateways is used for JWT auth guards.
+
+Custom authorisers are not supported by Azure API Management; to get around this, Celerity will bundle the custom authoriser handler code with each protected handler and the handlers SDK that is used to build a Celerity application will take care of calling the custom authoriser before the actual handler is called.
+
+When tracing is enabled, the [trace policy](https://learn.microsoft.com/en-us/azure/api-management/trace-policy) is used for the API Management Gateway, these traces will go to Application Insights. You can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
+When it comes to the Azure Functions that power the endpoints, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
+[OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
+
+APIs can be deployed to API Gateway using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
+
+:::warning About WebSockets
+Azure API Management does not support WebSocket APIs natively, WebSocket APIs can be used as the backend server but do not get the benefits of the API Management features such as authentication.
+:::
 
 ## ⚠️ Limitations
 
