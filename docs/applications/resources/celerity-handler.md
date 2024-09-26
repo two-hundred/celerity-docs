@@ -397,7 +397,7 @@ ___
 Configuration for a database stream event trigger that the handler will respond to.
 This supports NoSQL database streams/events such as DynamoDB Streams, Google Cloud Datastore, and Azure Cosmos DB based where the selected service is based on the target environment.
 
-You can find more information about the configuration mappings for database streams in the [configuration mappings](#serverless-database-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/applications/resources/architectures#events---cloud-service-events)
+You can find more information about the configuration mappings for database streams in the [configuration mappings](#serverless-database-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/applications/architectures#events---cloud-service-events)
 
 #### FIELDS
 ___
@@ -456,7 +456,7 @@ ___
 Configuration for data stream event triggers that the handler will respond to.
 This supports data stream services such as Amazon Kinesis and Azure Event Hubs, where the selected service is based on the target environment.
 
-You can find more information about the configuration mappings for data streams in the [configuration mappings](#serverless-data-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/applications/resources/architectures#events---cloud-service-events)
+You can find more information about the configuration mappings for data streams in the [configuration mappings](#serverless-data-streams) section. You can also dive into how DB streams work with containerised and custom server environments [here](/docs/applications/architectures#events---cloud-service-events)
 
 #### FIELDS
 ___

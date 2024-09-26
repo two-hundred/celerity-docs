@@ -1065,11 +1065,9 @@ Metadata provides useful information about the resource including things like
 annotations and labels.
 
 For resources, annotations can be used to provide optional and required context for relationships between resources (linking).
-Find out more about annotations in the [annotations](#annotations) section.
 
 For resources, labels are essential for an implementation of the specification to be
 able to link resources together in an implicit, declarative fashion.
-Find out more about labels in the [labels and implicit linking](#labels-and-implicit-linking) section.
 
 **field type** 
 
