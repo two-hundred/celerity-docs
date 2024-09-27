@@ -101,6 +101,21 @@ When a Celerity application is deployed to containerised environments, the Celer
 
 ## Workflows
 
+## Combining Architectures
+
+When defining multiple application resource types in a single blueprint, by default, they will be combined into a single application. In target environments that deploy containerised applications, these will be combined into a single application and combine infrastructure and configuration laid out in the "Target Environments" section of each resource type.
+
+Application resource types that can be combined are `celerity/api`, `celerity/consumer` and `celerity/schedule`. Application resource types are also derived from links between infrastructure resources and handlers; for example, a `celerity/bucket` resource linked to a `celerity/handler` resource will in practise produce an application that listens for events from the bucket and triggers the handler.
+
+Depending on the target environment, event-driven and API applications may have to be deployed to
+separate applications.
+For example, in Azure Container Apps, event-driven applications are deployed as [Jobs](https://learn.microsoft.com/en-us/azure/container-apps/jobs?tabs=azure-cli), while API applications are deployed as [Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/overview) to fully utilise the Azure Container Apps platform.
+
+:::warning About Workflow resource types
+The `celerity/workflow` resource type can **not** be combined with other application resource types.
+A workflow will always be deployed separately.
+:::
+
 ## Infrastructure Components
 
 ### Secret Stores
@@ -116,6 +131,13 @@ When a Celerity application is deployed to containerised environments, the Celer
 ### Queues
 
 ### Networking
+
+## About "Serverless" Environments
+
+The term "Serverless" is used frequently in describing the behaviour of target environments.
+In the context of Celerity deployments, "Serverless" refers to environments using FaaS[^2] platforms and the components that integrate with them.
+
+In fact, a lot of the containerised environments such as ECS or EKS backed by Fargate, Azure Container Apps and Google Cloud Run are also considered "Serverless" in that remove the need to manage the VMs used to run the containers.
 
 [^1]: Environments in this context covers Function-as-a-service offerings such as AWS Lambda, Google Cloud Functions, and Azure Functions, as well as containerised environments such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 [^2]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
