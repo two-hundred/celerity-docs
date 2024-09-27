@@ -13,7 +13,7 @@ The `celerity/handler` resource type is used to define a handler that can carry 
 Handlers can be deployed to different target environments such as FaaS[^1], containerised environments, or custom servers.
 For containerised and custom server environments, the Celerity runtime is responsible for setting up the appropriate server or polling mechanism to handle incoming requests or messages and route them to the appropriate handler.
 
-In addition to being wired up to `celerity/*` resource types in the [linked from](#linked-from) section, handlers can be configured to respond to specific events in cloud services such as object storage, database streams, and other services. The `events` property of a handler is used to wire up handlers to event sources created outside of a blueprint.
+In addition to being wired up to `celerity/*` resource types in the [linked from](#linked-from) section, handlers can be configured to respond to specific events in cloud services such as object storage, database streams, and other services where the event source is created outside of the blueprint; the `events` property of a handler is used to wire it up to these event sources created outside of a blueprint.
 
 ## Specification
 
@@ -65,6 +65,10 @@ string
 The runtime that the handler will run in.
 This can be any one of the [supported runtimes](#runtimes) depending on the chosen
 target environment.
+
+:::warning Using multiple runtimes in an application
+When deploying your application to containerised or custom server environments, it is **not** possible to use different runtimes for different handlers in the same application.
+:::
 
 **type**
 
@@ -269,12 +273,78 @@ boolean
 
 ### `celerity/queue` 🔗 `celerity/handler`
 
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.queue</strong></p>
+
+Marks the handler to be used with a queue for handling messages from the queue.
+This is only required when there is ambiguity where a handler is linked from multiple resources in a blueprint (e.g. a schedule, API and queue). If the handler is only linked to a queue, this annotation is not required and the default behaviour is to use the handler with the queue.
+
+**type**
+
+boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.queue.batchSize</strong></p>
+
+The size of the batch of messages to retrieve from the queue. This value is used to configure the maximum
+number of messages to retrieve in a single poll operation. Depending on the target environment, this value will be limited to different maximum values and may be ignored.
+
+**type**
+
+integer
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.queue.visibilityTimeout</strong></p>
+
+The time in seconds that a message is hidden from other consumers after being retrieved from the queue.
+Depending on the target environment, the value may be ignored.
+
+**type**
+
+integer
+
+**default value**
+
+An appropriate default value for the target environment is used.
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.queue.waitTimeSeconds</strong></p>
+
+The time in seconds to wait for messages to become available in the queue before polling again.
+Depending on the target environment, this value may be ignored.
+
+**type**
+
+integer
+
+**default value**
+
+An appropriate default value for the target environment is used.
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.queue.partialFailures</strong></p>
+
+Whether partial failure reporting is supported. When enabled, the handler integration will report partial failures to the source queue, meaning that only failed messages will be retried.
+
+This is only supported in some target environments.
+
+**type**
+
+boolean
+
+**default value**
+
+`false`
+
 ### `celerity/schedule` 🔗 `celerity/handler`
 
 <p style={{fontSize: '1.2em'}}><strong>celerity.handler.schedule</strong></p>
 
 Marks the handler to be used with a schedule for handling scheduled events.
-This is only required when there is ambiguity where a handler is linked to any combination of consumers, apis or schedules. If the handler is only linked to a schedule, this annotation is not required and the default behaviour is to use the handler with the consumer.
+This is only required when there is ambiguity where a handler is linked from multiple resources in a blueprint (e.g. a consumer, API and schedule). If the handler is only linked to a schedule, this annotation is not required and the default behaviour is to use the handler with the schedule.
 
 You should avoid using the same `linkSelector` for multiple schedules to avoid associating the wrong handler with a schedule, instead, it is best to be specific
 in selecting the handler to associate with a schedule.
@@ -285,7 +355,77 @@ boolean
 
 ### `celerity/datastore` 🔗 `celerity/handler`
 
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.datastore</strong></p>
+
+Marks the handler to be used with a NoSQL data store stream or trigger (e.g. DynamoDB stream) for handling events in the data store.
+This is only required when there is ambiguity where a handler is linked from multiple resources in a blueprint (e.g. a consumer, API and data store). If the handler is only linked to a data store, this annotation is not required and the default behaviour is to use the handler with the data store.
+
+**type**
+
+boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.datastore.batchSize</strong></p>
+
+The size of the batch of events to retrieve from the data store stream/trigger. The maximum value depends on the target environment.
+
+**type**
+
+integer
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.datastore.partialFailures</strong></p>
+
+Whether partial failure reporting is supported. When enabled, the handler integration will report partial failures to the data store, meaning that only failed messages will be retried.
+
+This is only supported in some target environments.
+
+**type**
+
+boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.datastore.startFromBeginning</strong></p>
+
+Whether the handler should start processing events from the beggining of a stream (or earliest available point).
+
+This is only supported in some target environments.
+
+**type**
+
+boolean
+
 ### `celerity/bucket` 🔗 `celerity/handler`
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.bucket</strong></p>
+
+Marks the handler to be used with an object storage bucket for handling events from the bucket.
+This is only required when there is ambiguity where a handler is linked from multiple resources in a blueprint (e.g. a consumer, API and bucket). If the handler is only linked to a bucket, this annotation is not required and the default behaviour is to use the handler with the bucket.
+
+**type**
+
+boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.bucket.events</strong></p>
+
+The object storage events that should trigger the handler.
+
+**type**
+
+string - Comma-separated list of events
+
+**allowed values**
+
+`created` | `deleted` | `metadataUpdated`
+
+**examples**
+
+`created,deleted`
 
 ### `celerity/consumer` 🔗 `celerity/handler`
 
@@ -300,20 +440,63 @@ boolean
 
 ### `celerity/workflow` 🔗 `celerity/handler`
 
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.workflow</strong></p>
+
+Marks the handler to be used as a step in a workflow.
+This is only required when there is ambiguity where a handler is linked from multiple resources in a blueprint (e.g. a consumer, API and workflow). If the handler is only linked to a workflow, this annotation is not required and the default behaviour is to use the handler with the workflow.
+
+**type**
+
+boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.workflow.step</strong></p>
+
+The ID of the step that the handler will be used to execute in the workflow.
+
+**type**
+
+string
+
 ### `celerity/vpc` 🔗 `celerity/handler`
 
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.vpc.subnetType</strong></p>
+
+The type of subnet that the handler will be deployed to in a VPC.
+This is only supported for serverless target environments where functions can be deployed to specific VPCs.
+
+**type**
+
+string
+
+**allowed values**
+
+`public` | `private`
+
+**default value**
+
+`public`
 
 ## Outputs
 
 ### id
 
-A mapping of cloud service event configurations that the handler will respond to,
-this can include events from object storage, databases, and other services.
-Depending on the target environment, the handler will be wired up to the appropriate event source (e.g. AWS S3, Google Cloud Storage, Azure Blob Storage).
+The unique identifier of the handler resource.
+For serverless environments, this will a unique ID for a function such as an AWS Lambda function ARN.
+For containerised or custom server environments where handlers are loaded into the runtime in a single process, this will be the same value as the `spec.handlerName` field.
 
 **type**
 
 string
+
+**examples**
+
+`arn:aws:lambda:us-east-2:123456789012:function:example-handler-v1` (AWS Serverless)
+
+`projects/123456789/locations/us-east1/functions/example-handler-v1` (Google Cloud Serverless)
+
+`example-handler-v1` (Custom Server or Containerised Environment)
 
 ## Data Types
 
@@ -514,17 +697,31 @@ ___
 
 #### [`celerity/api`](/docs/applications/resources/celerity-api)
 
+When a handler is linked from an API, it will be used to respond to incoming HTTP requests or WebSocket messages. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the API.
+
 #### [`celerity/queue`](/docs/applications/resources/celerity-queue)
+
+When a handler is linked from a queue, it will be used to process messages from the queue. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the queue.
 
 #### [`celerity/schedule`](/docs/applications/resources/celerity-schedule)
 
+When a handler is linked from a schedule, it will be invoked by the scheduled trigger. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the schedule.
+
 #### [`celerity/datastore`](/docs/applications/resources/celerity-datastore)
+
+When a handler is linked from a datastore, it will be used to process events from the data store. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the datastore.
 
 #### [`celerity/bucket`](/docs/applications/resources/celerity-bucket)
 
+When a handler is linked from a bucket, it will be used to process events from the bucket. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the bucket.
+
 #### [`celerity/consumer`](/docs/applications/resources/celerity-consumer)
 
+When a handler is linked to a consumer, it will be used to process messages received from the external queue or message broker defined in the consumer. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the consumer.
+
 #### [`celerity/workflow`](/docs/applications/resources/celerity-workflow)
+
+When a handler is linked to a workflow, it will be used to execute a step in the workflow. The configuration defined in the handler annotations determines the behaviour of the handler in respect to the workflow.
 
 #### [`celerity/vpc`](/docs/applications/resources/celerity-vpc)
 
@@ -535,18 +732,61 @@ When handlers are a part of a containerised or custom server application, the VP
 
 #### [`celerity/queue`](/docs/applications/resources/celerity-queue)
 
+When a handler links out to a queue, it will be configured with permissions and environment variables to interact with the queue. If a secret store is associated with the handler or the application that it is a part of, the queue configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to use the handlers SDK to interact with the queue. 
+
+:::warning Opting out of the handlers SDK for queues
+You don't have to use the handlers SDK abstraction for queues,
+you can also grab the populated configuration directly and interact directly with the SDK for the queue service for the chosen target environment. Doing so will require application code changes if you decide to switch target environments.
+:::
+
 #### [`celerity/topic`](/docs/applications/resources/celerity-topic)
+
+When a handler links out to a topic, it will be configured with permissions and environment variables that enable the handler to publish messages to the topic. If a secret store is associated with the handler or the application that it is a part of, the topic configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to use the handlers SDK to publish messages to a topic.
+
+:::warning Opting out of the handlers SDK for topics
+You don't have to use the handlers SDK abstraction for topics,
+you can also grab the populated configuration directly and interact directly with the SDK for the pub/sub or messaging service for the chosen target environment. Doing so will require application code changes if you decide to switch target environments.
+:::
 
 #### [`celerity/datastore`](/docs/applications/resources/celerity-datastore)
 
+When a handler links out to a NoSQL data store, it will be configured with permissions and environment variables that enable the handler to interact with the data store. If a secret store is associated with the handler or the application that it is a part of, the data store configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with data store services using SDKs or libraries for the NoSQL data store service for the chosen target environment.
+
 #### [`celerity/sqlDatabase`](/docs/applications/resources/celerity-sql-database)
+
+When a handler links out to an SQL database, it will be configured with permissions and environment variables that enable the handler to interact with the data store. If a secret store is associated with the handler or the application that it is a part of, the SQL database configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with SQL databases using SDKs or libraries for the SQL database service for the chosen target environment.
 
 #### [`celerity/bucket`](/docs/applications/resources/celerity-bucket)
 
+When a handler links out to a bucket, it will be configured with permissions and environment variables that enable the handler to interact with the bucket. If a secret store is associated with the handler or the application that it is a part of, the bucket configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with object storage services using the handlers SDK.
+
+:::warning Opting out of the handlers SDK for buckets
+You don't have to use the handlers SDK abstraction for buckets,
+you can also grab the populated configuration directly and interact directly with the SDK for the object storage service for the chosen target environment. Doing so will require application code changes if you decide to switch target environments.
+:::
+
 #### [`celerity/cache`](/docs/applications/resources/celerity-cache)
+
+When a handler links out to a cache, it will be configured with permissions and environment variables that enable the handler to interact with the cache. If a secret store is associated with the handler or the application that it is a part of, the cache configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with cache services using libraries that are compatible with the Redis 7.2.4 API, as all cache services supported by Celerity are compatible with the Redis 7.2.4 API.
+
+:::note
+Redis 7.2.4 was the last open-source version of Redis before the Redis Labs license change.
+Celerity supports cache services that are compatible with the Redis 7.2.4 API.
+:::
 
 #### [`celerity/workflow`](/docs/applications/resources/celerity-workflow)
 
+When a handler links out to a workflow, it will be configured with permissions and environment variables that enable the handler to trigger the workflow. If a secret store is associated with the handler or the application that it is a part of, the workflow configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and trigger the workflow using the handlers SDK.
+
+:::warning Opting out of the handlers SDK for workflows
+You don't have to use the handlers SDK abstraction for workflows,
+you can also grab the populated configuration directly and interact directly with the SDK for the workflow service for the chosen target environment. Doing so will require application code changes if you decide to switch target environments.
+For example, you can use the AWS Step Functions SDK to trigger a workflow in AWS Step Functions but this will not translate to Google Cloud Workflows, Azure Logic Apps or the Celerity Workflow runtime.
+:::
+
+#### [`celerity/secrets`](/docs/applications/resources/celerity-secrets)
+
+When a handler links out to a secret store, it will be configured with permissions and environment variables that will enable the handler to fetch secrets. Secrets will be fetched and passed into your handlers when they are created with the handlers SDK.
 
 ## Sharing Handler Configuration
 
@@ -588,23 +828,452 @@ along with resource types that can be linked to the handler resource type to add
 
 ### Handlers for a HTTP API
 
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    ordersApi:
+        type: "celerity/api"
+        metadata:
+            displayName: Orders API
+        linkSelector:
+            byLabel:
+                application: "orders"
+        spec:
+            # API spec configuration ...
+
+    saveOrderHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Save Order Handler
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.method: "POST"
+                celerity.handler.http.path: "/orders"
+                celerity.handler.guard.protectedBy: "authGuard"
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "SaveOrderHandler-v1"
+            codeLocation: "handlers/orders"
+            handler: "save_order"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+    
+    authoriseHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Authorise Handler
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.guard.custom: true
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "AuthoriseHandler-v1"
+            codeLocation: "handlers/auth"
+            handler: "authorise"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+```
+
 ### Handlers for a WebSocket API
 
-### Handlers for a Hybrid API
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    ordersApi:
+        type: "celerity/api"
+        metadata:
+            displayName: Order Stream API
+        linkSelector:
+            byLabel:
+                application: "orderStream"
+        spec:
+            # API spec configuration ...
+
+    streamOrderHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Stream Handler
+            annotations:
+                celerity.handler.websocket: true
+                celerity.handler.websocket.route: "orderStream"
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "StreamOrdersHandler-v1"
+            codeLocation: "handlers/orders"
+            handler: "stream_orders"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+    
+    authoriseHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Authorise Handler
+            annotations:
+                celerity.handler.websocket: true
+                celerity.handler.guard.custom: true
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "AuthoriseHandler-v1"
+            codeLocation: "handlers/auth"
+            handler: "authorise"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+```
 
 ### Handlers for a Message Queue
 
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    ordersQueue:
+        type: "celerity/queue"
+        metadata:
+            displayName: Orders Queue
+        linkSelector:
+            byLabel:
+                application: "ordersProcessing"
+        spec:
+            # Queue configuration ...
+
+    orderProcessor:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Processor
+            annotations:
+                celerity.handler.queue.batchSize: 10
+                celerity.handler.queue.visibilityTimeout: 30
+                celerity.handler.queue.waitTimeSeconds: 10
+                celerity.handler.queue.partialFailures: true
+            labels:
+                application: "ordersProcessing"
+        spec:
+            handlerName: "OrderProcessor-v1"
+            codeLocation: "handlers/orders"
+            handler: "orders_processor"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+```
+
 ### Handlers for a Pub/Sub System
 
-### Handlers for a Database Stream
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    orderUpdatesConsumer:
+        type: "celerity/consumer"
+        metadata:
+            displayName: Order Updates Consumer
+        linkSelector:
+            byLabel:
+                application: "orderUpdates"
+        spec:
+            # Consumer configuration ...
+
+    orderUpdateHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Update Handler
+            labels:
+                application: "orderUpdates"
+        spec:
+            handlerName: "OrderUpdateHandler-v1"
+            codeLocation: "handlers/orders"
+            handler: "order_update_processor"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+```
+
+### Handlers for a Data Store Stream
+
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    ordersTable:
+        type: "celerity/datastore"
+        metadata:
+            displayName: Orders Table
+        linkSelector:
+            byLabel:
+                application: "orders"
+        spec:
+            # Queue configuration ...
+
+    orderEventProcessor:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Event Processor
+            annotations:
+                celerity.handler.datastore.batchSize: 10
+                celerity.handler.datastore.partialFailures: true
+                celerity.handler.datastore.startFromBeginning: true
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "OrderEventProcessor-v1"
+            codeLocation: "handlers/orders"
+            handler: "order_event_processor"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+```
 
 ### Handlers for a Hybrid Application (Pub/Sub, HTTP, WebSocket)
 
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    ordersApi:
+        type: "celerity/api"
+        metadata:
+            displayName: Orders API
+        linkSelector:
+            byLabel:
+                application: "orders"
+        spec:
+            # API spec configuration ...
+
+    orderUpdatesConsumer:
+        type: "celerity/consumer"
+        metadata:
+            displayName: Order Updates Consumer
+        linkSelector:
+            byLabel:
+                application: "orders"
+        spec:
+            # Consumer configuration ...
+
+    streamOrderHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Stream Handler
+            annotations:
+                celerity.handler.websocket: true
+                celerity.handler.websocket.route: "orderStream"
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "StreamOrdersHandler-v1"
+            codeLocation: "handlers/orders"
+            handler: "stream_orders"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+
+    saveOrderHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Save Order Handler
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.http.method: "POST"
+                celerity.handler.http.path: "/orders"
+                celerity.handler.guard.protectedBy: "authGuard"
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "SaveOrderHandler-v1"
+            codeLocation: "handlers/orders"
+            handler: "save_order"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+    
+    authoriseHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Authorise Handler
+            annotations:
+                celerity.handler.http: true
+                celerity.handler.websocket: true
+                celerity.handler.guard.custom: true
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "AuthoriseHandler-v1"
+            codeLocation: "handlers/auth"
+            handler: "authorise"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+
+    orderUpdateHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Update Handler
+            annotations:
+                celerity.handler.consumer: true
+            labels:
+                application: "orders"
+        spec:
+            handlerName: "OrderUpdateHandler-v1"
+            codeLocation: "handlers/orders"
+            handler: "order_update_processor"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+```
+
 ### Handlers for Scheduled Events
+
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    syncOrdersSchedule:
+        type: "celerity/schedule"
+        metadata:
+            displayName: Sync Orders Schedule
+        linkSelector:
+            byLabel:
+                application: "syncOrders"
+        spec:
+            # Schedule configuration ...
+
+    syncOrdersHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Sync Orders Handler
+            labels:
+                application: "syncOrders"
+        spec:
+            handlerName: "SyncOrders-Handler-v1"
+            codeLocation: "handlers/orders"
+            handler: "sync"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+```
 
 ### Handlers for Cloud Object Storage Events (External)
 
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    invoiceHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Invoice Handler
+        spec:
+            handlerName: "Invoice-Handler-v1"
+            codeLocation: "handlers/invoices"
+            handler: "invoice_handler"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            events:
+                sourceType: "objectStorage"
+                sourceConfiguration:
+                    events: ["created", "deleted"]
+                    bucket: "order-invoice-bucket"
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+```
+
 ### Handlers for Data Streams (External)
+
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+variables:
+    # Variable definitions ...
+resources:
+    orderEventHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: Order Event Handler
+        spec:
+            handlerName: "OrderEvent-Handler-v1"
+            codeLocation: "handlers/orders"
+            handler: "event_handler"
+            runtime: "python3.12.x"
+            memory: 512
+            timeout: 30
+            tracingEnabled: false
+            events:
+                sourceType: "dataStream"
+                sourceConfiguration:
+                    batchSize: 100
+                    # Hard-coding the ID of the data stream like this would couple your application
+                    # to an AWS target environment, it would be better to parameterise
+                    # the stream ID by passing it in as a variable.
+                    dataStreamId: "arn:aws:kinesis:us-east-1:123456789012:stream/MyStream"
+                    partialFailures: true
+                    startFromBeginning: true
+            environmentVariables:
+                DB_HOST: "${variables.dbHost}"
+                DB_PORT: "${variables.dbPort}"
+```
 
 ## Runtimes
 
@@ -652,17 +1321,50 @@ Celerity will map OS-only runtimes (`os.*`) to custom handlers in Azure Function
 
 ### Celerity::1
 
+In the Celerity::1 local environment, handlers are loaded into the Celerity runtime in a single process.
+Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
+
 ### AWS
+
+In the AWS environment, handlers are loaded into the Celerity runtime in a single process.
+Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
+Services such as Kinesis and SQS will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as an SQS Queue that the application will poll for events. The Celerity runtime works in tandem with the Celerity build engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
 
 ### AWS Serverless
 
+In the AWS Serverless environment, handlers are deployed as AWS Lambda functions.
+Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
+HTTP and WebSocket handlers will be wired up to API Gateway, event sources such as DynamoDB Streams and S3 will be wired up to the Lambda function directly.
+For scheduled triggers, Amazon EventBridge rules will be configured to trigger the Lambda function at the specified schedule.
+For queues, SQS queues will be configured as triggers for the Lambda function.
+For workflows, AWS Step Functions will be configured to trigger the Lambda function as a step in the workflow.
+
 ### Google Cloud
+
+In the Google Cloud environment, handlers are loaded into the Celerity runtime in a single process.
+Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
+Google Cloud Pub/Sub will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as a Pub/Sub topic that the application will poll for events. The Celerity runtime works in tandem with the Celerity build engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
 
 ### Google Cloud Serverless
 
+In the Google Cloud Serverless environment, handlers are deployed as Google Cloud Functions.
+Depending on the links and configuration, the handler will be wired up to the appropriate HTTP route, event source, stream or scheduled trigger. HTTP handlers will be wired up to Google Cloud API Gateway, event sources such as Google Cloud Pub/Sub, Google Cloud Storage and Google Cloud Datastore will be wired up to the Cloud Function directly. For scheduled triggers, Cloud Scheduler and Pub/Sub will be combined to trigger the function. For queues, Google Cloud Pub/Sub topics will be configured as triggers for the Cloud Function. For workflows, Google Cloud Workflows will be configured to trigger the Cloud Function as a step in the workflow.
+
+:::warning
+Google Cloud Serverless does not support WebSocket APIs, meaning handlers linked from WebSocket APIs can not be deployed to Google Cloud Functions.
+:::
+
 ### Azure
 
+In the Azure environment, handlers are loaded into the Celerity runtime in a single process.
+Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
+Azure Queue Storage queues will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as a Queue Storage queue that the application will poll for events. The Celerity runtime works in tandem with the Celerity build engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
+
 ### Azure Serverless
+
+In the Azure Serverless environment, handlers are deployed as Azure Functions.
+Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
+HTTP handlers will be wired up to Azure API Management, event sources such as Azure Event Hubs, Azure Blob Storage and Azure Queue Storage will be wired up to the Azure Function directly. For scheduled triggers, a timer trigger is configured for the function. For queues, Azure Queue Storage queues will be configured as triggers for the Azure Function. For workflows, Azure Logic Apps will be configured to trigger the Azure Function as a step in the workflow.
 
 ## Configuration Mappings
 

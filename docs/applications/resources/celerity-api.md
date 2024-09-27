@@ -249,6 +249,33 @@ string
 
 ___
 
+<p style={{fontSize: '1.2em'}}><strong>authStrategy</strong></p>
+
+Determines the strategy for authenticating WebSocket connections.
+When `authMessage` is set, the client is expected to send a message with an authentication token to authenticate the connection.
+When `connect` is set, the client is expected to send the authentication token in the connection request headers.
+
+See the [WebSocket Auth Strategy](#websocket-auth-strategy) section for more information.
+
+:::warning
+In Serverless environments that supported WebSocket APIs, only the `authMessage` strategy is supported.
+This is because custom WebSocket status codes are not supported by Serverless WebSocket API offerings.
+:::
+
+**field type**
+
+string
+
+**allowed values**
+
+`authMessage` | `connect`
+
+**default value**
+
+`authMessage`
+
+___
+
 ### corsConfiguration
 
 Detailed Cross-Origin Resource Sharing ([CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)) configuration for the API.
@@ -679,6 +706,11 @@ Handlers contain the application functionality that is executed in response to a
 
 Handlers can also be custom auth guards that are used to control access to the API.
 
+#### [`celerity/secrets`](/docs/applications/resources/celerity-secrets)
+
+Secrets can be used to store configuration and sensitive information such as API keys, database passwords, and other credentials that are used by the application.
+An API can link to a secret store to access secrets at runtime, linking an application to a secret store will automatically make secrets accessible to all handlers in the application without having to link each handler to the secret store.
+
 ## Examples
 
 ### HTTP API
@@ -849,6 +881,69 @@ a message is expected to be of the following format:
 `<route>` is an encoded utf-8 string for the route of the message that is used to route the message to the correct handler, this will be exactly the length specified in `<routeLength>`. A route can not have a length greater than 255 bytes, for performance reasons it is recommended to keep the route as short as possible.
 
 `<message>` is the actual binary data of the message.
+
+
+### WebSocket Auth Strategy
+
+There are two strategies for authenticating WebSocket connections: `authMessage` and `connect`.
+See the [WebSocket Configuration](#websocketconfiguration) section for the field that determines the strategy.
+
+#### `authMessage` approach
+
+On successful connection, the client must send a message with the token in the format:
+```json
+{
+    "event": "authenticate",
+    "data": {
+        "token": "..."
+    }
+}
+```
+
+_The API's auth guard token source must match the field containing the token in the message. (i.e. `$.data.token`)_
+
+_"event" in this example is using the default routeKey, when you specify a custom route key, that will be used instead._
+
+Upon successful authentication, the client will receive a message with the event `authenticated` in the following form:
+
+```json
+{
+    "event": "authenticated",
+    "data": {
+        "success": true,
+        "message": "Authenticated successfully"
+    }
+}
+```
+
+Upon failed authentication, the client will receive a message with the event `authenticated` in the following form:
+
+```json
+{
+    "event": "authenticated",
+    "data": {
+        "success": false,
+        "message": "Authentication failed"
+    }
+}
+```
+
+After sending the failed authentication message, the connection will be closed from the server-side.
+The purpose of sending the failed authentication message is to provide a clear reason for failure to the client before closing the connection, this is essential in environments that do not support custom WebSocket status codes.
+
+_the "event" field in the response message is not related to the route key, this will always be event._
+
+#### `connect` approach
+
+The HTTP header configured as the API's auth guard token source must be sent in the connection request headers.
+
+For example, if the token source is `$.headers.Authorization`, the client must send the token in the `Authorization` header when connecting.
+
+Upon successful authentication, the connection will be upgraded to WebSockets and the client will be able to send and receive messages.
+
+Upon failed authentication, the connection will be closed with the custom status code `4001` (Unauthorized). The client should handle this status code as an authentication failure.
+The custom status code is in the range reserved for application-specific status codes, see [RFC 6455](https://tools.ietf.org/html/rfc6455#section-7.4.2) for more information.
+
 
 ## Target Environments
 
