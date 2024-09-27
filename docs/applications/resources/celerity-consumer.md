@@ -408,8 +408,7 @@ In the Azure Serverless environment, Azure Functions are deployed for the handle
 
 When the `sourceId` is a Celerity topic, an Azure Storage Queue is created to subscribe to the topic to implement a reliable and scalable fan-out approach. The Azure Storage Queue will then be configured as a [trigger](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-queue-trigger?tabs=python-v2%2Cisolated-process%2Cnodejs-v4%2Cextensionv5&pivots=programming-language-csharp) for the deployed Azure Function(s).
 
-When tracing is enabled, the [trace policy](https://learn.microsoft.com/en-us/azure/api-management/trace-policy) is used for the API Management Gateway, these traces will go to Application Insights. You can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
-When it comes to the Azure Functions that power the endpoints, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
+When it comes metrics and tracing for the Azure Functions that process messages, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
 [OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
 
 Consumers can be deployed to Azure Functions with Azure Storage Queue triggers using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
