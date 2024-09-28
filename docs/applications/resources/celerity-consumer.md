@@ -11,7 +11,7 @@ sidebar_position: 3
 The `celerity/consumer` resource type is used to define a subscriber to messages on a `celerity/topic`, an externally defined queue or message broker.
 
 A consumer can be deployed to different target environments such as a Serverless event-driven flow[^1], a containerised environment, or a custom server.
-For containerised and custom server environments, the Celerity runtime provides a polling mechanism to check for new messages in a queue or message broker.
+For containerised and custom server environments, the default mode is for the Celerity runtime provides a polling mechanism to check for new messages in a queue or message broker. There are some exceptions like the Google Cloud Run target environment where a push model is used to deliver messages to the consumer application.
 
 In some target environments, infrastructure resources are created for a consumer when the `sourceId` is a Celerity topic, this will often be a queue that subscribes to the topic to implement a reliable and scalable fan-out approach.
 When the `sourceId` is an external queue or message broker, the consumer is configured to listen to the external queue or message broker.
@@ -25,7 +25,7 @@ A topic should be defined in blueprints for producer applications and a consumer
 ## Specification
 
 The specification is the structure of the resource definition that comes under the `spec` field of the resource in a blueprint.
-The rest of this section lists fields that are available to configure the `celerity/consumer` resource followed by examples of different configurations for the resource type and a table outlining what each configuration value maps to in different target environments and their defaults.
+The rest of this section lists fields that are available to configure the `celerity/consumer` resource followed by examples of different configurations for the resource type, a section outlining the behaviour in supported target environments along with additional documentation.
 
 ### sourceId (required)
 
@@ -118,7 +118,7 @@ Appropriate security groups are managed by the VPC to consumer link.
 When a VPC is not defined for the container-backed AWS, Google Cloud and Azure target environments, the default VPC for the account will be used.
 
 VPC annotations and links do not have any effect for serverless environments.
-Serverless consumers are no more than configuration a topic or queue trigger for a serverless function.
+Serverless consumers are no more than configuration of a topic or queue trigger for a serverless function.
 
 :::warning
 When a VPC is not defined for container-backed cloud environments, annotations in the `celerity/consumer` will apply to the default VPC for the account.

@@ -442,7 +442,7 @@ boolean
 
 <p style={{fontSize: '1.2em'}}><strong>celerity.handler.workflow</strong></p>
 
-Marks the handler to be used as a step in a workflow.
+Marks the handler to be used as a step in a workflow; a step in this context is a state of type `executeStep` in a workflow.
 This is only required when there is ambiguity where a handler is linked from multiple resources in a blueprint (e.g. a consumer, API and workflow). If the handler is only linked to a workflow, this annotation is not required and the default behaviour is to use the handler with the workflow.
 
 **type**
@@ -451,9 +451,10 @@ boolean
 
 ___
 
-<p style={{fontSize: '1.2em'}}><strong>celerity.handler.workflow.step</strong></p>
+<p style={{fontSize: '1.2em'}}><strong>celerity.handler.workflow.state</strong></p>
 
-The ID of the step that the handler will be used to execute in the workflow.
+The unique name of the state that the handler will be used to execute in the workflow.
+The state in the workflow must be of the `executeStep` type.
 
 **type**
 

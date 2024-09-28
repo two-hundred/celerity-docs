@@ -18,7 +18,7 @@ The Celerity build engine and platforms built on top of it will take care of thi
 ## Specification
 
 The specification is the structure of the resource definition that comes under the `spec` field of the resource in a blueprint.
-The rest of this section lists fields that are available to configure the `celerity/api` resource followed by examples of different configurations for the resource.
+The rest of this section lists fields that are available to configure the `celerity/api` resource followed by examples of different configurations for the resource and how the API behaves in target environments along with additional documentation.
 
 ### protocols (required)
 
