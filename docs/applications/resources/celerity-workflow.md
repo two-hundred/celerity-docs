@@ -867,7 +867,381 @@ A workflow can link to a secret store to access secrets at runtime, linking an a
 
 ### Simple Workflow
 
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+resources:
+    videoIngestWorkflow:
+        type: "celerity/workflow"
+        linkSelector:
+            byLabel:
+                application: "videoIngest"
+        spec:
+            states:
+                downloadVideo:
+                    type: "executeStep"
+                    description: "Download the video from the source URL provided in the input metadata."
+                    inputPath: "$.metadata"
+                    payloadTemplate:
+                        videoUrl: "$.videoUrl"
+                    next: "scanVideo"
+                scanVideo:
+                    type: "executeStep"
+                    description: "Scans the video for any malicious content."
+                    resultPath: "$.scanResult"
+                    next: "processVideo"
+                processVideo:
+                    type: "executeStep"
+                    description: "Process the video to create a thumbnail and extract metadata."
+                    inputPath: "$.media"
+                    payloadTemplate:
+                        videoFilePath: "$.downloaded.path"
+                    next: "success"
+                success:
+                    type: "success"
+                    description: "The video has been successfully processed."
+    
+    downloadVideoHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "Download Video Handler"
+            annotations:
+                celerity.handler.workflow.state: "downloadVideo"
+            labels:
+                application: "videoIngest"
+        spec:
+            handlerName: DownloadVideoHandler-v1
+            codeLocation: "handlers/video-ingest"
+            handler: "downloadVideoHandler"
+            runtime: "nodejs20.x"
+            memory: 1024
+            timeout: 60
+            tracingEnabled: true
+
+   scanVideoHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "Scan Video Handler"
+            annotations:
+                celerity.handler.workflow.state: "scanVideo"
+            labels:
+                application: "videoIngest"
+        spec:
+            handlerName: ScanVideoHandler-v1
+            codeLocation: "handlers/video-ingest"
+            handler: "scanVideoHandler"
+            runtime: "nodejs20.x"
+            memory: 2048
+            timeout: 120
+            tracingEnabled: true
+
+   processVideoHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "Process Video Handler"
+            annotations:
+                celerity.handler.workflow.state: "processVideo"
+            labels:
+                application: "videoIngest"
+        spec:
+            handlerName: ProcessVideoHandler-v1
+            codeLocation: "handlers/video-ingest"
+            handler: "processVideoHandler"
+            runtime: "nodejs20.x"
+            memory: 1024
+            timeout: 60
+            tracingEnabled: true
+```
+
 ### Complex Workflow
+
+```yaml
+version: 2023-04-20
+transform: celerity-2024-07-22
+resources:
+    docProcessingWorkflow:
+        type: "celerity/workflow"
+        linkSelector:
+            byLabel:
+                application: "docProcessor"
+        spec:
+            states:
+                fetchDocument:
+                    type: "executeStep"
+                    description: "Fetch the document provided in the input data."
+                    inputPath: "$.document"
+                    payloadTemplate:
+                        url: "$.url"
+                    resultPath: "$.downloaded"
+                    retry:
+                        - matchErrors: ["Timeout"]
+                          interval: 5
+                          maxAttempts: 3
+                          jitter: true
+                          backoffRate: 1.5
+                    catch:
+                        - matchErrors: ["*"]
+                          next: "handleError"
+                          resultPath: "$.errorInfo"
+                    next: "scanDocument"
+
+                scanDocument:
+                    type: "executeStep"
+                    description: "Scans the document for any malicious content."
+                    resultPath: "$.scanResult"
+                    retry:
+                        - matchErrors: ["Timeout"]
+                          interval: 5
+                          maxAttempts: 3
+                          jitter: true
+                          backoffRate: 1.5
+                    catch:
+                        - matchErrors: ["*"]
+                          next: "handleError"
+                          resultPath: "$.errorInfo"
+                    next: "scanResultDecision"
+
+                scanResultDecision:
+                    type: "decision"
+                    description: "Decide the next state based on the scan result."
+                    decisions:
+                        - condition:
+                            function: "eq"
+                            inputs: ["$.scanResult", "Clean"]
+                          next: "documentProcessingDecision"
+                        - condition:
+                            function: "eq"
+                            inputs: ["$.scanResult", "Malicious"]
+                          next: "maliciousContentFound"
+
+                documentProcessingDecision:
+                    type: "decision"
+                    description: "Decide which document processing step to execute based on the document type."
+                    inputPath: "$.downloaded"
+                    decisions:
+                        - condition:
+                            function: "string_match"
+                            inputs: ["$.path", "*.pdf"]
+                          next: "processPDF"
+                        - condition:
+                            function: "string_match"
+                            inputs: ["$.path", "*.docx"]
+                          next: "processDOCX"
+
+                processPDF:
+                    type: "executeStep"
+                    description: "Process the PDF document to extract text and metadata."
+                    inputPath: "$.downloaded"
+                    payloadTemplate:
+                        filePath: "$.path"
+                    resultPath: "$.extractedDataFile"
+                    retry:
+                        - matchErrors: ["Timeout"]
+                          interval: 5
+                          maxAttempts: 3
+                          jitter: true
+                          backoffRate: 1.5
+                    catch:
+                        - matchErrors: ["*"]
+                          next: "handleError"
+                          resultPath: "$.errorInfo"
+                    next: "uploadToSystem"
+
+                processDOCX:
+                    type: "executeStep"
+                    description: "Process the word document to extract text and metadata."
+                    inputPath: "$.downloaded"
+                    payloadTemplate:
+                        filePath: "$.path"
+                    resultPath: "$.extractedDataFile"
+                    retry:
+                        - matchErrors: ["Timeout"]
+                          interval: 5
+                          maxAttempts: 3
+                          jitter: true
+                          backoffRate: 1.5
+                    catch:
+                        - matchErrors: ["*"]
+                          next: "handleError"
+                          resultPath: "$.errorInfo"
+                    next: "uploadToSystem"
+
+                uploadToSystem:
+                    type: "executeStep"
+                    description: "Upload the extracted data to the system."
+                    retry:
+                        - matchErrors: ["Timeout"]
+                          interval: 5
+                          maxAttempts: 3
+                          jitter: true
+                          backoffRate: 1.5
+                    catch:
+                        - matchErrors: ["*"]
+                          next: "handleError"
+                          resultPath: "$.errorInfo"
+                    next: "success"
+
+                handleError:
+                    type: "executeStep"
+                    description: "Handle any error that occurred during the workflow, persisting status and error information to the domain-specific database."
+                    inputPath: "$.errorInfo"
+                    next: "failureDecision"
+
+                failureDecision:
+                    type: "decision"
+                    description: "Choose the failure state to transition to based on the error type."
+                    inputPath: "$.errorInfo"
+                    decisions:
+                        - condition:
+                            function: "eq"
+                            inputs: ["$.error", "DocumentFetchError"]
+                          next: "fetchFailure"
+                        - condition:
+                            function: "eq"
+                            inputs: ["$.error", "DocumentScanError"]
+                          next: "scanFailure"
+                        - or:
+                            - function: "eq"
+                              inputs: ["$.error", "ExtractPDFError"]
+                            - function: "eq"
+                              inputs: ["$.error", "PDFLoadError"]
+                          next: "processPDFFailure"
+                        - or:
+                            - function: "eq"
+                              inputs: ["$.error", "ExtractDOCXError"]
+                            - function: "eq"
+                              inputs: ["$.error", "DOCXLoadError"]
+                          next: "processDOCXFailure"
+                        - condition:
+                            function: "eq"
+                            inputs: ["$.error", "UploadToSystemError"]
+                          next: "uploadToSystemFailure"
+
+                success:
+                    type: "success"
+                    description: "The video has been successfully processed."
+
+                fetchFailure:
+                    type: "failure"
+                    description: "The document could not be fetched."
+                    error: "DocumentFetchError"
+                    cause: "The document could not be fetched from the provided URL."
+
+                scanFailure:
+                    type: "failure"
+                    description: "An error occurred while scanning the document."
+                    error: "DocumentScanError"
+                    cause: "An error occurred while scanning the document."
+
+                maliciousContentFound:
+                    type: "failure"
+                    description: "Malicious content was found in the document."
+                    error: "MaliciousContentFound"
+                    cause: "Malicious content was found in the document."
+
+                processPDFFailure:
+                    type: "failure"
+                    description: "An error occurred while processing the PDF document."
+                    error: "PDFProcessingError"
+                    cause: "An error occurred while processing the PDF document."
+
+                processDOCXFailure:
+                    type: "failure"
+                    description: "An error occurred while processing the word document."
+                    error: "DOCXProcessingError"
+                    cause: "An error occurred while processing the word document."
+
+                uploadToSystemFailure:
+                    type: "failure"
+                    description: "An error occurred while uploading the extracted data to the system."
+                    error: "UploadToSystemError"
+                    cause: "An error occurred while uploading the extracted data to the system."
+
+    fetchDocumentHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "Fetch Document Handler"
+            annotations:
+                celerity.handler.workflow.state: "fetchDocument"
+            labels:
+                application: "documentProcessor"
+        spec:
+            handlerName: FetchDocumentHandler-v1
+            codeLocation: "handlers/doc-processor"
+            handler: "fetch_document"
+            runtime: "python3.12.x"
+            memory: 1024
+            timeout: 60
+            tracingEnabled: true
+
+    scanDocumentHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "Scan Document Handler"
+            annotations:
+                celerity.handler.workflow.state: "scanDocument"
+            labels:
+                application: "documentProcessor"
+        spec:
+            handlerName: ScanDocumentHandler-v1
+            codeLocation: "handlers/doc-processor"
+            handler: "scan_document"
+            runtime: "python3.12.x"
+            memory: 1024
+            timeout: 60
+            tracingEnabled: true
+
+    processPDFHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "PDF Processing Handler"
+            annotations:
+                celerity.handler.workflow.state: "processPDF"
+            labels:
+                application: "documentProcessor"
+        spec:
+            handlerName: ProcessPDFHandler-v1
+            codeLocation: "handlers/doc-processor"
+            handler: "process_pdf"
+            runtime: "python3.12.x"
+            memory: 4096
+            timeout: 60
+            tracingEnabled: true
+
+    processDOCXHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "Word Document Processing Handler"
+            annotations:
+                celerity.handler.workflow.state: "processDOCX"
+            labels:
+                application: "documentProcessor"
+        spec:
+            handlerName: ProcessDOCXHandler-v1
+            codeLocation: "handlers/doc-processor"
+            handler: "process_docx"
+            runtime: "python3.12.x"
+            memory: 2048
+            timeout: 60
+            tracingEnabled: true
+
+    systemUploadHandler:
+        type: "celerity/handler"
+        metadata:
+            displayName: "System Upload Handler"
+            annotations:
+                celerity.handler.workflow.state: "uploadToSystem"
+            labels:
+                application: "documentProcessor"
+        spec:
+            handlerName: SystemUploadHandler-v1
+            codeLocation: "handlers/doc-processor"
+            handler: "upload_extracted_data"
+            runtime: "python3.12.x"
+            memory: 1024
+            timeout: 30
+            tracingEnabled: true
+```
 
 ## Path Syntax
 
@@ -1808,3 +2182,4 @@ Celerity Workflows do not support the full set of features that each cloud provi
 - Only handlers can be executed as steps in a workflow, not containers or third-party services, a workflow needs to be able to run end-to-end within the Celerity Workflow runtime process when deployed to a containerised or custom server environment.
 - Nested workflows are not supported. A workflow can only contain handlers as steps, to get around this, you can trigger another workflow from a handler used for one of the steps and wait for the result.
 - Mapping or iterating over a list of items as a part of a previous state's output is not supported in the Celerity workflow runtime. You will have to operate in the list of items within the application code of a handler that is executed as a step in the workflow.
+- Celerity workflows only support handlers of the `celerity/handler` resource type for the `executeStep` state type. For integrations with cloud provider services, you will either need to use the cloud provider's workflow service or use a handler that can interact with the cloud provider's API. Celerity provides a library of handler templates for service integrations for cloud providers and other third-part services; see [Workflow Integrations](/docs/applications/workflow-integrations/intro) for more information.
