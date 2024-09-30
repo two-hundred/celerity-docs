@@ -856,7 +856,7 @@ When a handler links out to a workflow, it will be configured with permissions a
 
 #### [`celerity/handler`](/docs/applications/resources/celerity-handler)
 
-Handlers are used to execute steps in a workflow. In the context of a workflow, a step is the state of the `executeStep` type. The handler is configured with [annotations](/docs/applications/resources/celerity-handler#celerityworkflow--celerityhandler) that determine which state in the workflow that will trigger the handler.
+Handlers are used to execute steps in a workflow. In the context of a workflow, a step is the state of the `executeStep` type. The handler is configured with [annotations](/docs/applications/resources/celerity-handler#celerityworkflow--celerityhandler) that determine the state in the workflow that will trigger the handler.
 
 #### [`celerity/secrets`](/docs/applications/resources/celerity-secrets)
 
@@ -864,6 +864,10 @@ Secrets can be used to store configuration and sensitive information such as API
 A workflow can link to a secret store to access secrets at runtime, linking an application to a secret store will automatically make secrets accessible to all handlers in the application without having to link each handler to the secret store.
 
 ## Examples
+
+### Simple Workflow
+
+### Complex Workflow
 
 ## Path Syntax
 
