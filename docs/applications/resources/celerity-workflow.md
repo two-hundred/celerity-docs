@@ -282,7 +282,7 @@ A list of decision rules that determine the next state to transition to based on
 Each decision rule will be evaluated in order until a rule is found where the output from the previous state matches the rule's condition.
 
 This field is required for the `decision` state type.
-The field can not be used for `failure`, `decision` or `success` states.
+The field can not be used for any other state types.
 
 **field type**
 
