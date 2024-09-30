@@ -467,13 +467,9 @@ An input can be a path or a literal value.
 
 See the [Path Syntax](#path-syntax) section for more information on how to specify paths.
 
-:::warning Complex types as inputs
-In this version of the workflow resource type, complex types such as arrays and objects are not supported as inputs to conditions. Only strings, integers, floats, booleans, and null are supported.
-:::
-
 **field type**
 
-array[string | integer | float | boolean | null]
+array[string | integer | float | boolean | array | object | null]
 
 **examples**
 
@@ -487,6 +483,16 @@ array[string | integer | float | boolean | null]
 
 ```yaml
 [594.34, false, null]
+```
+
+```yaml
+- "someConstant"
+- 20
+- mapping:
+    key1: "value1"
+    key2: "value2"
+- ["$.value", 20]
+- [1, 3, 5, 10, 12, 15, 20]
 ```
 
 ___
