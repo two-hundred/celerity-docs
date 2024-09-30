@@ -302,7 +302,6 @@ A list of origins that are allowed to access the endpoints of the API.
 array[string]
 ___
 
-
 <p style={{fontSize: '1.2em'}}><strong>allowMethods</strong></p>
 
 A list of HTTP methods that are allowed to be used when accessing the endpoints of the API

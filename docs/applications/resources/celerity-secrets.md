@@ -22,6 +22,7 @@ This models a secret store as a mapping of secret names to secret values (usuall
 ### name
 
 A unique name to use for the secret store.
+If a name is not provided, a unique name will be generated for the secret store based on the blueprint that the secret store is defined in.
 
 **type**
 
@@ -49,7 +50,8 @@ string
 ## Annotations
 
 There are no annotations required for linking other resources to a `celerity/secrets` resource or modifying the behaviour of a secret store resource.
-`linkSelector.byLabel` can be used to target configuration resources for specific handlers based on their labels.
+
+`linkSelector.byLabel` can be used to target secret stores from other resource types.
 
 ## Outputs
 
