@@ -1026,7 +1026,7 @@ Custom auth guards will be deployed as custom authorizers with AWS Lambda housin
 When domain configuration is provided, an [ACM](https://aws.amazon.com/certificate-manager/) certificate is created for the domain and attached to the API Gateway, you will need to verify the domain ownership before the certificate can be used.
 
 When tracing is enabled, an [ADOT lambda layer](https://aws-otel.github.io/docs/getting-started/lambda) is bundled with and configured to instrument each handler to collect traces and metrics.
-AWS API Gateway traces are collected in AWS X-Ray, API Gateway-specific traces can be collected in to tools like Grafana with plugins that use AWS X-Ray as a data source.
+AWS API Gateway traces are collected in AWS X-Ray, API Gateway-specific traces can be collected into tools like Grafana with plugins that use AWS X-Ray as a data source.
 
 APIs can be deployed to API Gateway using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS Serverless target environment.
 
@@ -1084,7 +1084,7 @@ In the Google Cloud Serverless environment, REST/HTTP APIs are deployed as Googl
 
 Custom authorisers are not supported by Google Cloud API Gateway; to get around this, Celerity will bundle the custom authoriser handler code with each protected handler and the handlers SDK that is used to build a Celerity application will take care of calling the custom authoriser before the actual handler is called.
 
-When tracing is enabled, the built-in Google Cloud metrics and tracing offerings will be used to collect traces and metrics for the handlers. Traces and metrics can be collected in to tools like Grafana with plugins that use Google Cloud Trace as a data source. Logs and metrics are captured out of the box for the API Gateway and will be collected in Google Cloud Logging and Monitoring. You can export logs and metrics to other tools like Grafana with plugins that use Google Cloud Logging and Monitoring as a data source.
+When tracing is enabled, the built-in Google Cloud metrics and tracing offerings will be used to collect traces and metrics for the handlers. Traces and metrics can be collected into tools like Grafana with plugins that use Google Cloud Trace as a data source. Logs and metrics are captured out of the box for the API Gateway and will be collected in Google Cloud Logging and Monitoring. You can export logs and metrics to other tools like Grafana with plugins that use Google Cloud Logging and Monitoring as a data source.
 
 :::warning Tracing in Google Cloud Serverless
 Google Cloud API Gateway does not currently support tracing.

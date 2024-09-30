@@ -77,6 +77,15 @@ const config = {
     [
       "@docusaurus/plugin-content-docs",
       {
+        id: "workflow-runtime",
+        path: "workflow-runtime",
+        routeBasePath: "workflow-runtime",
+        sidebarPath: require.resolve("./sidebars-workflow-runtime.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
         id: "node-runtime",
         path: "node-runtime",
         routeBasePath: "node-runtime",
@@ -192,6 +201,11 @@ const config = {
                 label: "Celerity::1",
                 activeBasePath: "/celerity-one",
                 to: "/celerity-one/docs/intro",
+              },
+              {
+                label: "Workflow Runtime",
+                activeBasePath: "/workflow-runtime",
+                to: "/workflow-runtime/docs/intro",
               }
             ],
           },
@@ -299,6 +313,12 @@ const config = {
             docsPluginId: "celerity-one",
             position: "left",
           },
+          {
+            type: "docsVersionDropdown",
+            title: "Workflow Runtime Version",
+            docsPluginId: "workflow-runtime",
+            position: "left",
+          },
         ],
       },
       footer: {
@@ -375,6 +395,9 @@ const config = {
       },
       "celerity-one": {
         title: "Celerity::1",
+      },
+      "workflow-runtime": {
+        title: "Workflow Runtime",
       },
     },
   },
