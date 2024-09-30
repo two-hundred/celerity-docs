@@ -32,7 +32,74 @@ mapping[string, [state](#state)]
 
 ## Annotations
 
+Annotations define additional metadata that can determine the behaviour of the resource in relation to other resources in the blueprint or to add behaviour to a resource that is not in its spec.
+
+### `celerity/vpc` 🔗 `celerity/workflow`
+
+The following are a set of annotations that determine the behaviour of a workflow in relation to a VPC.
+Appropriate security groups are managed by the VPC to workflow link.
+
+When a VPC is not defined for the container-backed AWS, Google Cloud and Azure target environments, the default VPC for the account will be used.
+
+VPC annotations and links do not have any effect for serverless environments.
+Serverless workflows are managed by cloud provider services and do not support customer-defined VPC configurations.
+
+:::warning
+When a VPC is not defined for container-backed cloud environments, annotations in the `celerity/workflow` will apply to the default VPC for the account.
+:::
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.workflow.vpc.subnetType</strong></p>
+
+The kind of subnet that the workflow should be deployed to.
+
+**type**
+
+string
+
+**allowed values**
+
+`public` | `private`
+
+**default value**
+
+`public` - When a VPC links to a workflow, the workflow will be deployed to a public subnet.
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>celerity.workflow.vpc.lbSubnetType</strong></p>
+
+The kind of subnet that the load balancer for the workflow should be deployed to.
+This is only relevant when the workflow is deployed to an environment that requires load balancers to interact with workflows via the API.
+
+**type**
+
+string
+
+**allowed values**
+
+`public` | `private`
+
+**default value**
+
+`public` - When a VPC links to a workflow, the load balancer for the workflow will be deployed to a public subnet.
+
 ## Outputs
+
+### id
+
+The ID of the created workflow in the target environment.
+
+**type**
+
+string
+
+**examples**
+
+`arn:aws:states:us-east-1:123456789012:stateMachine:Example-StateMachine` (AWS Step Functions)
+
+`projects/123456789012/locations/us-central1/workflows/example-workflow` (Google Cloud Workflows)
+
+`691802b3-351e-4599-8785-2353ce970613` (Celerity Workflow Runtime)
 
 ## Data Types
 
@@ -770,7 +837,25 @@ ___
 
 ## Linked From
 
+#### [`celerity/vpc`](/docs/applications/resources/celerity-vpc)
+
+Depending on the target environment, the workflow may be deployed to a VPC for private access.
+When deploying to serverless environments such as AWS API Step Functions, Google Cloud Workflows, or Azure Logic Apps, the workflow will be managed by the cloud provider and will not be deployed to a VPC.
+
+#### [`celerity/handler`](/docs/applications/resources/celerity-handler)
+
+When a handler links out to a workflow, it will be configured with permissions and environment variables that enable the handler to trigger the workflow. If a secret store is associated with the handler or the application that it is a part of, the workflow configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and trigger the workflow using the handlers SDK.
+
 ## Links To
+
+#### [`celerity/handler`](/docs/applications/resources/celerity-handler)
+
+Handlers are used to execute steps in a workflow. In the context of a workflow, a step is the state of the `executeStep` type. The handler is configured with [annotations](/docs/applications/resources/celerity-handler#celerityworkflow--celerityhandler) that determine which state in the workflow that will trigger the handler.
+
+#### [`celerity/secrets`](/docs/applications/resources/celerity-secrets)
+
+Secrets can be used to store configuration and sensitive information such as API keys, database passwords, and other credentials that are used by the application.
+A workflow can link to a secret store to access secrets at runtime, linking an application to a secret store will automatically make secrets accessible to all handlers in the application without having to link each handler to the secret store.
 
 ## Examples
 
@@ -1502,17 +1587,208 @@ The following environments support string matching:
 
 ### Celerity::1
 
+In the Celerity::1 local environment, a workflow is deployed as a containerised version of the Celerity workflow runtime in Docker.
+In the local environment, the runtime is backed by an [Apache Cassandra](https://cassandra.apache.org/_/index.html) NoSQL database for storing workflow definitions and execution state.
+Links from VPCs to APIs are ignored for this environment as the workflow is deployed to a local container network on a developer or CI machine.
+
 ### AWS
+
+In the AWS environment, workflows are deployed as a containerised version of the Celerity workflow runtime.
+
+Workflows can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS target environment.
+
+The workflow runtime requires persistence for storing workflow definitions and execution state, this is provided by a set of DynamoDB tables that are created when the workflow is deployed. The DynamoDB tables are provisioned with on-demand capacity mode by default, this can be changed to provisioned capacity mode in the deploy configuration.
+
+:::note
+DynamoDB was chosen as the persistence layer for the workflow runtime in AWS environments as it provides a scalable and highly available NoSQL database that is more than sufficient for the requirements of the workflow runtime.
+This also removes the need to manage a relational database cluster for each workflow-based application that is deployed.
+:::
+
+#### ECS
+
+When a workflow is first deployed to ECS, a new cluster is created for the workflow.
+A service is provisioned within the cluster to run the application.
+A public-facing application load balancer is created to route traffic to the service, if you require private access to the workflow API, the load balancer can be configured to be internal.
+When domain configuration is provided and the load balancer is public-facing, an [ACM](https://aws.amazon.com/certificate-manager/) certificate is created for the domain and attached to the load balancer, you will need to verify the domain ownership before the certificate can be used.
+
+The service is deployed with an auto-scaling group that will scale the number of tasks running the workflow based on the CPU and memory usage of the tasks. The auto-scaling group will scale the desired task count with a minimum of 1 task and a maximum of 5 tasks by default. If backed by EC2, the auto-scaling group will scale the number instances based on the CPU and memory usage of the instances with a minimum of 1 instance and a maximum of 3 instances by default. Deploy configuration can be used to override this behaviour.
+
+When it comes to networking, ECS services need to be deployed to VPCs; if a VPC is defined in the blueprint and linked to the workflow, it will be used, otherwise the default VPC for the account will be used. The load balancer will be placed in the public subnet by default, but can be configured to be placed in a private subnet by setting the `celerity.workflow.vpc.lbSubnetType` annotation to `private`. The service for the application will be deployed to a public subnet by default, but can be configured to be deployed to a private subnet by setting the `celerity.workflow.vpc.subnetType` annotation to `private`.
+By default, 2 private subnets and 2 public subnets are provisioned for the associated VPC, the subnets are spread across 2 availability zones, the ECS resources that need to be associated with a subnet will be associated with these subnets, honouring the workflow subnet type defined in the annotations.
+
+The CPU to memory ratio used by default for AWS deployments backed by EC2 is that of the `t3.*` instance family. The auto-scaling launch configuration will use the appropriate instance type based on the requirements of the application, these requirements will be taken from the deploy configuration or derived from the handlers configured for the workflow. If the requirements can not be derived, the instance profile will be `t3.small` with 2 vCPUs and 2GB of memory.
+
+Fargate-backed ECS deployments use the same CPU to memory ratios allowed for Fargate tasks as per the [task definition parameters](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size).
+
+If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. 
+For an EC2-backed cluster, the task housing the containers that make up the service for the workflow will be deployed with 896MB of memory and 0.8 vCPUs. Less than half of the memory and CPU is allocated to the EC2 instance to allow for smooth deployments of new versions of the workflow, this is done by making sure there is enough memory and CPU available to the ECS agent.
+For a Fargate-backed cluster, the task housing the containers that make up the service for the workflow application will be deployed with 1GB of memory and 0.5 vCPUs.
+
+A sidecar [ADOT collector](https://aws-otel.github.io/docs/getting-started/collector) container is deployed with the workflow to collect traces and metrics for the application, this will take up a small portion of the memory and CPU allocated to the application. Traces are always collected for workflow executions, however, they are only collected for handlers when tracing is enabled for the handler.
+
+#### EKS
+
+When a workflow is first deployed to EKS, a new cluster is created for the workflow unless you specify an existing cluster to use in the deploy configuration.
+
+:::warning using existing clusters
+When using an existing cluster, the cluster must be configured in a way that is compatible with the VPC annotations configured for the workflow as well as the target compute type.
+For example, a cluster without a Fargate profile can not be used to deploy a workflow that is configured to use Fargate. Another example would be a cluster with a node group only associated with public subnets not being compatible with a workflow with the `celerity.workflow.vpc.subnetType` annotation set to `private`.
+You also need to make sure there is enough memory and CPU allocated for node group instances to run the application in addition to other workloads running in the cluster.
+:::
+
+The cluster is configured with a public endpoint for the Kubernetes API server by default, this can be overridden to be private in the deploy configuration. (VPC links will be required to access the Kubernetes API server when set to private)
+
+For an EKS cluster backed by EC2, a node group is configured with auto-scaling configuration to have a minimum size of 2 nodes and a maximum size of 5 nodes by default. Auto-scaling is handled by the [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler#kubernetes-autoscaler). The instance type configured for node groups is determined by the CPU and memory requirements defined in the deploy configuration or derived from the handlers of the workflow, if the requirements can not be derived, the instance type will be `t3.small` with 2 vCPUs and 2GB of memory.
+
+For an EKS cluster backed by Fargate, a [Fargate profile](https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html) is configured to run the workflow.
+
+Once the cluster is up and running, Kubernetes services are provisioned to run the application, an Ingress service backed by an application load balancer is created to route traffic to the service, if you require private access to the workflow, the load balancer can be configured to be internal. When domain configuration is provided and the load balancer is public-facing, an [ACM](https://aws.amazon.com/certificate-manager/) certificate is created for the domain and attached to the ingress service via annotations, you will need to verify the domain ownership before the certificate can be used.
+
+When it comes to networking, EKS services need to be deployed to VPCs; if a VPC is defined in the blueprint and linked to the workflow, it will be used, otherwise the default VPC for the account will be used.
+The ingress service backed by an application load balancer will be placed in the public subnet by default, but can be configured to be placed in a private subnet by setting the `celerity.workflow.vpc.lbSubnetType` annotation to `private`.
+
+By default, 2 private subnets and 2 public subnets are provisioned for the associated VPC, the subnets are spread across 2 availability zones. For EC2-backed clusters, the EKS node group will be associated with all 4 subnets when `celerity.workflow.vpc.subnetType` is set to `public`; when `celerity.api.vpc.subnetType` is set to `private`, the node group will only be associated with the 2 private subnets. The orchestrator will take care of assigning one of the subnets defined for the node group.
+
+For Fargate-backed clusters, the Fargate profile will be associated with the private subnets due to the [limitations with Fargate profiles](https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html). For Fargate, the workflow will be deployed to one of the private subnets associated with the profile. 
+
+:::warning
+`celerity.workflow.vpc.subnetType` has no effect for Fargate-based EKS deployments, the workflow application will always be deployed to a private subnet.
+:::
+
+If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set.
+For an EC2-backed cluster, the containers that make up the service for the workflow will be deployed with 896MB of memory and 0.8 vCPUs. Less than half of the memory and CPU is allocated to a node that will host the containers to allow for smooth deployments of new versions of the workflow, this is done by making sure there is enough memory and CPU available to the Kubernetes agents.
+For a Fargate-backed cluster, the pod for the application will be deployed with 1GB of memory and 0.5 vCPUs, for Fargate there are a [fixed set of CPU and memory configurations](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-configuration.html) that can be used.
+
+A sidecar [ADOT collector](https://aws-otel.github.io/docs/getting-started/collector) container is deployed in the pod with the workflow application to collect traces and metrics for the application, this will take up a small portion of the memory and CPU allocated to the workflow. Traces are always collected for workflow executions, however, they are only collected for handlers when tracing is enabled for the handler.
 
 ### AWS Serverless
 
+In the AWS Serverless environment, workflows are deployed to AWS Step Functions with AWS Lambda for the handlers.
+
+When tracing is enabled for handlers, an [ADOT lambda layer](https://aws-otel.github.io/docs/getting-started/lambda) is bundled with and configured to instrument each handler to collect traces and metrics.
+AWS Step Functions traces are collected in AWS X-Ray, Step Functions specific traces can be collected in to tools like Grafana with plugins that use AWS X-Ray as a data source.
+
+Workflows can be deployed to Step Functions using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS Serverless target environment.
+
 ### Google Cloud
+
+In the Google Cloud environment, workflows are deployed as a containerised version of the Celerity workflow runtime.
+
+Workflows can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud target environment.
+
+The workflow runtime requires persistence for storing workflow definitions and execution state, this is provided by a set of Cloud Datastore entities that are created when the workflow is deployed.
+
+:::note
+Cloud Datastore was chosen as the persistence layer for the workflow runtime in Google Cloud environments as it provides a scalable and highly available NoSQL database that is more than sufficient for the requirements of the workflow runtime.
+This also removes the need to manage a relational database cluster for each workflow-based application that is deployed.
+:::
+
+#### Cloud Run
+
+Cloud Run is a relatively simple environment to deploy workflows to, the workflow is deployed as a containerised application that is fronted by either an internal or external load balancer.
+
+Autoscaling is configured with the use of Cloud Run annotations through `autoscaling.knative.dev/minScale` and `autoscaling.knative.dev/maxScale` [annotations](https://cloud.google.com/run/docs/reference/rest/v1/ObjectMeta). The knative autoscaler will scale the number of instances based on the number of requests and the CPU and memory usage of the instances. By default, the application will be configured to scale the number of instances with a minimum of 1 instance and a maximum of 5 instances. Deploy configuration can be used to override this behaviour.
+
+When domain configuration is provided and the load balancer is public-facing and Google-managed, a [managed TLS certificate](https://cloud.google.com/load-balancing/docs/ssl-certificates) is created for the domain and attached to the load balancer, you will need to verify the domain ownership before the certificate can be used.
+
+For Cloud Run, the workflow will not be associated with a VPC, defining custom VPCs for Cloud Run applications is not supported. Creating and linking a VPC to the workflows will enable the `Internal` networking mode in the [network ingress settings](https://cloud.google.com/run/docs/securing/ingress). `celerity.workflow.vpc.subnetType` has no effect for Cloud Run deployments, the application will always be deployed to a network managed by Google Cloud. Setting `celerity.workflow.vpc.lbSubnetType` to `private` will have the same affect as attaching a VPC to the application, making the application load balancer private. Setting `celerity.workflow.vpc.lbSubnetType` to `public` will have the same effect as not attaching a VPC to the workflow, making the application load balancer public. `public` is equivalent to the "Internal and Cloud Load Balancing" [ingress setting](https://cloud.google.com/run/docs/securing/ingress#settings).
+
+Memory and CPU resources allocated to the workflow can be defined in the deploy configuration, when not defined, memory and CPU will be derived from the handlers configured for the workflow.
+If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. The Cloud Run service will be allocated a limit of 1GB of memory and 1 vCPU per instance.
+
+A sidecar [OpenTelemetry Collector](https://github.com/GoogleCloudPlatform/opentelemetry-cloud-run) container is deployed in the service with the workflow to collect traces and metrics, this will take up a small portion of the memory and CPU allocated to the workflow. Traces will always be collected for Workflow executions, however, they are only collected for handlers when tracing is enabled for the handler.
+
+#### GKE
+
+When a workflow is first deployed to GKE, a new cluster is created for the workflow unless you specify an existing cluster to use in the deploy configuration.
+
+:::warning Using existing clusters
+When using an existing cluster, the cluster must be configured in a way that is compatible with the VPC annotations configured for the application as well as the target compute type.
+:::
+
+When in standard mode, the cluster will be regional with 2 zones for better availability guarantees. A node pool is created with autoscaling enabled, by default, the pool will have a minimum of 1 node and a maximum of 3 nodes per zone. As the cluster has 2 zones, this will be a minimum of 2 nodes and a maximum of 6 nodes overall. The [cluster autoscaler](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-autoscaler) is used to manage scaling and choosing the appropriate instance type to use given the requirements of the workflow service. The minimum and maximum number of nodes can be overridden in the deploy configuration.
+
+When in autopilot mode, Google manages scaling, security and node pools. Based on memory and CPU limits applied at the pod-level, appropriate node instance types will be selected and will be scaled automatically. There is no manual autoscaling configuration when running in autopilot mode, GKE Autopilot is priced per pod request rather than provisioned infrastructure, depending on the nature of your workloads, it could be both a cost-effective and convenient way to run your applications. [Read more about autopilot mode pricing](https://cloud.google.com/kubernetes-engine/pricing#autopilot_mode).
+
+When domain configuration is provided and the load balancer that powers the Ingress service is public-facing and Google-managed, a [managed TLS certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) is created for the domain and attached to the Ingress object, you will need to verify the domain ownership before the certificate can be used.
+
+When it comes to networking, a GKE cluster is deployed as a [private cluster](https://cloud.google.com/kubernetes-engine/docs/concepts/private-cluster-concept), nodes that the pods for the workflow run on only use internal IP addresses, isolating them from the public internet. The Control plane has both internal and external endpoints, the external endpoint can be disabled from the Google Cloud/Kubernetes side. When `celerity.workflow.vpc.lbSubnetType` is set to `public`, an [Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress) service is provisioned using an external Application Load Balancer. When `celerity.workflow.vpc.lbSubnetType` is set to `private`, an Ingress service is provisioned using an internal Application Load Balancer. The Ingress service is used to route traffic from the public internet to the service running the workflow.
+
+:::warning
+`celerity.workflow.vpc.subnetType` has no effect for GKE clusters, the application will always be deployed to a private network, the workflow API is exposed through the ingress service if the ingress is configured to be public.
+:::
+
+If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. Limits of 1GB of memory and 0.5 vCPUs will be set for the pods that run the workflow.
+
+The [OpenTelemetry Operator](https://cloud.google.com/blog/topics/developers-practitioners/easy-telemetry-instrumentation-gke-opentelemetry-operator/) is used to configure a sidecar collector container for the workflow to collect traces and metrics. Traces will always be collected for workflow executions, however, they are only collected for handlers when tracing is enabled for the handler.
 
 ### Google Cloud Serverless
 
+In the Google Cloud Serverless environment, workflows are deployed as Google Cloud Workflows with Google Cloud Functions for the handlers.
+
+For tracing, the built-in Google Cloud metrics and tracing offerings will be used to collect traces and metrics for the handlers. Traces and metrics can be collected into tools like Grafana with plugins that use Google Cloud Trace as a data source. Logs and metrics are captured out of the box for the Cloud Workflows and will be collected in Google Cloud Logging and Monitoring. You can export logs and metrics to other tools like Grafana with plugins that use Google Cloud Logging and Monitoring as a data source.
+
+Workflows can be deployed to Google Cloud Workflows using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud Serverless target environment.
+
 ### Azure
 
+In the Azure environment, workflows are deployed as a containerised version of the Celerity workflow runtime.
+
+Workflows can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure target environment.
+
+The workflow runtime requires persistence for storing workflow definitions and execution state, this is provided by Azure Cosmos DB resources that are created when the workflow is deployed.
+The workflow runtime uses the [Cassandra API for Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/cassandra/introduction).
+
+:::note
+Cosmos DB was chosen as the persistence layer for the workflow runtime in Azure environments as it provides a scalable and highly available NoSQL database that is more than sufficient for the requirements of the workflow runtime.
+This also removes the need to manage a relational database cluster for each workflow-based application that is deployed.
+:::
+
+#### Container Apps
+
+Container Apps is a relatively simple environment to deploy applications to, the workflow is deployed as a containerised application that is fronted by either external HTTPS ingress or internal ingress.
+
+Autoscaling is determined based on the number of concurrent HTTP requests for public APIs, for private  workflow APIs [KEDA-supported](https://keda.sh/docs/2.15/scalers/) CPU and memory scaling triggers are used. By default, the [scale definition](https://learn.microsoft.com/en-us/azure/container-apps/scale-app?pivots=azure-cli#scale-definition) is set to scale from 1 to 5 replicas per revision, this can be overridden in the deploy configuration.
+
+When domain configuration is provided and the workflow API is configured to be public-facing, a [managed TLS certificate](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates?pivots=azure-portal) is provisioned and attached to the Container App's HTTP ingress configuration. You will need to verify the domain ownership before the certificate can be used. 
+
+Container Apps will not be associated with a private network by default, a VNet is automatically generated for you and generated VNets are publicly accessible over the internet. [Read about networking for Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/networking?tabs=workload-profiles-env%2Cazure-cli). When you define a VPC and link it to the workflow, a custom VNet will be provisioned and the workflow will be deployed to either a private or public subnet based on the `celerity.workflow.vpc.subnetType` annotation, defaulting to a public subnet if not specified. When the `celerity.workflow.vpc.lbSubnetType` is set to `public`, a public HTTPS ingress is provisioned for the API; when set to `private`, an internal HTTP ingress is provisioned for the workflow. Azure's built-in [zone redundancy](https://learn.microsoft.com/en-us/azure/reliability/reliability-azure-container-apps?tabs=azure-cli) is used to ensure high availability of the workflow API.
+
+Memory and CPU resources allocated to the workflow can be defined in the deploy configuration, when not defined, memory and CPU will be derived from the handlers configured for the workflow. If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. The Container App service will be allocated a limit of 1GB of memory and 0.5 vCPU per instance in the consumption plan, [see allocation requirements](https://learn.microsoft.com/en-us/azure/container-apps/containers#allocations).
+
+The [OpenTelemetry Data Agent](https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents?tabs=arm) is used to collect traces and metrics for the application. Traces will always be collected for workflow executions, however, they are only collected for handlers when tracing is enabled for the handler.
+
+#### AKS
+
+When a workflow is first deployed to AKS, a new cluster is created for the workflow unless you specify an existing cluster to use in the deploy configuration.
+
+:::warning Using existing clusters
+When using an existing cluster, it must be configured in a way that is compatible with the VPC annotations configured for the workflow as well as the target compute type.
+:::
+
+The cluster is created across 2 availability zones for better availability guarantees. Best effort zone balancing is used with [Azure VM Scale Sets](https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-use-availability-zones?tabs=portal-2#zone-balancing). The cluster is configured with an [autoscaler](https://learn.microsoft.com/en-us/azure/aks/cluster-autoscaler?tabs=azure-cli) with a minimum of 2 nodes and a maximum of 5 nodes
+distributed across availability zones as per Azure's zone balancing. The default node size is `Standard_D4d_v5` with 4 vCPUs and 16GB of memory, this size is chosen because of the [minimum requirements for system Node Pools](https://learn.microsoft.com/en-us/azure/aks/use-system-pools?tabs=azure-cli#system-and-user-node-pools) and in the default configuration a single node pool is shared by the system and user workloads. If the CPU or memory requirements of the application mean the default node size would not be able to comfortably run 2 instances of the workflow application, a larger node size will be selected.
+Min and max node count along with the node size can be overridden in the deploy configuration.
+
+When domain configuration is provided and the load balancer that powers the Ingress service is public-facing, a TLS certificate is generated with [Let's Encrypt](https://letsencrypt.org/) via [cert-manager](https://cert-manager.io/docs/installation/helm/) to provision certificates for domains associated with Ingress resources in Kubernetes. The certificate is used by the Ingress object to terminate TLS traffic. You will need to verify the domain ownership before the certificate can be used.
+
+When it comes to networking, the workflow will be deployed with the overlay network model in a public network as per the default AKS access mode. [Read about private and public clusters for AKS](https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/public-and-private-aks-clusters-demystified/ba-p/3716838).
+When you define a VPC and link it to the workflow, the application will be deployed as a private cluster using the VNET integration feature of AKS where the control plane will not be made available through a public endpoint. The `celerity.workflow.vpc.subnetType` annotation has **no** effect for AKS deployments as the networking model for Azure with it's managed Kubernetes offering is different from other cloud providers and all services running on a cluster are private by default, exposed to the internet through a load balancer or ingress controller. When `celerity.workflow.vpc.lbSubnetType` is set to `public`, an Ingress service is provisioned using the [nginx ingress controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) that uses an external Azure Load Balancer under the hood. When `celerity.workflow.vpc.lbSubnetType` is set to `private`, the nginx Ingress controller is configured to use an internal Azure Load Balancer, [read more about the private ingress controller](https://learn.microsoft.com/en-us/azure/aks/create-nginx-ingress-private-controller).
+
+Memory and CPU resources allocated to the workflow pod can be defined in the deploy configuration, if not specified, the workflow will derive memory and CPU from handlers configured for the application.
+If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. The pod that runs the workflow will be allocated a limit of 1GB of memory and 0.5 vCPUs.
+
+The [OpenTelemetry Operator](https://opentelemetry.io/docs/kubernetes/operator/) is used to configure a sidecar collector container for the workflow application to collect traces and metrics. Traces will always be collected for workflow executions, however, they are only collected for handlers when tracing is enabled for the handler.
+
 ### Azure Serverless
+
+In the Azure Serverless environment, workflows are deployed as Azure Logic Apps with Azure Functions for the handlers.
+
+Azure Monitor Metrics and Azure Monitor Logs can be used as sources for traces, logs and metrics for the Logic App. This data can be exported to other tools like Grafana with plugins that use Azure Monitor as a data source.
+When it comes to the Azure Functions that power the endpoints, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
+[OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
+
+Workflows can be deployed to Azure Logic Apps using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
 
 ## ⚠️ Limitations
 
