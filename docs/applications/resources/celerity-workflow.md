@@ -690,7 +690,7 @@ array[string]
 ```
 ___
 
-<p style={{fontSize: '1.2em'}}><strong>intervalSeconds</strong></p>
+<p style={{fontSize: '1.2em'}}><strong>interval</strong></p>
 
 A positive integer value representing the number of seconds to wait before the first attempt to retry
 a failed state.
