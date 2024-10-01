@@ -137,7 +137,7 @@ A workflow will always be deployed separately.
 The term "Serverless" is used frequently in describing the behaviour of target environments.
 In the context of Celerity deployments, "Serverless" refers to environments using FaaS[^2] platforms and the components that integrate with them.
 
-In fact, a lot of the containerised environments such as ECS or EKS backed by Fargate, Azure Container Apps and Google Cloud Run are also considered "Serverless" in that remove the need to manage the VMs used to run the containers.
+In fact, a lot of the containerised environments such as ECS or EKS backed by Fargate, Azure Container Apps and Google Cloud Run are also considered "Serverless" in that they remove the need to manage the VMs used to run the containers.
 
 [^1]: Environments in this context covers Function-as-a-service offerings such as AWS Lambda, Google Cloud Functions, and Azure Functions, as well as containerised environments such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 [^2]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.

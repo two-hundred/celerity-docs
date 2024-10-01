@@ -1972,7 +1972,7 @@ The following environments support string matching:
 ### Celerity::1
 
 In the Celerity::1 local environment, a workflow is deployed as a containerised version of the Celerity workflow runtime in Docker.
-In the local environment, the runtime is backed by an [Apache Cassandra](https://cassandra.apache.org/_/index.html) NoSQL database for storing workflow definitions and execution state.
+In the local environment, the runtime is backed by an [Apache Cassandra](https://cassandra.apache.org/_/index.html) NoSQL database for storing workflow execution state.
 Links from VPCs to APIs are ignored for this environment as the workflow is deployed to a local container network on a developer or CI machine.
 
 ### AWS
@@ -1981,7 +1981,7 @@ In the AWS environment, workflows are deployed as a containerised version of the
 
 Workflows can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS target environment.
 
-The workflow runtime requires persistence for storing workflow definitions and execution state, this is provided by a set of DynamoDB tables that are created when the workflow is deployed. The DynamoDB tables are provisioned with on-demand capacity mode by default, this can be changed to provisioned capacity mode in the deploy configuration.
+The workflow runtime requires persistence for storing workflow execution state, this is provided by a set of DynamoDB tables that are created when the workflow is deployed. The DynamoDB tables are provisioned with on-demand capacity mode by default, this can be changed to provisioned capacity mode in the deploy configuration.
 
 :::note
 DynamoDB was chosen as the persistence layer for the workflow runtime in AWS environments as it provides a scalable and highly available NoSQL database that is more than sufficient for the requirements of the workflow runtime.
@@ -2060,7 +2060,7 @@ In the Google Cloud environment, workflows are deployed as a containerised versi
 
 Workflows can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud target environment.
 
-The workflow runtime requires persistence for storing workflow definitions and execution state, this is provided by a set of Cloud Datastore entities that are created when the workflow is deployed.
+The workflow runtime requires persistence for storing workflow execution state, this is provided by a set of Cloud Datastore entities that are created when the workflow is deployed.
 
 :::note
 Cloud Datastore was chosen as the persistence layer for the workflow runtime in Google Cloud environments as it provides a scalable and highly available NoSQL database that is more than sufficient for the requirements of the workflow runtime.
@@ -2120,7 +2120,7 @@ In the Azure environment, workflows are deployed as a containerised version of t
 
 Workflows can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure target environment.
 
-The workflow runtime requires persistence for storing workflow definitions and execution state, this is provided by Azure Cosmos DB resources that are created when the workflow is deployed.
+The workflow runtime requires persistence for storing workflow execution state, this is provided by Azure Cosmos DB resources that are created when the workflow is deployed.
 The workflow runtime uses the [Cassandra API for Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/cassandra/introduction).
 
 :::note
