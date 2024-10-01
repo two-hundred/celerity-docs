@@ -22,7 +22,7 @@ A secret key should be a 256-bit cryptographically secure random string that can
 You can generate a key pair using the Celerity CLI:
 
 ```bash
-celerity signature create-key-pair
+celerity signature-v1 create-key-pair
 ```
 
 A key pair can also be generated using tools like `openssl`:
