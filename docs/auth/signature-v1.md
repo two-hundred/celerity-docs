@@ -81,7 +81,7 @@ The server can verify the signature by using the following steps:
 3. Create the [message](#message) using the public key, timestamp in the `Celerity-Date` header and custom request headers.
 4. Obtain the secret key for the key ID from a secure location.
 5. Create the [signature](#signature) using the message and the secret key.
-6. Compare the signature created in step 5 with the signature in the `Celerity-Signature-V1` header.
+6. Compare the signature created in step 5 with the signature in the `Celerity-Signature-V1` header using a secure HMAC comparison that is resistant to timing attacks.
 
 7. If the signatures match, check that the timestamp in the `Celerity-Date` header is within a certain time window of the current time on the server to prevent replay attacks.
 

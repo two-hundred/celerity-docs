@@ -544,6 +544,8 @@ When there is a failure in any branch, due  to an unhandled error or by transiti
 
 When a branch transitions to a success state, only that branch will terminate as a result. A success state will pass its input through to the output that may be modified by the `inputPath` and `outputPath` fields.
 
+State types that are allowed in a parallel branch are `executeStep`, `pass`, `wait`, `decision`, `failure`, and `success`. Nested parallel states are **not** supported.
+
 :::warning State names
 State names must be unique within the entire workflow definition so that handlers can be wired up to the correct states via [workflow to handler link annotations](/docs/applications/resources/celerity-handler#celerityworkflow--celerityhandler).
 :::
