@@ -66,16 +66,16 @@ The implementation of the `BASE64_URL_ENCODE` function must use the url-safe alp
 The signature is included in the `Celerity-Signature-V1` header of a HTTP request in the following format:
 
 ```
-Celerity-Signature-V1: keyId="{keyId}", headers="Celerity-Date {Header1-Name} ... {HeaderN-Name}", signature="{signature}"
+Celerity-Signature-V1: keyId="{keyId}", headers="celerity-date {header1-name} ... {headerN-name}", signature="{signature}"
 ```
 
 `{keyId}` is the key ID of the key pair used to sign the message.
 
-`{Header1-Name} ... {HeaderN-Name}` are the names of the custom request headers used to create the message.
+`{header1-name} ... {headerN-name}` are the names of the custom request headers used to create the message.
 
 `{signature}` is a message of the format defined in the [Message](#message) section signed using the secret key of the key pair using the approach defined in the [Signature](#signature) section.
 
-`Celerity-Date` is a special header that is used to prevent replay attacks. The timestamp in the message should be within a certain time window of the current time on the server to prevent replay attacks.
+`celerity-date` is a special header that is used to prevent replay attacks. The timestamp in the message should be within a certain time window of the current time on the server to prevent replay attacks.
 
 All the headers listed and used to create the signature must be present in the HTTP request.
 
@@ -84,6 +84,10 @@ The parts of the `Celerity-Signature-V1` header must be in the following order:
 1. `keyId`
 2. `headers`
 3. `signature`
+:::
+
+:::warning Header name case
+All header names must be in lowercase in the `headers` part of the `Celerity-Signature-V1` header.
 :::
 
 ### Verifying the Signature
