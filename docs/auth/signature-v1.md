@@ -9,7 +9,7 @@ Celerity Signature v1 can be used to authenticate with Celerity components that 
 
 ## Specification
 
-The Celerity Signature v1 is a custom authentication mechanism that avoids the transportation of private API keys over the wire by using them in combination with a public key ID, timestamp and custom request headers to create a signature.
+Celerity Signature v1 is a custom authentication mechanism that avoids the transportation of private API keys over the wire by using them in combination with a public key ID, timestamp and custom request headers to create a signature.
 
 ### Key Pairs
 
@@ -37,10 +37,15 @@ openssl rand -hex 32 # secret key
 The message is created by concatenating the public key of a key pair, a special date header and custom request headers in the following format:
 
 ```
-{publicKey},celerity-date={timestamp},{header1-name}={header1-value},...,{headerN-name}={headerN-value}
+{keyId},celerity-date={timestamp},{header1-name}={header1-value},...,{headerN-name}={headerN-value}
 ```
 
 `{timestamp}` is a unix timestamp in seconds.
+
+:::warning header name case
+The header names in the message must be in lowercase when creating the message.
+The request headers should be looked up in a case-insensitive manner when verifying the signature.
+:::
 
 ### Signature
 
@@ -51,8 +56,10 @@ The signature is created using the HMAC-SHA256 algorithm with the secret key of 
 Psuedo code for creating the signature:
 
 ```
-signature = BASE64ENCODE(HMAC-SHA256(message, secretKey))
+signature = BASE64_URL_ENCODE(HMAC-SHA256(message, secretKey))
 ```
+
+The implementation of the `BASE64_URL_ENCODE` function must use the url-safe alphabet defined in [RFC 4648](https://datatracker.ietf.org/doc/html/rfc4648#section-5).
 
 ### Header Format
 
@@ -71,6 +78,13 @@ Celerity-Signature-V1: keyId="{keyId}", headers="Celerity-Date {Header1-Name} ..
 `Celerity-Date` is a special header that is used to prevent replay attacks. The timestamp in the message should be within a certain time window of the current time on the server to prevent replay attacks.
 
 All the headers listed and used to create the signature must be present in the HTTP request.
+
+:::warning Order of parts in the header value
+The parts of the `Celerity-Signature-V1` header must be in the following order:
+1. `keyId`
+2. `headers`
+3. `signature`
+:::
 
 ### Verifying the Signature
 
