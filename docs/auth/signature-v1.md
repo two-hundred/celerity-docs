@@ -56,7 +56,7 @@ The signature is created using the HMAC-SHA256 algorithm with the secret key of 
 Psuedo code for creating the signature:
 
 ```
-signature = BASE64_URL_ENCODE(HMAC-SHA256(message, secretKey))
+signature = BASE64_URL_ENCODE(HMAC_SHA256(message, secretKey))
 ```
 
 The implementation of the `BASE64_URL_ENCODE` function must use the url-safe alphabet defined in [RFC 4648](https://datatracker.ietf.org/doc/html/rfc4648#section-5).

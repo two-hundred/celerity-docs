@@ -258,7 +258,7 @@ When `connect` is set, the client is expected to send the authentication token i
 See the [WebSocket Auth Strategy](#websocket-auth-strategy) section for more information.
 
 :::warning
-In Serverless environments that supported WebSocket APIs, only the `authMessage` strategy is supported.
+In Serverless environments that support WebSocket APIs, only the `authMessage` strategy is supported.
 This is because custom WebSocket status codes are not supported by Serverless WebSocket API offerings.
 :::
 

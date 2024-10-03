@@ -275,6 +275,19 @@ string
 
 ___
 
+<p style={{fontSize: '1.2em'}}><strong>end</strong></p>
+
+Marks the state as the end of a workflow or parallel branch.
+This is equivalent to adding a `success` or `failure` terminal state to a workflow or parallel branch.
+
+The field can be used for any state type **_except for_** the `failure`, `decision` or `success` states.
+
+**field type**
+
+string
+
+___
+
 <p style={{fontSize: '1.2em'}}><strong>decisions (conditionally required)</strong></p>
 
 A list of decision rules that determine the next state to transition to based on the output of a previous state.
@@ -570,7 +583,7 @@ This is required if the `timestamp` field is not set.
 
 **field type**
 
-integer
+string
 
 **examples**
 
@@ -642,30 +655,6 @@ string
 `Order not found in the system`
 
 `$.cause`
-
-___
-
-
-<p style={{fontSize: '1.2em'}}><strong>timestamp (conditionally required)</strong></p>
-
-The timestamp to wait until before transitioning to the next state.
-The timestamp must be in the format of the [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339) profile for the ISO 8601 standard.
-
-The timestamp does not need to be hardcoded, it can be a path to a value in the input object.
-
-This is required if the `seconds` field is not set.
-
-**field type**
-
-string
-
-**examples**
-
-`2024-07-22T12:00:00Z`
-
-`2024-07-22T12:00:00.123Z`
-
-`$.expires`
 
 ___
 
