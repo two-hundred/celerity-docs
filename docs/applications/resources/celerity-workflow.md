@@ -21,6 +21,14 @@ The rest of this section lists fields that are available to configure the `celer
 
 The specification for a workflow is influenced by the concept of a workflow as a state machine emphasised by Amazon's States Language created for AWS Step Functions.
 
+### startAt (required)
+
+The name of the state used to begin execution of the workflow.
+
+**type**
+
+string
+
 ### states (required)
 
 A mapping of state names to state configurations that make up the state machine of the workflow.
@@ -1036,7 +1044,7 @@ resources:
                         - matchErrors: ["*"]
                           next: "handleError"
                           resultPath: "$.errorInfo"
-                    next: "uploadToSystem"
+                    next: "waitForProcessing"
 
                 processDOCX:
                     type: "executeStep"
@@ -1055,7 +1063,13 @@ resources:
                         - matchErrors: ["*"]
                           next: "handleError"
                           resultPath: "$.errorInfo"
-                    next: "uploadToSystem"
+                    next: "waitForProcessing"
+
+                waitForProcessing:
+                  type: "wait"
+                  waitConfig:
+                    seconds: "120"
+                  next: "uploadToSystem"
 
                 uploadToSystem:
                     type: "executeStep"
@@ -1115,38 +1129,44 @@ resources:
                 fetchFailure:
                     type: "failure"
                     description: "The document could not be fetched."
-                    error: "DocumentFetchError"
-                    cause: "The document could not be fetched from the provided URL."
+                    failureConfig:
+                      error: "DocumentFetchError"
+                      cause: "The document could not be fetched from the provided URL."
 
                 scanFailure:
                     type: "failure"
                     description: "An error occurred while scanning the document."
-                    error: "DocumentScanError"
-                    cause: "An error occurred while scanning the document."
+                    failureConfig:
+                      error: "DocumentScanError"
+                      cause: "An error occurred while scanning the document."
 
                 maliciousContentFound:
                     type: "failure"
                     description: "Malicious content was found in the document."
-                    error: "MaliciousContentFound"
-                    cause: "Malicious content was found in the document."
+                    failureConfig:
+                      error: "MaliciousContentFound"
+                      cause: "Malicious content was found in the document."
 
                 processPDFFailure:
                     type: "failure"
                     description: "An error occurred while processing the PDF document."
-                    error: "PDFProcessingError"
-                    cause: "An error occurred while processing the PDF document."
+                    failureConfig:
+                      error: "PDFProcessingError"
+                      cause: "An error occurred while processing the PDF document."
 
                 processDOCXFailure:
                     type: "failure"
                     description: "An error occurred while processing the word document."
-                    error: "DOCXProcessingError"
-                    cause: "An error occurred while processing the word document."
+                    failureConfig:
+                      error: "DOCXProcessingError"
+                      cause: "An error occurred while processing the word document."
 
                 uploadToSystemFailure:
                     type: "failure"
                     description: "An error occurred while uploading the extracted data to the system."
-                    error: "UploadToSystemError"
-                    cause: "An error occurred while uploading the extracted data to the system."
+                    failureConfig:
+                      error: "UploadToSystemError"
+                      cause: "An error occurred while uploading the extracted data to the system."
 
     fetchDocumentHandler:
         type: "celerity/handler"
