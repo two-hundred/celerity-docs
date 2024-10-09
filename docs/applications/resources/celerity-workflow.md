@@ -876,6 +876,7 @@ resources:
             byLabel:
                 application: "videoIngest"
         spec:
+            startAt: "downloadVideo"
             states:
                 downloadVideo:
                     type: "executeStep"
@@ -964,6 +965,7 @@ resources:
             byLabel:
                 application: "docProcessor"
         spec:
+            startAt: "fetchDocument"
             states:
                 fetchDocument:
                     type: "executeStep"
@@ -1124,7 +1126,7 @@ resources:
 
                 success:
                     type: "success"
-                    description: "The video has been successfully processed."
+                    description: "The document has been successfully processed."
 
                 fetchFailure:
                     type: "failure"
@@ -1982,7 +1984,7 @@ The following environments support string matching:
 
 ### Celerity::1
 
-In the Celerity::1 local environment, a workflow is deployed as a containerised version of the Celerity workflow runtime in Docker.
+In the Celerity::1 local environment, a workflow is deployed as a containerised version of the Celerity workflow runtime in a local container orchestrator.
 In the local environment, the runtime is backed by an [Apache Cassandra](https://cassandra.apache.org/_/index.html) NoSQL database for storing workflow execution state.
 Links from VPCs to APIs are ignored for this environment as the workflow is deployed to a local container network on a developer or CI machine.
 

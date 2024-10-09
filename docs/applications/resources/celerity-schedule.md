@@ -317,7 +317,7 @@ The [OpenTelemetry Operator](https://opentelemetry.io/docs/kubernetes/operator/)
 
 In the Azure Serverless environment, Azure Functions with [timer triggers](https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-scheduled-function) are deployed for the handlers.
 
-When it comes metrics and tracing for the Azure Functions that process messages, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
+When it comes to metrics and tracing for the Azure Functions that process messages, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
 [OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
 
 Schedule applications can be deployed to Azure Functions with timer triggers using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
