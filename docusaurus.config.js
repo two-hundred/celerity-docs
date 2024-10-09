@@ -247,7 +247,6 @@ const config = {
               },
             ],
           },
-          { to: "/blog", label: "Blog", position: "right" },
           {
             href: "https://github.com/two-hundred/celerity",
             label: "GitHub",
@@ -345,10 +344,6 @@ const config = {
           {
             title: "More",
             items: [
-              {
-                label: "Blog",
-                to: "/blog",
-              },
               {
                 label: "GitHub",
                 href: "https://github.com/two-hundred/celerity",
