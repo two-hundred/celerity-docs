@@ -1337,32 +1337,10 @@ closest corresponding structure in serverless target environments such as AWS St
 ## JSON Path Injections
 
 States and catchers can have a `resultPath` field that is used to inject the result of the state or error into the input object passed to the next state.
-There are some limitations around how JSON paths behave in this context;
-JSON path injection will not take into account advanced filters when they are the last part of the path.
-Array query expressions at the end of a path will be ignored and the value will be added to the end of the array.
 
-For example, given the following input object:
-
-```json
-{
-  "plans": [
-    {
-      "planId": 1,
-      "planName": "Basic"
-    },
-    {
-      "planId": 2,
-      "planName": "Pro"
-    }
-  ]
-}
-```
-
-For the path `$.plans[?(@.planId == 1)]`, the result or error value will be appended to the end of the
-plans array.
-For the path `$.plans[?(@.planId == 1)].planName`, the value or error will be injected into the
-planName field of each plan in the plans array that has a planId of 1.
-
+There are limitations around how JSON paths behave in this context;
+JSON path injection only supports injecting values into fields of the root JSON object.
+The `$.<field>` and `$['<field>']` syntax is supported for injecting values into fields of the root object.
 
 :::warning
 The behaviour outlined above is that of the Celerity workflow runtime.
