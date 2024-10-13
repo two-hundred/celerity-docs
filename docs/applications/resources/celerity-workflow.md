@@ -175,6 +175,8 @@ The result path determines the location in the output object where the result of
 This is useful for merging results into the input object instead of replacing it.
 The supported path syntax is described in the [Path Syntax](#path-syntax) section.
 
+The [JSON Path Injections](#json-path-injections) section provides more information as to how JSON paths behave in this context.
+
 For example, for an input object:
 
 ```json
@@ -726,7 +728,7 @@ ___
 
 <p style={{fontSize: '1.2em'}}><strong>maxDelay</strong></p>
 
-A positive integer value representing the maximum internval in seconds to wait between retries.
+A positive integer value representing the maximum interval in seconds to wait between retries.
 
 **field type**
 
@@ -808,6 +810,8 @@ ___
 The path to the output field to inject the error information into the input object passed to the state defined
 in the `next` field.
 
+The [JSON Path Injections](#json-path-injections) section provides more information as to how JSON paths behave in this context.
+
 For example, for an input object:
 
 ```json
@@ -828,7 +832,7 @@ A resultPath of `$.errorInfo` would result in the following output object:
 }
 ```
 
-When not set, the error information will not be injected into the input object passed to the next state.
+When not set, the error information will be the entire output object passed into the next state.
 
 **field type**
 
@@ -1260,7 +1264,7 @@ resources:
 
 Paths are used to access values in the input object to the current state in the workflow.
 
-When evaluating a path as an input for a condition, a string beginning with `$.` is interpreted as a path, otherwise, the value is treated as a string literal.
+When evaluating a path as an input for a condition, a string beginning with `$` is interpreted as a path, otherwise, the value is treated as a string literal.
 
 The path to the input field from the previous state's output that the condition will be evaluated against.
 
@@ -1275,7 +1279,7 @@ The [JSONPath](https://goessner.net/articles/JsonPath/) syntax which is implemen
 
 There are a built-in set of errors that can be matched against in the retry and catch configuration for a state.
 
-Built-in errors include the following:
+Built-in errors that can be retried or caught include the following:
 
 - `*` - Matches all errors.
 - `Timeout` - The handler execution timed out.
@@ -1289,11 +1293,89 @@ Built-in errors include the following:
 
 These errors will map to the closest corresponding built-in error type in the target environment.
 
+### Error Output
+
+When an error is caught by a state, the catcher will yield an object with the following structure in the Celerity workflow runtime:
+
+```json
+{
+  "error": "ErrorName",
+  "cause": "Error cause message"
+}
+```
+
+This can be added to the input object passed to the next state using the `resultPath` field.
+
+For example:
+
+```yaml
+catch:
+    - matchErrors: ["*"]
+      next: "handleError"
+      resultPath: "$.errorInfo"
+```
+
+Will result in an object like the following:
+
+```json
+{
+  "otherField": "some value",
+  "errorInfo": {
+    "error": "Some error message",
+    "cause": "Some cause"
+  }
+}
+```
+
+This will be passed into the next state as the input object.
+
+:::warning
+This exact error structure is only available in the Celerity workflow runtime, the error structure will map to the
+closest corresponding structure in serverless target environments such as AWS Step Functions, Google Cloud Workflows, and Azure Logic Apps.
+:::
+
+## JSON Path Injections
+
+States and catchers can have a `resultPath` field that is used to inject the result of the state or error into the input object passed to the next state.
+There are some limitations around how JSON paths behave in this context;
+JSON path injection will not take into account advanced filters when they are the last part of the path.
+Array query expressions at the end of a path will be ignored and the value will be added to the end of the array.
+
+For example, given the following input object:
+
+```json
+{
+  "plans": [
+    {
+      "planId": 1,
+      "planName": "Basic"
+    },
+    {
+      "planId": 2,
+      "planName": "Pro"
+    }
+  ]
+}
+```
+
+For the path `$.plans[?(@.planId == 1)]`, the result or error value will be appended to the end of the
+plans array.
+For the path `$.plans[?(@.planId == 1)].planName`, the value or error will be injected into the
+planName field of each plan in the plans array that has a planId of 1.
+
+
+:::warning
+The behaviour outlined above is that of the Celerity workflow runtime.
+In serverless target environments where a cloud service such as AWS Step Functions
+is used to run the workflow, the behaviour may differ. Where possible, it is best to keep
+JSON path injections simple, where values are injected into fields in the root object.
+:::
+
 ##  Payload Template
 
 The payload template is a mapping structure that can be used to construct a payload to be passed into the handler configured to be executed for the current state.
 
-If a field value starts with `$.`, the value is treated as a path to a value in the input object to the current state in the workflow.
+If a field value starts with `$`, the value is treated as a path to a value in the input object to the current state in the workflow.
 
 If a field value starts with `func:`, the value is treated as a template function that can take literals or JSON path expressions as arguments. See the [Template Functions](#template-functions) section for more information on the available template functions.
 
@@ -1336,11 +1418,45 @@ Will produce a payload object of:
 
 ### Template Function Syntax
 
-The syntax for template functions can be simplified to `func:<functionName>(<arg1>, <arg2>, ..., <argN>)` in a concise form.
+The syntax for template functions can be simplified to `func:<functionName>(<arg1>, <arg2>, ..., <argN>)` in a concise form; `func:` is the prefix that indicates the preceding value is a function call.
 
 `<functionName>` must consist of only alphanumeric characters and underscores.
 
-`<arg1>, <arg2>, ..., <argN>` can consist of literal values, [JSON paths](https://goessner.net/articles/JsonPath/) to values in the input object, or other function calls.
+`<arg1>, <arg2>, ..., <argN>` can consist of scalar literal values, [JSON paths](https://goessner.net/articles/JsonPath/) to values in the input object, or other function calls.
+
+Scalar literal values refer to string, integer, float, boolean, or null values.
+
+The formalised grammar for the template function syntax that comes after the `func:` prefix is as follows:
+
+```
+function call    =  name , "(" , function args , ")" ;
+function args    =  [ function arg , { "," , function arg } ] ;
+function arg     =  literal | json path | function call ;
+literal          =  bool literal | null literal | float literal | int literal | string literal ;
+json path        = ? valid json path ? ;
+
+# Lex tokens
+
+string literal   =  '"' , string chars , '"' ;
+bool literal     = "true" | "false" ;
+null literal     = "null" ;
+int literal      =  [ "-" ] , natural number ;
+float literal    =  [ "-" ] , natural number , "." , natural number ;
+natural number   =  { digit }- ;
+string chars     =  { string char } ;
+string char      =  ? utf-8 char excluding quote ? | escaped quote ;
+escaped quote    =  "\" , '"' ;
+name             =  start name char , name chars ;
+name chars       =  { name char } ;
+name char        =  letter | digit | "_" ;
+start name char  =  letter | "_" ;
+letter           =  ? [A-Za-z] ? ;
+digit            =  ? [0-9] ? ;
+```
+
+The above is a representation of the grammar in [Extended Backus-Naur form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) notation.
+
+JSON paths are parsed using the syntax defined in the [JSONPath](https://goessner.net/articles/JsonPath/) specification.
 
 ## Template Functions
 
@@ -1354,6 +1470,7 @@ The use of `{}` in the format string will be replaced with the arguments in orde
 **Parameters:**
 
 `string` - The format string.
+
 N variadic arguments - The values to replace `{}` in the format string.
 
 **Returns:**
@@ -1465,11 +1582,11 @@ func:b64decode($.encodedValue)
 This function hashes some input data using a specified algorithm.
 
 The available hash algorithms are:
-- MD5
-- SHA1
 - SHA256
 - SHA384
 - SHA512
+
+_MD5 and SHA1 were considered in the original design but were not included due to the insecurity of these algorithms._
 
 **Parameters:**
 
@@ -1478,7 +1595,7 @@ The available hash algorithms are:
 
 **Returns:**
 
-`string` - The hashed data.
+`string` - The hashed data as a hex string.
 
 **Examples:**
 
@@ -1609,7 +1726,7 @@ This function generates a random number between a minimum and maximum value.
 The random number generated is an integer and the provided parameters must be integers.
 
 :::warning
-This will not generate a cryptographically secure random number,
+This will **not** generate a cryptographically secure random number,
 `math_rand` should not be used in security-sensitive contexts.
 :::
 
@@ -2195,4 +2312,4 @@ Celerity Workflows do not support the full set of features that each cloud provi
 - Only handlers can be executed as steps in a workflow, not containers or third-party services, a workflow needs to be able to run end-to-end within the Celerity Workflow runtime process when deployed to a containerised or custom server environment.
 - Nested workflows are not supported. A workflow can only contain handlers as steps, to get around this, you can trigger another workflow from a handler used for one of the steps and wait for the result.
 - Mapping or iterating over a list of items as a part of a previous state's output is not supported in the Celerity workflow runtime. You will have to operate in the list of items within the application code of a handler that is executed as a step in the workflow.
-- Celerity workflows only support handlers of the `celerity/handler` resource type for the `executeStep` state type. For integrations with cloud provider services, you will either need to use the cloud provider's workflow service or use a handler that can interact with the cloud provider's API. Celerity provides a library of handler templates for service integrations for cloud providers and other third-part services; see [Workflow Integrations](/docs/applications/workflow-integrations/intro) for more information.
+- Celerity workflows only support handlers of the `celerity/handler` resource type for the `executeStep` state type. For integrations with cloud provider services, you will either need to use the cloud provider's workflow service or use a handler that can interact with the cloud provider's API. Celerity provides a library of handler templates for service integrations for cloud providers and other third-party services; see [Workflow Integrations](/docs/applications/workflow-integrations/intro) for more information.
