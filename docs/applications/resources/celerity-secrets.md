@@ -153,7 +153,7 @@ In the Celerity local environment, the same valkey instance will be reused for s
 Replication and encryption configuration will be ignored in the Celerity::1 environment.
 
 :::warning No encryption in local & CI environments
-Application secrets are not encrypted in local & CI environment, this would be the same situation if `.env` orconfiguration files were being used on the developer's machine.
+Application secrets are not encrypted in local & CI environment, this would be the same situation if `.env` or  configuration files were being used on the developer's machine.
 It is best to avoid storing any production secrets in your CI environments, however, secrets will be redacted from logs when running in CI environments.
 :::
 
