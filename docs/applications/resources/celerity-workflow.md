@@ -1279,17 +1279,28 @@ The [JSONPath](https://goessner.net/articles/JsonPath/) syntax which is implemen
 
 There are a built-in set of errors that can be matched against in the retry and catch configuration for a state.
 
-Built-in errors that can be retried or caught include the following:
+Built-in errors that can be retried include the following:
 
-- `*` - Matches all errors.
+- `*` - Matches all errors that can be retried.
 - `Timeout` - The handler execution timed out.
 - `HandlerFailed` - The handler execution failed.
 - `InvalidResultPath` - The result path specified in the state configuration is invalid.
 - `InvalidOutputPath` - The output path specified in the state configuration is invalid.
+- `BranchesFailed` - One or more branches of a parallel state failed.
+
+Built-in errors that can be caught include the following:
+
+- `*` - Matches all errors that can be caught.
+- `Timeout` - The handler execution timed out.
+- `HandlerFailed` - The handler execution failed.
+- `InvalidResultPath` - The result path specified in the state configuration is invalid. _It's important to note that an invalid result path error that occurs in a catcher can not be caught._
+- `InvalidOutputPath` - The output path specified in the state configuration is invalid.
+- `BranchesFailed` - One or more branches of a parallel state failed.
+- `InvalidInputPath` - The input path specified in the state configuration is invalid.
 - `InvalidPayloadTemplate` - The payload template specified in the state configuration is invalid.
 - `PayloadTemplateFailure` - An error occurred while constructing the payload using the payload template, often an issue with a template function call.
-- `BranchFailed` - A branch of a parallel state failed.
 - `NoDecisionMatched` - No decision rule matched in a decision state.
+- `InvalidCondition` - The condition specified in a decision rule is invalid.
 
 These errors will map to the closest corresponding built-in error type in the target environment.
 

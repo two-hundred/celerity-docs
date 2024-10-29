@@ -265,8 +265,9 @@ Data sources provide a way to source dynamic values to be used in resources and 
 the scope of a blueprint.
 
 Data sources can be from any provider configured in an implementation of the spec.
+A data source will always resolve a single value when applying the filter to the external resources, if there are multiple external resources that match the filter, the first one is expected to be returned.
 
-The order in which data sources are resolved is implicitly determined by references between data sources.
+The order in which data sources are resolved is implicitly determined by where data sources are referenced.
 
 Data sources can be referenced using the following syntax:
 ```
@@ -1074,6 +1075,19 @@ able to link resources together in an implicit, declarative fashion.
 [resourceMetadataDefinition](#resourcemetadatadefinition)
 ___
 
+<p style={{fontSize: '1.2em'}}><strong>dependsOn</strong></p>
+
+One or more resource names that a given resource depends on.
+This should be used for defining explicit dependencies between resources that can't be inferred from references
+or links within a blueprint.
+
+_This **should not** be used as the primary way to define relationships between resources, it should only be used when relationships can't be inferred from references or links._
+
+**field type**
+
+string | array[string]
+___
+
 <p style={{fontSize: '1.2em'}}><strong>condition</strong></p>
 
 Condition provides a way to conditionally create resources based on the state of other resources,
@@ -1089,7 +1103,7 @@ For example:
 
 ```
 ${or(
-  eq(variables.deploymentTarget,"container"),
+  eq(variables.deploymentTarget, "container"),
   eq(variables.deploymentTarget, "cloudFunctions")
 )}
 ```
@@ -2251,6 +2265,20 @@ An example of this would be the following:
 resources:
   getOrderFunction:
     type: ${variables.functionType}
+```
+:::
+
+References can **not** be used in the dependencies (`dependsOn`) property.
+
+An example of this would be the following:
+
+:::danger ❌ Invalid
+```yaml title="blueprint.yaml"
+resources:
+  getOrderFunction:
+    type: aws/lambda/function
+    dependsOn:
+      - ${variables.cacheCluster}
 ```
 :::
 
