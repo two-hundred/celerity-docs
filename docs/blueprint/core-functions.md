@@ -1086,7 +1086,7 @@ The result of the logical AND operation on the two boolean values.
 **Example:**
 
 ```
-${and(resources.orderApi.state.isProd, eq(variables.environment, "prod"))}
+${and(resources.orderApi.spec.isProd, eq(variables.environment, "prod"))}
 ```
 
 <br/>
@@ -1109,7 +1109,7 @@ The result of the logical OR operation on the two boolean values.
 **Example:**
 
 ```
-${or(resources.orderApi.state.isDev, eq(variables.environment, "dev"))}
+${or(resources.orderApi.spec.isDev, eq(variables.environment, "dev"))}
 ```
 
 <br/>
@@ -1336,7 +1336,7 @@ Only some of the core string manipulation functions have a composable version, t
 
 Functions that are returned when calling named functions, such as the result of `getattr("id")`, can not be called directly.
 
-For example, `getattr("id")(resource.state)` is **not** a valid expression. In this example, you would instead use `resource.state.id` to access the id attribute of the state object.
+For example, `getattr("id")(resource.spec)` is **not** a valid expression. In this example, you would instead use `resource.spec.id` to access the id attribute of the spec object.
 
 Higher-order functions in the blueprint substitution language can only be used as arguments to other functions that accept functions as parameters. A valid usage of the `getattr` function would be as follows:
 

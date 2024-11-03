@@ -200,9 +200,9 @@ values:
     type: array
     value: |
       ${list(
-        resources.s3Bucket1.state.name,
-        resources.s3Bucket2.state.name,
-        resources.s3Bucket3.state.name
+        resources.s3Bucket1.spec.name,
+        resources.s3Bucket2.spec.name,
+        resources.s3Bucket3.spec.name
       )}
 
 exports:
@@ -239,7 +239,7 @@ JSON
   "values": {
     "s3BucketNames": {
       "type": "array",
-      "value": "${list(resources.s3Bucket1.state.name, resources.s3Bucket2.state.name, resources.s3Bucket3.state.name)}"
+      "value": "${list(resources.s3Bucket1.spec.name, resources.s3Bucket2.spec.name, resources.s3Bucket3.spec.name)}"
     }
   }
 }
@@ -253,9 +253,9 @@ values:
     type: array
     value: |
       ${list(
-        resources.s3Bucket1.state.name,
-        resources.s3Bucket2.state.name,
-        resources.s3Bucket3.state.name
+        resources.s3Bucket1.spec.name,
+        resources.s3Bucket2.spec.name,
+        resources.s3Bucket3.spec.name
       )}
 ```
 
@@ -559,7 +559,7 @@ JSON
     "saveOrdersFunctionArn": {
       "type": "string",
       "description": "The ARN of the function used to save orders to the system.",
-      "field": "resources.saveOrdersFunction.state.functionArn"
+      "field": "resources.saveOrdersFunction.spec.functionArn"
     },
     "saveOrdersFunctionName": {
       "type": "string",
@@ -575,7 +575,7 @@ exports:
   saveOrdersFunctionArn:
     type: string
     description: The ARN of the function used to save orders to the system.
-    field: resources.saveOrdersFunction.state.functionArn
+    field: resources.saveOrdersFunction.spec.functionArn
   saveOrdersFunctionName:
     type: string
     description: The name of the function used to save orders to the system.
@@ -768,9 +768,9 @@ string
 
 ```
 ${list(
-  resources.s3Bucket1.state.name, 
-  resources.s3Bucket2.state.name, 
-  resources.s3Bucket3.state.name
+  resources.s3Bucket1.spec.name, 
+  resources.s3Bucket2.spec.name, 
+  resources.s3Bucket3.spec.name
 )}
 ```
 
@@ -1174,7 +1174,7 @@ resources:
 Then to reference resources from an `each` resource template, you can use the following syntax:
 
 ```
-${resources.s3Buckets[1].state.bucketName}
+${resources.s3Buckets[1].spec.bucketName}
 ```
 
 **field type** 
@@ -1589,13 +1589,13 @@ ___
 
 The name/path of the resource field, data source field, child blueprint field, variable or value to export.
 
-When it comes to resources, any attribute can be exported, including fields in the state, spec and metadata.
+When it comes to resources, any attribute can be exported, including fields in the spec and metadata.
 
-Fields from the final state of a resources can be referenced using the `state` property
+In addition to user-defined fields, computed fields from the final state of a resources can be referenced using the `spec` property
 following this format:
 
 ```
-resources.{resourceName}.state.{field}
+resources.{resourceName}.spec.{field}
 ```
 
 See the [references](#references--substitutions) section for more information on referencing resources, data sources, child blueprints, variables and values.
@@ -1605,8 +1605,6 @@ See the [references](#references--substitutions) section for more information on
 string
 
 **examples** 
-
-`resources.saveOrderFunction.state.functionArn`
 
 `resources.saveOrderFunction.spec.functionName`
 
@@ -1788,7 +1786,7 @@ This is the same for accessing properties in nested mappings too.
 Example of accessing nested fields:
 
 ```
-${resources.cacheCluster.state.hostConfig[].hostInfo.endpoints[]}
+${resources.cacheCluster.spec.hostConfig[].hostInfo.endpoints[]}
 ```
 :::caution
 _Not all reference object types support deep nesting like this, be sure to check the documentation for the object type you are referencing._
@@ -1890,7 +1888,7 @@ digit                 =   ? [0-9] ? ;
 ### Resource References
 
 Resource references are those that allow access to fields on resources,
-where fields can be from the resource's current state or from the spec or metadata
+where fields can be from the resource's spec or metadata
 of the resource as defined in the blueprint.
 
 Resource field values can be strings, integers, floats, booleans, arrays, or mappings.
@@ -1898,15 +1896,15 @@ Resource field values can be strings, integers, floats, booleans, arrays, or map
 Resources can be referenced directly by name or with the `resources.*` prefix.
 For example, `cacheCluster` and `resources.cacheCluster` are both valid ways to reference a resource named `cacheCluster`.
 
-Fields of a resource must be accessed via `.state.*`, `.spec.*` or `.metadata.*`.
+Fields of a resource must be accessed via `.spec.*` or `.metadata.*`.
 
-To access a field from the resource's current state, use `.state.*` like so:
+To access a computed field from the resource's current state, use `.spec.*` like so:
 
 ```
-${resources.cacheCluster.state.nodes[].endpoint}
+${resources.cacheCluster.spec.nodes[].endpoint}
 ```
 
-To access a field from the resource's spec, use `.spec.*` like so:
+To access a user-defined field from the resource's spec, use `.spec.*` like so:
 
 ```
 ${resources.cacheCluster.spec.clusterSize}
@@ -1921,7 +1919,7 @@ ${resources.cacheCluster.metadata.annotations["myAnnotation.populateEnvVars"]}
 To access a resource element in an array from a resource template using the `each` property:
 
 ```
-${resources.cacheClusters[].state.nodes[1].endpoint}
+${resources.cacheClusters[].spec.nodes[1].endpoint}
 ```
 
 When accessing metadata for a resource, fields must be accessed from either `.metadata.labels`, `.metadata.annotations`, or `.metadata.custom`
@@ -2128,7 +2126,7 @@ When a function returns a mapping, the mapping can be accessed with a name acces
 
 For example:
 ```
-${get_network_config(resources.vpc.state).info["host"]}
+${get_network_config(resources.vpc.spec).info["host"]}
 ```
 
 As displayed in the example above, multiple levels of nesting within a more complex structure can be accessed with the `.` and `[]` accessors.
@@ -2139,7 +2137,7 @@ References can be used to reference complex types including arrays and mappings.
 There is also the `jsondecode` function that can be used to decode a json string which will more often than not yield a complex type.
 
 Dynamic value substitution is always performed with the `${..}` syntax, this can be as a standalone string or part of a string interpolation;
-for example, `${cacheCluster.state.config.host}` or `https://${cacheCluster.state.config.host}:3000`.
+for example, `${cacheCluster.spec.config.host}` or `https://${cacheCluster.spec.config.host}:3000`.
 
 In the case of a reference that yields a complex type, string interpolation isn't particularly useful and can lead to unexpected results.
 For this reason, implementations of the spec should explicitly report informative errors to the user when string interpolation is attempted on a reference that yields a complex type.
@@ -2235,7 +2233,7 @@ An example of this would be the following:
 values:
   s3BucketName:
     type: string
-    value: ${resources.s3Bucket.state.name}
+    value: ${resources.s3Bucket.spec.name}
 ```
 :::
 
@@ -2249,7 +2247,7 @@ An example of this would be the following:
 values:
   s3BucketName:
     type: string
-    value: ${resources.s3Bucket.state.name}
+    value: ${resources.s3Bucket.spec.name}
     description: The name of the ${variables.environment} s3 bucket.
 ```
 :::
@@ -2590,7 +2588,7 @@ exports:
   saveOrdersFunctionArn:
     type: string
     description: The ARN of the function used to ${variables.saveOrdersAction} to the system.
-    field: resources.saveOrdersFunction.state.functionArn
+    field: resources.saveOrdersFunction.spec.functionArn
 ```
 :::
 
@@ -2772,7 +2770,7 @@ exports:
     ordersTopicId:
       type: string
       description: The unique identifier of the orders topic for the system
-      field: resources.ordersTopic.state.id
+      field: resources.ordersTopic.spec.id
 ```
 
 `app-infra.yaml`
@@ -2797,7 +2795,7 @@ exports:
   apiBaseUrl:
     type: string
     description: The base URL of the API for the system
-    field: resources.api.state.endpoint
+    field: resources.api.spec.endpoint
 ```
 
 <br/>
@@ -2897,7 +2895,7 @@ exports:
     ordersTopicId:
       type: string
       description: The unique identifier of the orders topic for the system
-      field: resources.ordersTopic.state.arn
+      field: resources.ordersTopic.spec.arn
 ```
 
 `core-infra/event-bus.yaml`
@@ -2921,7 +2919,7 @@ exports:
     eventBusId:
       type: string
       description: The unique identifier of the event bus for the system
-      field: resources.eventBus.state.arn
+      field: resources.eventBus.spec.arn
 ```
 
 `app-infra/api.yaml`
@@ -2946,7 +2944,7 @@ exports:
   apiBaseUrl:
     type: string
     description: The base URL of the API for the system
-    field: resources.api.state.endpoint
+    field: resources.api.spec.endpoint
 ```
 
 <br/>
@@ -3015,7 +3013,7 @@ resources:
         version: 2.0
       variables:
         region: ${variables.region}
-        ordersTopicId: ${resources.coreInfra.state.ordersTopicId}
+        ordersTopicId: ${resources.coreInfra.spec.ordersTopicId}
 
   coreInfra:
     type: celerity/blueprint
@@ -3034,10 +3032,10 @@ exports:
   apiBaseUrl:
     type: string
     description: The base URL of the API for the system
-    field: resources.api.state.endpoint
+    field: resources.api.spec.endpoint
 
   ordersTopicId:
     type: string
     description: The unique identifier of the orders topic for the system
-    field: resources.coreInfra.state.ordersTopicId
+    field: resources.coreInfra.spec.ordersTopicId
 ```
