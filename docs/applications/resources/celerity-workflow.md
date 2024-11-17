@@ -2098,7 +2098,7 @@ Links from VPCs to APIs are ignored for this environment as the workflow is depl
 
 In the AWS environment, workflows are deployed as a containerised version of the Celerity workflow runtime.
 
-Workflows can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS target environment.
+Workflows can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the AWS target environment.
 
 The workflow runtime requires persistence for storing workflow execution state, this is provided by a set of DynamoDB tables that are created when the workflow is deployed. The DynamoDB tables are provisioned with on-demand capacity mode by default, this can be changed to provisioned capacity mode in the deploy configuration.
 
@@ -2171,13 +2171,13 @@ In the AWS Serverless environment, workflows are deployed to AWS Step Functions 
 When tracing is enabled for handlers, an [ADOT lambda layer](https://aws-otel.github.io/docs/getting-started/lambda) is bundled with and configured to instrument each handler to collect traces and metrics.
 AWS Step Functions traces are collected in AWS X-Ray, Step Functions specific traces can be collected in to tools like Grafana with plugins that use AWS X-Ray as a data source.
 
-Workflows can be deployed to Step Functions using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS Serverless target environment.
+Workflows can be deployed to Step Functions using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the AWS Serverless target environment.
 
 ### Google Cloud
 
 In the Google Cloud environment, workflows are deployed as a containerised version of the Celerity workflow runtime.
 
-Workflows can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud target environment.
+Workflows can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Google Cloud target environment.
 
 The workflow runtime requires persistence for storing workflow execution state, this is provided by a set of Cloud Datastore entities that are created when the workflow is deployed.
 
@@ -2231,13 +2231,13 @@ In the Google Cloud Serverless environment, workflows are deployed as Google Clo
 
 For tracing, the built-in Google Cloud metrics and tracing offerings will be used to collect traces and metrics for the handlers. Traces and metrics can be collected into tools like Grafana with plugins that use Google Cloud Trace as a data source. Logs and metrics are captured out of the box for the Cloud Workflows and will be collected in Google Cloud Logging and Monitoring. You can export logs and metrics to other tools like Grafana with plugins that use Google Cloud Logging and Monitoring as a data source.
 
-Workflows can be deployed to Google Cloud Workflows using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud Serverless target environment.
+Workflows can be deployed to Google Cloud Workflows using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Google Cloud Serverless target environment.
 
 ### Azure
 
 In the Azure environment, workflows are deployed as a containerised version of the Celerity workflow runtime.
 
-Workflows can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure target environment.
+Workflows can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure target environment.
 
 The workflow runtime requires persistence for storing workflow execution state, this is provided by Azure Cosmos DB resources that are created when the workflow is deployed.
 The workflow runtime uses the [Cassandra API for Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/cassandra/introduction).
@@ -2291,7 +2291,7 @@ Azure Monitor Metrics and Azure Monitor Logs can be used as sources for traces, 
 When it comes to the Azure Functions that power the endpoints, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
 [OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
 
-Workflows can be deployed to Azure Logic Apps using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
+Workflows can be deployed to Azure Logic Apps using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure Serverless target environment.
 
 ## ⚠️ Limitations
 

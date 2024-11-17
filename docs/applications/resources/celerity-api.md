@@ -13,7 +13,7 @@ The `celerity/api` resource type is used to define a HTTP API or a WebSocket API
 An API can be deployed to different target environments such as a Serverless API Gateway[^1], a containerised environment, or a custom server.
 
 Containerised environments and custom servers use the Celerity runtime for the language of choice to be deployed to handle incoming requests and route them to your [application handlers](/docs/applications/resources/celerity-handler).
-The Celerity build engine and platforms built on top of it will take care of this for the supported target environments (e.g. Amazon ECS).
+The Celerity deploy engine and platforms built on top of it will take care of this for the supported target environments (e.g. Amazon ECS).
 
 ## Specification
 
@@ -956,7 +956,7 @@ Links from VPCs to APIs are ignored for this environment as the API is deployed 
 In the AWS environment, APIs are deployed as a containerised version of the Celerity runtime.
 Authentication, authorisation and CORS configuration defined for the API is taken care of by the runtime.
 
-APIs can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS target environment.
+APIs can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the AWS target environment.
 
 #### ECS
 
@@ -1027,14 +1027,14 @@ When domain configuration is provided, an [ACM](https://aws.amazon.com/certifica
 When tracing is enabled, an [ADOT lambda layer](https://aws-otel.github.io/docs/getting-started/lambda) is bundled with and configured to instrument each handler to collect traces and metrics.
 AWS API Gateway traces are collected in AWS X-Ray, API Gateway-specific traces can be collected into tools like Grafana with plugins that use AWS X-Ray as a data source.
 
-APIs can be deployed to API Gateway using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS Serverless target environment.
+APIs can be deployed to API Gateway using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the AWS Serverless target environment.
 
 ### Google Cloud
 
 In the Google Cloud environment, APIs are deployed as a containerised version of the Celerity runtime.
 Authentication, authorisation and CORS configuration defined for the API is taken care of by the runtime.
 
-APIs can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud target environment.
+APIs can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Google Cloud target environment.
 
 #### Cloud Run
 
@@ -1089,7 +1089,7 @@ When tracing is enabled, the built-in Google Cloud metrics and tracing offerings
 Google Cloud API Gateway does not currently support tracing.
 :::
 
-APIs can be deployed to API Gateway using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud Serverless target environment.
+APIs can be deployed to API Gateway using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Google Cloud Serverless target environment.
 
 :::warning About WebSockets
 Google Cloud API Gateway does not support WebSocket APIs.
@@ -1101,7 +1101,7 @@ To deploy a WebSockets API to Google Cloud, you will need to use the "[Google Cl
 In the Azure environment, APIs are deployed as a containerised version of the Celerity runtime.
 Authentication, authorisation and CORS configuration defined for the API is taken care of by the runtime.
 
-APIs can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure target environment.
+APIs can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure target environment.
 
 #### Container Apps
 
@@ -1151,7 +1151,7 @@ When tracing is enabled, the [trace policy](https://learn.microsoft.com/en-us/az
 When it comes to the Azure Functions that power the endpoints, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
 [OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
 
-APIs can be deployed to API Gateway using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
+APIs can be deployed to API Gateway using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure Serverless target environment.
 
 :::warning About WebSockets
 Azure API Management does not support WebSocket APIs natively, WebSocket APIs can be used as the backend server but do not get the benefits of the API Management features such as authentication.

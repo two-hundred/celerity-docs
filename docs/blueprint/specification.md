@@ -1177,6 +1177,16 @@ Then to reference resources from an `each` resource template, you can use the fo
 ${resources.s3Buckets[1].spec.bucketName}
 ```
 
+:::caution Limited Substitution Support
+`each` can not contain values derived from another resource or included blueprints.
+If a resource or included blueprint is a direct or transitive dependency of a reference
+used in the `each` substitution, validation of a blueprint should fail.
+
+The reasoning for this is that implementations of this specification, in most cases, should process
+resource templates before staging changes or deploying resources in a blueprint. This will allow
+for a single way to model resources and their relationships when orchestrating deployments.
+:::
+
 **field type** 
 
 string

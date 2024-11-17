@@ -8,7 +8,7 @@ The Celerity CLI provides tooling for every stage of development for Celerity ap
 
 ## Installation
 
-To install the Celerity CLI (including build engine), run the following command:
+To install the Celerity CLI (including deploy engine), run the following command:
 
 ```bash
 # placeholder for installation script

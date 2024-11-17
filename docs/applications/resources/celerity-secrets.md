@@ -166,7 +166,7 @@ A secret store will be stored as a single secret in the Secrets Manager service 
 The maximum size of a secret in AWS Secrets Manager is 64KB, if the secret store exceeds this size, saving the secret will fail. To get around this you can split your secrets and configuration across multiple `celerity/secrets` resources.
 
 If `replicate` is set to `true`, the secret store will be replicated across multiple regions.
-The regions **must** be specified in the [deploy configuration](/build-engine/docs/deploy-configuration).
+The regions **must** be specified in the [deploy configuration](/deploy-engine/docs/deploy-configuration).
 
 If the `encryptionKeyId` is provided, it must be the ARN of a [KMS key](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html) in the same region as the secret store.
 

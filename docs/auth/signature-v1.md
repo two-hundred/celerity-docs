@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Celerity Signature v1
 
-Celerity Signature v1 can be used to authenticate with Celerity components that provide HTTP APIs such as the [Build Engine API](/build-engine/docs/intro) and the [Workflow Runtime](/workflow-runtime/docs/intro).
+Celerity Signature v1 can be used to authenticate with Celerity components that provide HTTP APIs such as the [Deploy Engine API](/deploy-engine/docs/intro) and the [Workflow Runtime](/workflow-runtime/docs/intro).
 
 
 ## Specification

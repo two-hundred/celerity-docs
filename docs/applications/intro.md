@@ -15,11 +15,11 @@ There are 5 main compute resource types for a Celerity application including [`c
 There are 7 main infrastructure resource types including [`celerity/vpc`](/docs/applications/resources/celerity-vpc), [`celerity/sqlDatabase`](/docs/applications/resources/celerity-sql-database), [`celerity/datastore`](/docs/applications/resources/celerity-datastore), [`celerity/cache`](/docs/applications/resources/celerity-cache), [`celerity/topic`](/docs/applications/resources/celerity-topic), [`celerity/queue`](/docs/applications/resources/celerity-queue) and [`celerity/bucket`](/docs/applications/resources/celerity-bucket).
 
 In addition to these, there are also convenience resource types for shared handler configuration and application secrets.
-Each of these resources are versioned over time, the implementation of these resource types are spread across the Celerity runtime and build engine.
-The runtime and build engine projects will indicate which resource versions are supported for a given version of the software.
+Each of these resources are versioned over time, the implementation of these resource types are spread across the Celerity runtime and deploy engine.
+The runtime and deploy engine projects will indicate which resource versions are supported for a given version of the software.
 
 The `celerity/api`, `celerity/consumer` and `celerity/schedule` resource types can be composed together to make up a single application.
-Depending on the target environment, the Celerity build engine will ensure the necessary infrastructure is provisioned to support each of these resource types in a single deployable unit.
+Depending on the target environment, the Celerity deploy engine will ensure the necessary infrastructure is provisioned to support each of these resource types in a single deployable unit.
 
 :::note
 Blueprints are not exclusive to Celerity resources.

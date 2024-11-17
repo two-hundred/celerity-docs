@@ -50,10 +50,10 @@ const config = {
     [
       "@docusaurus/plugin-content-docs",
       {
-        id: "build-engine",
-        path: "build-engine",
-        routeBasePath: "build-engine",
-        sidebarPath: require.resolve("./sidebars-build-engine.js"),
+        id: "deploy-engine",
+        path: "deploy-engine",
+        routeBasePath: "deploy-engine",
+        sidebarPath: require.resolve("./sidebars-deploy-engine.js"),
       },
     ],
     [
@@ -188,9 +188,9 @@ const config = {
                 to: "/cli/docs/intro",
               },
               {
-                label: "Build Engine",
-                activeBasePath: "/build-engine",
-                to: "/build-engine/docs/intro",
+                label: "Deploy Engine",
+                activeBasePath: "/deploy-engine",
+                to: "/deploy-engine/docs/intro",
               },
               {
                 label: "Blueprint Framework",
@@ -296,8 +296,8 @@ const config = {
           },
           {
             type: "docsVersionDropdown",
-            title: "Build Engine Version",
-            docsPluginId: "build-engine",
+            title: "Deploy Engine Version",
+            docsPluginId: "deploy-engine",
             position: "left",
           },
           {
@@ -382,8 +382,8 @@ const config = {
       "go-sdk": {
         title: "Go SDK",
       },
-      "build-engine": {
-        title: "Build Engine",
+      "deploy-engine": {
+        title: "Deploy Engine",
       },
       "blueprint-framework": {
         title: "Blueprint Framework",

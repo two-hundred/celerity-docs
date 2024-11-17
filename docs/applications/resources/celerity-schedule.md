@@ -156,7 +156,7 @@ In the AWS environment, a schedule application is deployed as a containerised ve
 An SQS queue is created and wired up to the scheduled trigger in an Amazon EventBridge rule that is provisioned with the value of the `schedule` field defined in the `celerity/schedule` resource as the trigger.
 The queue is then polled by the Celerity runtime for messages that contain the payload to trigger the handler(s) in the schedule application.
 
-Schedule applications can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/build-engine/docs/deploy-configuration) for the AWS target environment.
+Schedule applications can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the AWS target environment.
 
 #### ECS
 
@@ -218,7 +218,7 @@ When tracing is enabled, an [ADOT lambda layer](https://aws-otel.github.io/docs/
 
 In the Google Cloud environment, schedule applications are deployed as a containerised version of the Celerity runtime.
 
-schedule applications can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/build-engine/docs/deploy-configuration) for the Google Cloud target environment.
+schedule applications can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Google Cloud target environment.
 
 #### Cloud Run
 
@@ -273,7 +273,7 @@ When tracing is enabled, the built-in Google Cloud metrics and tracing offerings
 
 In the Azure environment, schedule applications are deployed as a containerised version of the Celerity runtime.
 
-Schedule applications can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure target environment.
+Schedule applications can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure target environment.
 
 #### Container Apps
 
@@ -320,7 +320,7 @@ In the Azure Serverless environment, Azure Functions with [timer triggers](https
 When it comes to metrics and tracing for the Azure Functions that process messages, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
 [OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
 
-Schedule applications can be deployed to Azure Functions with timer triggers using [deploy configuration](/build-engine/docs/deploy-configuration) for the Azure Serverless target environment.
+Schedule applications can be deployed to Azure Functions with timer triggers using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure Serverless target environment.
 
 ## Configuration Mappings
 

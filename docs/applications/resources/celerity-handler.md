@@ -1329,7 +1329,7 @@ Depending on links and configuration, the handler will be wired up to the approp
 
 In the AWS environment, handlers are loaded into the Celerity runtime in a single process.
 Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
-Services such as Kinesis and SQS will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as an SQS Queue that the application will poll for events. The Celerity runtime works in tandem with the Celerity build engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
+Services such as Kinesis and SQS will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as an SQS Queue that the application will poll for events. The Celerity runtime works in tandem with the Celerity deploy engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
 
 ### AWS Serverless
 
@@ -1344,7 +1344,7 @@ For workflows, AWS Step Functions will be configured to trigger the Lambda funct
 
 In the Google Cloud environment, handlers are loaded into the Celerity runtime in a single process.
 Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
-Google Cloud Pub/Sub will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as a Pub/Sub topic that the application will poll for events. The Celerity runtime works in tandem with the Celerity build engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
+Google Cloud Pub/Sub will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as a Pub/Sub topic that the application will poll for events. The Celerity runtime works in tandem with the Celerity deploy engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
 
 ### Google Cloud Serverless
 
@@ -1359,7 +1359,7 @@ Google Cloud Serverless does not support WebSocket APIs, meaning handlers linked
 
 In the Azure environment, handlers are loaded into the Celerity runtime in a single process.
 Depending on links and configuration, the handler will be wired up to the appropriate HTTP route, WebSocket route, event source, stream or scheduled trigger.
-Azure Queue Storage queues will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as a Queue Storage queue that the application will poll for events. The Celerity runtime works in tandem with the Celerity build engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
+Azure Queue Storage queues will be wired up directly to the application in the runtime that will forward messages to the handler, other event sources will have some glue components such as a Queue Storage queue that the application will poll for events. The Celerity runtime works in tandem with the Celerity deploy engine to make sure that handlers are wired up correctly to the event sources even when there is no direct connection between the application running in the Celerity runtime and the event source.
 
 ### Azure Serverless
 
