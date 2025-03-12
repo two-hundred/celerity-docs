@@ -115,7 +115,6 @@ function DocVersionBannerEnabled({
   versionMetadata: PropVersionMetadata;
 }): JSX.Element {
   const context = useDocusaurusContext();
-  console.log({ context });
   const {
     siteConfig: { title: siteTitle, customFields },
   } = context
