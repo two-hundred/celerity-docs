@@ -4,9 +4,9 @@ sidebar_position: 7
 
 # `celerity/workflow`
 
-**v2024-07-22 (draft)**
+**v2025-04-01 (draft)**
 
-**blueprint transform:** `celerity-2024-07-22`
+**blueprint transform:** `celerity-2025-04-01`
 
 The `celerity/workflow` resource type is used to define a workflow that orchestrates the execution of multiple handlers in a blueprint as a series of steps.
 
@@ -871,8 +871,8 @@ A workflow can link to a secret store to access secrets at runtime, linking an a
 ### Simple Workflow
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 resources:
     videoIngestWorkflow:
         type: "celerity/workflow"
@@ -960,8 +960,8 @@ resources:
 ### Complex Workflow
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 resources:
     docProcessingWorkflow:
         type: "celerity/workflow"

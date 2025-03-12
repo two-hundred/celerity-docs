@@ -5,7 +5,7 @@ toc_max_heading_level: 4
 
 # Specification
 
-**v2023-04-20**
+**v2025-02-01**
 
 This section provides the first version of the Blueprint Specification with accompanying examples.
 
@@ -44,7 +44,9 @@ You might be familiar with some of the concepts as the specification is inspired
 
 <br/>
 
-### version (required)
+### version
+
+_**required**_
 
 The version of the blueprint specification to use.
 
@@ -54,9 +56,9 @@ string
 
 **allowed values** 
 
-2023-04-20
+2025-02-01
 
-For the v2023-04-20 version of the specification, the only valid value is `2023-04-20`.
+For the v2025-02-01 version of the specification, the only valid value is `2025-02-01`.
 
 <br/>
 
@@ -73,7 +75,7 @@ string | array[string]
 
 **example**
 
-celerity-2023-04-20
+celerity-2025-04-01
 
 *Representing a hypothetical transform for a celerity application.*
 
@@ -366,7 +368,9 @@ datasources:
 
 <br/>
 
-### resources (required)
+### resources
+
+**_conditionally required_**
 
 Resources are the most important part of the blueprint spec, providing a way to define the key components that make up a blueprint
 and the relationships between them.
@@ -381,6 +385,8 @@ a provider for it, then it can be represented as a resource in a blueprint.
 The most common use cases are likely to be managing cloud infrastructure and backend applications. (e.g. AWS services or a Celerity application)
 
 When defined in a blueprint, resources are mappings keyed by a name for the resource that is unique to a blueprint.
+
+At least one resource must be defined in a blueprint if there are no [includes](#include).
 
 **type**
 
@@ -465,6 +471,8 @@ resources:
 
 ### include
 
+**_conditionally required_**
+
 Include provides a way to include other blueprints in a given blueprint.
 Included blueprints are treated as children and their properties can be accessed from the parent using `${children.{childName}.{property}}`.
 Child blueprints can be referenced in resources, as inputs to other child blueprints and in exports.
@@ -474,6 +482,9 @@ This is the primary way to compose blueprints that is a part of the core specifi
 
 The order of deployment and change staging for child blueprints is determined based on references to the outputs of one child blueprint used as
 the input to another.
+
+At least one blueprint include must be defined in a blueprint if there are no [resources](#resources).
+
 
 **type**
 
@@ -1520,7 +1531,7 @@ Remote file system example:
 # main-blueprint.yaml
 include:
   coreInfrastructure:
-    path: core-infra-2023-04-20.yaml
+    path: core-infra-2025-02-01.yaml
     metadata:
       sourceType: aws/s3
       bucket: order-system-blueprints
@@ -1626,7 +1637,7 @@ string
 
 `children.networking.vpcId`
 
-`datasources.secretStore.secetId`
+`datasources.secretStore.secretId`
 
 ___
 
@@ -1778,7 +1789,7 @@ In these cases the filter operation should fail and the implementation should re
 ## References & Substitutions
 
 In a blueprint, references are ways to access values from a number of different types of objects in a blueprint.
-References can be used to reference variables, resource fields, data source fields, and exported fields from child blueprints.
+References can be used to make use of variables, values, resource fields, data source fields, and exported fields from child blueprints.
 
 In most cases references are made with the `${..}` syntax with a few exceptions such as the export
 "field" attribute which expects a reference to be made to a resource field as a regular string.
@@ -2707,7 +2718,7 @@ The following section contains a set of examples of how you can pull in one or m
 `main-blueprint.yaml`
 
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
 
@@ -2758,7 +2769,7 @@ exports:
 
 `core-infra.yaml`
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
     orderTopicType:
@@ -2786,7 +2797,7 @@ exports:
 `app-infra.yaml`
 
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
   region:
@@ -2825,7 +2836,7 @@ exports:
 `app-infra/main-blueprint.yaml`
 
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
 
@@ -2883,7 +2894,7 @@ exports:
 
 `core-infra/topics.yaml`
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
   orderTopicType:
@@ -2910,7 +2921,7 @@ exports:
 
 `core-infra/event-bus.yaml`
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
   eventBus:
@@ -2935,7 +2946,7 @@ exports:
 `app-infra/api.yaml`
 
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 
 variables:
   region:
@@ -2974,7 +2985,7 @@ For example, if the remote source was an AWS S3 bucket:
 ```yaml
 include:
   coreInfrastructure:
-    path: core-infra-2023-04-20.yaml
+    path: core-infra-2025-02-01.yaml
     metadata:
       sourceType: aws/s3
       bucket: order-system-blueprints
@@ -2994,7 +3005,7 @@ The following is an example of how an implementation might go about supporting b
 
 
 ```yaml
-version: 2023-04-20
+version: 2025-02-01
 variables:
 
   region:

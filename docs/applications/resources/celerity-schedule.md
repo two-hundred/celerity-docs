@@ -4,9 +4,9 @@ sidebar_position: 4
 
 # `celerity/schedule`
 
-**v2024-07-22 (draft)**
+**v2025-04-01 (draft)**
 
-**blueprint transform:** `celerity-2024-07-22`
+**blueprint transform:** `celerity-2025-04-01`
 
 The `celerity/schedule` resource type is used to define a scheduled rule to trigger handlers at a specific time or interval based on a schedule.
 
@@ -126,8 +126,8 @@ Where an application is made up of a composition of consumers, an API, schedules
 ## Examples
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 resources:
     jobSchedule:
         type: "celerity/schedule"

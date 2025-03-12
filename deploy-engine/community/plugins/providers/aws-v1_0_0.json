@@ -1,0 +1,611 @@
+{
+    "id": "aws",
+    "displayName": "AWS",
+    "version": "1.0.0",
+    "protocolVersion": 1,
+    "description": "AWS provider for the Deploy Engine including resources, data sources, links and custom variable types for interacting with AWS services.",
+    "author": "Two Hundred Cloud Services Ltd",
+    "repository": "https://github.com/two-hundred/celerity-provider-aws",
+    "config": {
+        "accessKeyId": {
+            "type": "string",
+            "label": "Access Key ID",
+            "description": "The access key ID to use to authenticate with AWS.",
+            "required": true,
+            "examples": [
+                "AKIAIOSFODNN7EXAMPLE"
+            ]
+        },
+        "secretAccessKey": {
+            "type": "string",
+            "label": "Secret Access Key",
+            "description": "The secret access key to use to authenticate with AWS.",
+            "required": true
+        },
+        "someConfigField": {
+            "type": "string",
+            "label": "Some Config Field",
+            "description": "Some config field description.",
+            "required": false,
+            "allowedValues": [
+                "Some value",
+                "Another value"
+            ],
+            "default": "Some value"
+        }
+    },
+    "resources": [
+        {
+            "type": "aws/lambda/function",
+            "label": "AWS Lambda Function",
+            "summary": "A resource for managing an AWS Lambda function.",
+            "description": "The resource type used to define a [Lambda function](https://docs.aws.amazon.com/lambda/latest/api/API_GetFunction.html) that is deployed to AWS.",
+            "specification": {
+                "schema": {
+                    "type": "object",
+                    "label": "LambdaFunctionDefinition",
+                    "description": "The definition of an AWS Lambda function.",
+                    "attributes": {
+                        "functionName": {
+                            "type": "string",
+                            "description": "The name of the Lambda function stored in the AWS system.",
+                            "computed": false,
+                            "nullable": false,
+                            "examples": ["ProcessOrders"]
+                        },
+                        "arn": {
+                            "type": "string",
+                            "description": "The Amazon Resource Name (ARN) of the Lambda function.",
+                            "computed": true,
+                            "nullable": false
+                        },
+                        "nestedObject": {
+                            "type": "object",
+                            "description": "A nested object definition to test out rendering.",
+                            "label": "NestedObjectDefinition",
+                            "attributes": {
+                                "nestedField": {
+                                    "type": "string",
+                                    "description": "A nested field.",
+                                    "computed": false,
+                                    "nullable": false
+                                },
+                                "nestedField2": {
+                                    "type": "object",
+                                    "description": "A deeply nested object.",
+                                    "label": "DeeplyNestedObjectDefinition",
+                                    "attributes": {
+                                        "deeplyNestedField": {
+                                            "type": "string",
+                                            "description": "A deeply nested field.",
+                                            "computed": false,
+                                            "nullable": false
+                                        }
+                                    },
+                                    "required": ["deeplyNestedField"],
+                                    "default": null,
+                                    "nullable": false,
+                                    "computed": false
+                                }
+                            },
+                            "required": ["nestedField"],
+                            "default": null,
+                            "nullable": false,
+                            "computed": false
+                        },
+                        "unionField": {
+                            "type": "union",
+                            "description": "A union field definition to test out rendering.",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "description": "A string value."
+                                },
+                                {
+                                    "type": "integer",
+                                    "description": "An integer value."
+                                },
+                                {
+                                    "type": "array",
+                                    "description": "An array value.",
+                                    "items": {
+                                        "type": "object",
+                                        "label": "UnionNestedDefinition",
+                                        "description": "A definition nested in a union field.",
+                                        "attributes": {
+                                            "unionNestedField": {
+                                                "type": "string",
+                                                "description": "A union nested field.",
+                                                "computed": false,
+                                                "nullable": false
+                                            }
+                                        },
+                                        "required": ["unionNestedField"]
+                                    }
+                                }
+                            ],
+                            "nullable": false,
+                            "computed": false,
+                            "examples": [
+                                "string",
+                                123,
+                                [{"unionNestedField": "value"}]
+                            ]
+                        },
+                        "arrayField": {
+                            "type": "array",
+                            "description": "An array field definition to test out rendering.",
+                            "items": {
+                                "type": "string",
+                                "description": "An array item."
+                            },
+                            "nullable": false,
+                            "computed": false,
+                            "examples": [
+                                ["item1", "item2"]
+                            ]
+                        },
+                        "mapField": {
+                            "type": "map",
+                            "description": "A map field definition to test out rendering.",
+                            "mapValues": {
+                                "type": "string",
+                                "description": "A map value."
+                            },
+                            "nullable": false,
+                            "computed": false,
+                            "examples": [
+                                {"key1": "value1", "key2": "value2"}
+                            ]
+                        }
+                    },
+                    "required": ["functionName"],
+                    "default": null,
+                    "nullable": false,
+                    "computed": false
+                },
+                "idField": "arn"
+            },
+            "examples": [
+                "```yaml\nresources:\n  - type: aws/lambda/function\n    name: ProcessOrders\n    properties:\n      functionName: ProcessOrders\n```",
+                "```yaml\nresources:\n  - type: aws/lambda/function\n    name: ProcessOrders\n    properties:\n      functionName: ProcessOrders\n      arn: arn:aws:lambda:us-west-2:123456789012:function:ProcessOrders\n```",
+                "Some example with `inline code`."
+            ],
+            "canLinkTo": [
+                "aws/dynamodb/table",
+                "aws/s3/bucket",
+                "aws/sqs/queue"
+            ]
+        },
+        {
+            "type": "aws/dynamodb/table",
+            "label": "AWS DynamoDB Table",
+            "summary": "A resource for managing an AWS DynamoDB table.",
+            "description": "The resource type used to define a DynamoDB table that is deployed to AWS.",
+            "specification": {
+                "schema": {
+                    "type": "object",
+                    "label": "LambdaFunctionDefinition",
+                    "description": "The definition of an AWS Lambda function.",
+                    "attributes": {
+                        "tableName": {
+                            "type": "string",
+                            "description": "The name of the DynamoDB table in the AWS system.",
+                            "computed": false,
+                            "nullable": false,
+                            "examples": ["ProcessOrders"]
+                        },
+                        "arn": {
+                            "type": "string",
+                            "description": "The Amazon Resource Name (ARN) of the DynamoDB table.",
+                            "computed": true,
+                            "nullable": false
+                        }
+                    },
+                    "required": ["tableName"],
+                    "default": null,
+                    "nullable": false,
+                    "computed": false
+                },
+                "idField": "arn"
+            },
+            "examples": [
+                "```yaml\nresources:\n  - type: aws/dynamodb/table\n    name: Orders\n    properties:\n      tableName: Orders\n```",
+                "```yaml\nresources:\n  - type: aws/dynamodb/table\n    name: Orders\n    properties:\n      tableName: Orders\n      arn: arn:aws:dynamodb:us-west-2:123456789012:table/Orders\n```"
+            ],
+            "canLinkTo": []
+        }
+    ],
+    "links": [
+        {
+            "type": "aws/lambda/function::aws/dynamodb/table",
+            "summary": "Link a Lambda function to a DynamoDB table.",
+            "description": "A link between an AWS Lambda function and an AWS DynamoDB table.",
+            "annotationDefinitions": {
+                "aws/lambda/function::aws.lambda.dynamodb.accessType": {
+                    "name": "aws.dynamodb.lambda.accessType",
+                    "label": "Lambda Access Type",
+                    "type": "string",
+                    "description": "The type of access the Lambda function has to linked DynamoDB tables.",
+                    "default": "read",
+                    "allowedValues": [
+                        "read",
+                        "write"
+                    ],
+                    "required": false
+                },
+                "aws/lambda/function::aws.lambda.dynamodb.accessTables": {
+                    "name": "aws.lambda.dynamodb.accessTables",
+                    "label": "Access Tables",
+                    "type": "string",
+                    "description": "A comma-separated list of table names to apply the access type annotation value to.",
+                    "examples": [
+                        "Orders,Customers"
+                    ],
+                    "required": false
+                }
+            }
+        }
+    ],
+    "dataSources": [
+        {
+            "type": "aws/lambda/function",
+            "label": "AWS Lambda Function",
+            "summary": "An external data source for an AWS Lambda function.",
+            "description": "An external data source that can be used to retrieve information about an AWS Lambda function.",
+            "specification": {
+                "fields": {
+                    "functionName": {
+                        "type": "string",
+                        "description": "The name of the Lambda function stored in the AWS system.",
+                        "nullable": false,
+                        "filterable": true
+                    },
+                    "arn": {
+                        "type": "string",
+                        "description": "The Amazon Resource Name (ARN) of the Lambda function.",
+                        "nullable": false,
+                        "filterable": true
+                    },
+                    "layers": {
+                        "type": "array",
+                        "description": "The layers attached to the Lambda function.",
+                        "items": {
+                            "type": "string",
+                            "description": "A layer ARN."
+                        },
+                        "nullable": true
+                    }
+                }
+            },
+            "examples": [
+                "```yaml\ndataSources:\n  - type: aws/lambda/function\n    name: ProcessOrders\n    properties:\n      functionName: ProcessOrders\n```",
+                "```yaml\ndataSources:\n  - type: aws/lambda/function\n    name: ProcessOrders\n    properties:\n      functionName: ProcessOrders\n      arn: arn:aws:lambda:us-west-2:123456789012:function:ProcessOrders\n```"
+            ]
+        }
+    ],
+    "customVarTypes": [
+        {
+            "type": "aws/ec2/instanceType",
+            "label": "Amazon EC2 Instance Type",
+            "summary": "An Amazon EC2 instance type for a VM.",
+            "description": "A custom variable type that represents an Amazon EC2 instance type for a virtual machine.",
+            "options": {
+                "t2.micro": {
+                    "label": "t2.micro",
+                    "description": "A t2.micro instance type."
+                },
+                "t2.small": {
+                    "label": "t2.small",
+                    "description": "A t2.small instance type."
+                },
+                "t2.medium": {
+                    "label": "t2.medium",
+                    "description": "A t2.medium instance type."
+                },
+                "t2.large": {
+                    "label": "t2.large",
+                    "description": "A t2.large instance type."
+                }
+            },
+            "examples": [
+                "```yaml\nvariables:\n  - name: instanceType\n    type: aws/ec2/instanceType\n    value: t2.micro\n```",
+                "```yaml\nvariables:\n  - name: instanceType\n    type: aws/ec2/instanceType\n    value: t2.medium\n```"
+            ]
+        }
+    ],
+    "functions": [
+        {
+            "name": "and",
+            "summary": "A function that acts as a logical AND operator on two boolean values.",
+            "description": "A function that acts as a logical AND operator on two boolean values.\n\n**Examples:**\n\n```plaintext\n${and(resources.orderApi.spec.isProd, eq(variables.environment, \"prod\")}\n```",
+            "parameters": [
+                {
+                    "label": "a",
+                    "paramType": "boolean",
+                    "valueTypeDefinition": {
+                        "type": "boolean",
+                        "label": "boolean"
+                    },
+                    "description": "The resultof boolean expression A, the left-hand side of the AND operation."
+                },
+                {
+                    "label": "b",
+                    "paramType": "boolean",
+                    "valueTypeDefinition": {
+                        "type": "boolean",
+                        "label": "boolean"
+                    },
+                    "description": "The result of boolean expression B, the right-hand side of the AND operation."
+                }
+            ],
+            "return": {
+                "returnType": "boolean",
+                "valueTypeDefinition": {
+                    "type": "boolean",
+                    "label": "boolean"
+                },
+                "description": "The result of the logical AND operation on the two boolean values."
+            }
+        },
+        {
+            "name": "compose",
+            "summary": "A higher-order function that combines N functions into a single function.",
+            "description": "A higher-order function that combines N functions into a single function, where the output of one function is passed in as the input to the previous function. The call order of the functions is from right to left.\n\n**Examples:**\n\n```plaintext\n${map(\n  datasources.network.subnets,\n  compose(to_upper, getattr(\"id\"))\n)}\n```",
+            "parameters": [
+                {
+                    "label": "functions",
+                    "paramType": "variadic",
+                    "singleType": true,
+                    "valueTypeDefinition": {
+                        "type": "function",
+                        "label": "Function",
+                        "description": "A function that takes an input value and returns an output value that can be passed to the next function in the composition.",
+                        "functionDefinition": {
+                            "parameters": [
+                                {
+                                    "label": "input",
+                                    "paramType": "any",
+                                    "description": "The input to the function"
+                                }
+                            ],
+                            "return": {
+                                "returnType": "any",
+                                "description": "The output of the function."
+                            }
+                        }
+                    },
+                    "description": "N functions to be composed together."
+                }
+            ],
+            "return": {
+                "returnType": "function",
+                "valueTypeDefinition": {
+                    "type": "function",
+                    "label": "ComposedFunction",
+                    "functionDefinition": {
+                        "parameters": [
+                            {
+                                "label": "input",
+                                "paramType": "any",
+                                "description": "The input of the composed function, this must be of the same type of the input of the right-most function in the composition."
+                            }
+                        ],
+                        "return": {
+                            "returnType": "any",
+                            "description": "The output of the composed function, this must be the same type of the return value of the left-most function in the composition."
+                        }
+                    }
+                },
+                "description": "A function that takes the input value of the right-most function and returns the output value of the left-most function."
+            }
+        },
+        {
+            "name": "filter",
+            "summary": "Filters a list of values based on a predicate function.",
+            "description": "Filters a list of values based on a predicate function.\n\n**Examples:**\n\n```plaintext\n${filter(\n  datasources.network.subnets,\n  has_prefix_g(\"subnet-402948-\")\n)}\n```",
+            "parameters": [
+                {
+                    "label": "items",
+                    "paramType": "list",
+                    "elementValueTypeDefinition": {
+                        "type": "any",
+                        "label": "any",
+                        "description": "A value of any type, every element in the containing list must be of the same type."
+                    },
+                    "description": "An array of items where all items are of the same type to filter."
+                },
+                {
+                    "label": "filterFunc",
+                    "paramType": "function",
+                    "valueTypeDefinition": {
+                        "type": "function",
+                        "label": "FilterFunction",
+                        "functionDefinition": {
+                            "parameters": [
+                                {
+                                    "label": "item",
+                                    "paramType": "any",
+                                    "description": "The item to check."
+                                },
+                                {
+                                    "label": "index",
+                                    "paramType": "int64",
+                                    "description": "The index of the item in the list.",
+                                    "optional": true
+                                }
+                            ],
+                            "return": {
+                                "returnType": "boolean",
+                                "description": "Whether or not the item meets the criteria."
+                            }
+                        }
+                    },
+                    "description": "The predicate function to check if each item in the list meets a certain criteria."
+                }
+            ],
+            "return": {
+                "returnType": "list",
+                "elementValueTypeDefinition": {
+                    "type": "any",
+                    "label": "any",
+                    "description": "A value of any type, every element in the returned list must be of the same type."
+                },
+                "description": "The list of values that remain after applying the filter."
+            }
+        },
+        {
+            "name": "create_specific_object_type",
+            "summary": "Creates a specific object type.",
+            "description": "Creates a specific object type.\n\n**Examples:**\n\n```plaintext\n${create_specific_object_type(\n  \"value1\",\n  \"value2\"\n)}\n```",
+            "parameters": [
+                {
+                    "label": "field1",
+                    "paramType": "string",
+                    "valueTypeDefinition": {
+                        "type": "string",
+                        "label": "string"
+                    },
+                    "description": "The value of field1."
+                },
+                {
+                    "label": "field2",
+                    "paramType": "string",
+                    "valueTypeDefinition": {
+                        "type": "string",
+                        "label": "string"
+                    },
+                    "description": "The value of field2."
+                }
+            ],
+            "return": {
+                "returnType": "object",
+                "valueTypeDefinition": {
+                    "type": "object",
+                    "label": "SpecificObjectType",
+                    "attributeValueTypeDefinitions": {
+                        "field1": {
+                            "type": "string",
+                            "description": "The value of field1.",
+                            "nullable": true
+                        },
+                        "field2": {
+                            "type": "object",
+                            "label": "NestedObjectType",
+                            "attributeValueTypeDefinitions": {
+                                "nestedField": {
+                                    "type": "string",
+                                    "description": "The value of the nested field.",
+                                    "nullable": false
+                                }
+                            },
+                            "description": "The value of field2.",
+                            "nullable": false
+                        }
+                    },
+                    "required": ["field1", "field2"]
+                },
+                "description": "The specific object type."
+            }
+        },
+        {
+            "name": "produce_variadic_func",
+            "summary": "Creates a function that takes a variadic number of arguments.",
+            "description": "Creates a function that takes a variadic number of arguments.\n\n**Examples:**\n\n```plaintext\n${produce_variadic_func()}\n```",
+            "parameters": [],
+            "return": {
+                "returnType": "function",
+                "valueTypeDefinition": {
+                    "type": "function",
+                    "label": "VariadicArgsFunction",
+                    "functionDefinition": {
+                        "parameters": [
+                            {
+                                "label": "args",
+                                "paramType": "variadic",
+                                "singleType": true,
+                                "named": true,
+                                "valueTypeDefinition": {
+                                    "type": "string",
+                                    "label": "string",
+                                    "description": "A value of string type."
+                                },
+                                "description": "The variadic arguments."
+                            }
+                        ],
+                        "return": {
+                            "returnType": "list",
+                            "elementValueTypeDefinition": {
+                                "type": "string",
+                                "label": "string",
+                                "description": "A value of string type."
+                            },
+                            "description": "The result of the function."
+                        }
+                    }
+                },
+                "description": "A function that takes variadic arguments and returns a list of strings."
+            }
+        },
+        {
+            "name": "stringify",
+            "summary": "Stringifies a value that can be one of a number of types.",
+            "description": "Stringifies a value that can be one of a number of types.\n\n**Examples:**\n\n```plaintext\n${stringify(variables.someVariable)}\n```",
+            "parameters": [
+                {
+                    "label": "value",
+                    "paramType": "any",
+                    "unionValueTypeDefinitions": [
+                        {
+                            "type": "string",
+                            "label": "string",
+                            "description": "A value of string type."
+                        },
+                        {
+                            "type": "int64",
+                            "label": "int64",
+                            "description": "A value of int64 type."
+                        },
+                        {
+                            "type": "float64",
+                            "label": "float64",
+                            "description": "A value of float64 type."
+                        },
+                        {
+                            "type": "boolean",
+                            "label": "boolean",
+                            "description": "A value of boolean type."
+                        },
+                        {
+                            "type": "function",
+                            "label": "FunctionToStringify",
+                            "functionDefinition": {
+                                "parameters": [
+                                    {
+                                        "label": "input",
+                                        "paramType": "string",
+                                        "description": "The input to the function."
+                                    }
+                                ],
+                                "return": {
+                                    "returnType": "map",
+                                    "mapValueTypeDefinition": {
+                                        "type": "string",
+                                        "label": "string",
+                                        "description": "A value of string type."
+                                    },
+                                    "description": "The output of the function."
+                                }
+                            }
+                        }
+                    ],
+                    "description": "The value to stringify."
+                }
+            ],
+            "return": {
+                "returnType": "string",
+                "description": "A function that takes variadic arguments and returns a list of strings."
+            }
+        }
+    ]
+}

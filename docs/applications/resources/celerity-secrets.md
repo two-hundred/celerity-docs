@@ -4,9 +4,9 @@ sidebar_position: 8
 
 # `celerity/secrets`
 
-**v2024-07-22 (draft)**
+**v2025-04-01 (draft)**
 
-**blueprint transform:** `celerity-2024-07-22`
+**blueprint transform:** `celerity-2025-04-01`
 
 The `celerity/secrets` resource type defines a secrets and configuration store to be used by a Celerity application.
 
@@ -102,8 +102,8 @@ Secret store resources can not link to other resources.
 ### Minimal Configuration
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 resources:
     mySecretStore:
         type: "celerity/secrets"
@@ -116,8 +116,8 @@ resources:
 ### Replicated Secret Store with Custom Encryption Key
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 variables:
     customEncryptionKeyId:
         type: string

@@ -20,7 +20,7 @@ export default function DocsVersionDropdownNavbarItemWrapper(props) {
 
   return (
     <div className={styles.versionDropdownWrapper}>
-      <span className={styles.versionDropdownLabel}>{title}</span>
+      <span className={`${styles.versionDropdownLabel} text--truncate`}>{title}</span>
       <DocsVersionDropdownNavbarItem {...props} />
     </div>
   );

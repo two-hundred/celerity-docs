@@ -1,0 +1,15 @@
+{
+  "id": "gcp",
+  "displayName": "Google Cloud",
+  "version": "1.0.0",
+  "protocolVersion": 1,
+  "description": "Google Cloud provider for the Deploy Engine including resources, data sources, links and custom variable types for interacting with Google Cloud services.",
+  "author": "Two Hundred Cloud Services Ltd",
+  "repository": "https://github.com/two-hundred/celerity-provider-gcp",
+  "config": {},
+  "resources": [],
+  "links": [],
+  "dataSources": [],
+  "customVarTypes": [],
+  "functions": []
+}

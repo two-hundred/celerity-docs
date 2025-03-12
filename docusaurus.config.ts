@@ -1,12 +1,15 @@
 import { config as dotenvConfig } from "dotenv";
+import { Config } from "@docusaurus/types";
 
+import deployEnginePluginDocsPlugin from "./deploy-engine-plugin-docs-plugin";
+
+// @ts-ignore
 dotenvConfig({ silent: true });
 
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-/** @type {import('@docusaurus/types').Config} */
-const config = {
+const config: Config = {
   title: "Celerity",
   tagline: "The backend toolkit that gets you moving fast",
   url: "https://celerityframework.com",
@@ -137,6 +140,7 @@ const config = {
         sidebarPath: require.resolve("./sidebars-go-sdk.js"),
       },
     ],
+    deployEnginePluginDocsPlugin,
   ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -151,15 +155,15 @@ const config = {
         },
         items: [
           {
-            label: "Getting Started",
-            to: "/docs/intro/getting-started",
-            position: "right",
-          },
-          {
             type: "dropdown",
-            label: "Concepts",
+            label: "Docs",
             position: "right",
             items: [
+              {
+                label: "Getting Started",
+                activeBasePath: "/docs/intro",
+                to: "docs/intro/getting-started",
+              },
               {
                 label: "Blueprint",
                 activeBasePath: "/docs/blueprint",
@@ -175,7 +179,7 @@ const config = {
                 activeBasePath: "/docs/applications",
                 to: "docs/applications/intro",
               },
-            ],
+            ]
           },
           {
             type: "dropdown",
@@ -248,9 +252,22 @@ const config = {
             ],
           },
           {
-            href: "https://github.com/two-hundred/celerity",
-            label: "GitHub",
+            type: "dropdown",
+            label: "Community",
             position: "right",
+            items: [
+              {
+                label: "Deploy Engine Plugins",
+                activeBasePath: "/community/deploy-engine/plugins",
+                to: "community/deploy-engine/plugins",
+              },
+            ],
+          },
+          {
+            href: "https://github.com/two-hundred/celerity",
+            "aria-label": "GitHub",
+            position: "right",
+            className: "header-github-link",
           },
           {
             type: "docsVersionDropdown",

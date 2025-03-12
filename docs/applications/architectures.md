@@ -31,8 +31,8 @@ You should limit the amount of consumers defined in a single blueprint to avoid 
 An example of multiple consumers in a single application:
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 variables:
     ordersQueue:
         type: string
@@ -137,7 +137,7 @@ A workflow will always be deployed separately.
 The term "Serverless" is used frequently in describing the behaviour of target environments.
 In the context of Celerity deployments, "Serverless" refers to environments using FaaS[^2] platforms and the components that integrate with them.
 
-In fact, a lot of the containerised environments such as ECS or EKS backed by Fargate, Azure Container Apps and Google Cloud Run are also considered "Serverless" in that they remove the need to manage the VMs used to run the containers.
+In normal circumstances, a lot of the containerised environments such as ECS or EKS backed by Fargate, Azure Container Apps and Google Cloud Run are also considered "Serverless" in that they remove the need to manage the VMs used to run the containers. _This is **not** what is meant by "Serverless" in the context of Celerity deployments._
 
 [^1]: Environments in this context covers Function-as-a-service offerings such as AWS Lambda, Google Cloud Functions, and Azure Functions, as well as containerised environments such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 [^2]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.

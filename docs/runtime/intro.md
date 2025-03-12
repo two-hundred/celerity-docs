@@ -55,7 +55,7 @@ get_order = create_http_handler(_get_order)
 ```
 
 ```yaml title="/application.blueprint.yaml"
-version: 2023-04-20
+version: 2025-02-01
 resources:
     ordersApi:
         type: "celerity/api"

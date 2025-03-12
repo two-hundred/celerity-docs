@@ -4,9 +4,9 @@ sidebar_position: 3
 
 # `celerity/consumer`
 
-**v2024-07-22 (draft)**
+**v2025-04-01 (draft)**
 
-**blueprint transform:** `celerity-2024-07-22`
+**blueprint transform:** `celerity-2025-04-01`
 
 The `celerity/consumer` resource type is used to define a subscriber to messages on a `celerity/topic`, an externally defined queue or message broker.
 
@@ -18,7 +18,7 @@ When the `sourceId` is an external queue or message broker, the consumer is conf
 
 :::note
 Links between consumers and topics are not supported as part of a blueprint.
-The reason for this is that pub/sub systems are designed to be decouple applications and a blueprint in the context of Celerity is to define a single application.
+The reason for this is that pub/sub systems are designed to be decoupled applications and a blueprint in the context of Celerity is to define a single application.
 A topic should be defined in blueprints for producer applications and a consumer should be defined in blueprints for consumer applications. The outputs of a topic can be used to configure a consumer. Multiple producers can publish to the same topic, different blueprints can define the same topic, read more about it in the [`celerity/topic` documentation](/docs/applications/resources/celerity-topic).
 :::
 
@@ -202,8 +202,8 @@ Where an application is made up of a composition of consumers, an API, schedules
 ## Examples
 
 ```yaml
-version: 2023-04-20
-transform: celerity-2024-07-22
+version: 2025-02-01
+transform: celerity-2025-04-01
 variables:
     ordersQueue:
         type: string
