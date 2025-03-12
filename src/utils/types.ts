@@ -57,7 +57,7 @@ export type DeployEnginePluginDocContentResource = {
 };
 
 export type DeployEnginePluginDocContentResourceWithPluginInfo = 
-    DeployEnginePluginDocContentResource & { plugin: ProviderPluginDocContent };
+    DeployEnginePluginDocContentResource & { plugin: DeployEnginePluginDocContent };
 
 export type DeployEnginePluginDocContentResourceSpec = {
     schema: ResourceSpecSchemaType;
@@ -232,4 +232,3 @@ export type DeployEnginePluginDocContentFunction = {
 
 
 export type ResourceKind = 'concrete' | 'abstract';
- 

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'fs';
 
 import { LoadContext, Plugin, PluginContentLoadedActions } from '@docusaurus/types'
-import { DeployEnginePluginDocContent, DeployEnginePluginDocContentLink, DeployEnginePluginType } from './src/utils/types'
+import { DeployEnginePluginDocContent, DeployEnginePluginDocContentLink, DeployEnginePluginDocContentResourceWithPluginInfo, DeployEnginePluginType } from './src/utils/types'
 import { 
     BASE_PATH,
     pluginResourceTypePath, 
@@ -49,12 +49,12 @@ async function deployEnginePlugindDocsPlugin(context: LoadContext, options: unkn
                     }
                 })
 
-                addResourceRoutes(actions, pluginContent, content, globalLinkMap)
+                addResourceRoutes(actions, pluginContent, content, globalLinkMap, globalResourceMap)
                 addLinkRoutes(actions, pluginContent, content, globalLinkMap)
                 addDataSourceRoutes(actions, pluginContent, content, globalLinkMap)
                 addCustomVarTypeRoutes(actions, pluginContent, content, globalLinkMap)
                 addFunctionRoutes(actions, pluginContent, content, globalLinkMap)
-                addAbstractResourceRoutes(actions, pluginContent, content)
+                addAbstractResourceRoutes(actions, pluginContent, content, globalResourceMap)
             })
         }
     }
@@ -64,7 +64,8 @@ function addResourceRoutes(
     actions: PluginContentLoadedActions,
     pluginContent: DeployEnginePluginDocContent,
     allContent: DeployEnginePluginDocContent[],
-    globalLinkMap: Record<string, DeployEnginePluginDocContentLink>
+    globalLinkMap: Record<string, DeployEnginePluginDocContentLink>,
+    globalResourceMap: Record<string, DeployEnginePluginDocContentResourceWithPluginInfo>
 ) {
     if (pluginContent.pluginType === 'provider') {
         pluginContent.resources.forEach((resource) => {
@@ -78,6 +79,7 @@ function addResourceRoutes(
                     allPluginsContent: allContent,
                     resource,
                     globalLinkMap,
+                    globalResourceMap,
                     kind: 'concrete'
                 }
             })
@@ -89,6 +91,7 @@ function addAbstractResourceRoutes(
     actions: PluginContentLoadedActions,
     pluginContent: DeployEnginePluginDocContent,
     allContent: DeployEnginePluginDocContent[],
+    globalResourceMap: Record<string, DeployEnginePluginDocContentResourceWithPluginInfo>
 ) {
     if (pluginContent.pluginType === 'transformer') {
         pluginContent.abstractResources.forEach((resource) => {
@@ -101,6 +104,7 @@ function addAbstractResourceRoutes(
                     pluginContent,
                     allPluginsContent: allContent,
                     resource,
+                    globalResourceMap,
                     kind: 'abstract'
                 }
             })

@@ -7,8 +7,8 @@ import TOCCollapsible from '@theme/TOCCollapsible';
 import { pluginDocResourcePageToC, toCurrentPluginSidebarItems } from '../utils/deploy-engine-plugin-docs';
 import {
     DeployEnginePluginDocContent,
-    DeployEnginePluginDocContentLinkWithPluginInfo,
     DeployEnginePluginDocContentResource,
+    DeployEnginePluginDocContentResourceWithPluginInfo,
     ProviderPluginDocContent,
     ResourceKind
 } from '../utils/types';
@@ -30,13 +30,14 @@ type DeployEnginePluginAbstractResourceData = {
     allPluginsContent: DeployEnginePluginDocContent[];
     pluginContent: ProviderPluginDocContent;
     resource: DeployEnginePluginDocContentResource;
+    globalResourceMap: Record<string, DeployEnginePluginDocContentResourceWithPluginInfo>;
     kind: ResourceKind;
 }
 
 const deployEngineTextContent = textContent();
 
 export default function DeployEnginePluginDocAbstractResourcePage(props: Readonly<Props>) {
-    const { pluginContent, resource, kind } = props.route.customData;
+    const { pluginContent, resource, globalResourceMap, kind } = props.route.customData;
 
     const dataTypeSchemas = useMemo(() => extractDataTypeSchemas(resource.specification.schema), [resource.type])
 
@@ -46,9 +47,10 @@ export default function DeployEnginePluginDocAbstractResourcePage(props: Readonl
             resource,
             dataTypeSchemas,
             {},
+            globalResourceMap,
             kind,
         ),
-        [deployEngineTextContent, resource, dataTypeSchemas, kind],
+        [deployEngineTextContent, resource, dataTypeSchemas, globalResourceMap, kind],
     );
 
     const resourcesTextContent = kind === 'abstract' ? deployEngineTextContent.abstractResources : deployEngineTextContent.resources;
@@ -77,6 +79,8 @@ export default function DeployEnginePluginDocAbstractResourcePage(props: Readonl
                                 pluginContent={pluginContent}
                                 currentResource={resource}
                                 globalLinkMap={{}}
+                                globalResourceMap={globalResourceMap}
+                                kind={kind}
                             />
                         </li>
                     ))}

@@ -385,6 +385,7 @@ export function pluginDocResourcePageToC(
     resource: DeployEnginePluginDocContentResource,
     dataTypeSchemas: Record<string, ResourceSpecSchemaType>,
     globalLinkMap: Record<string, DeployEnginePluginDocContentLinkWithPluginInfo>,
+    globalResourceMap: Record<string, DeployEnginePluginDocContentResourceWithPluginInfo>,
     kind: ResourceKind,
 ): TOCItem[] {
     const resourcesTextContent = kind === 'abstract' ? textContent.abstractResources : textContent.resources;
@@ -406,7 +407,7 @@ export function pluginDocResourcePageToC(
             value: resourcesTextContent.pluginResourceExamplesTitle,
             level: 2
         },
-        ...resourceTypeLinksToCItems(textContent, resource, globalLinkMap, kind),
+        ...resourceTypeLinksToCItems(textContent, resource, globalLinkMap, globalResourceMap, kind),
     ]
 }
 
@@ -430,14 +431,12 @@ function resourceTypeLinksToCItems(
     textContent: DeployEnginePluginTextContent,
     resource: DeployEnginePluginDocContentResource,
     globalLinkMap: Record<string, DeployEnginePluginDocContentLinkWithPluginInfo>,
+    globalResourceMap: Record<string, DeployEnginePluginDocContentResourceWithPluginInfo>,
     kind: ResourceKind,
 ): TOCItem[] {
-    if (kind === 'abstract') {
-        return [];
-    }
-
     const validLinks = resource.canLinkTo?.filter(
-        (linkTo) => !!globalLinkMap[createLinkId(resource.type, linkTo)],
+        (linkTo) => (kind === 'concrete' && !!globalLinkMap[createLinkId(resource.type, linkTo)]) ||
+            (kind === 'abstract' && !!globalResourceMap[linkTo])
     );
 
     if (validLinks?.length > 0) {
@@ -449,9 +448,10 @@ function resourceTypeLinksToCItems(
             },
             ...validLinks.map((linkTo) => {
                 const linkId = createLinkId(resource.type, linkTo);
+                const link = globalLinkMap[linkId];
                 return {
                     id: pluginLinkToResourceTypeElementId(linkTo),
-                    value: globalLinkMap[linkId].resourceTypeB.label,
+                    value: link?.resourceTypeB?.label ?? globalResourceMap[linkTo]?.label,
                     level: 3,
                 }
             })
@@ -674,6 +674,15 @@ export function extractAllResourcesToMap(
             });
         }
 
+        if (isTransformerPlugin(pluginContent)) {
+            pluginContent.abstractResources.forEach((resource) => {
+                acc[resource.type] = {
+                    ...resource,
+                    plugin: pluginContent,
+                };
+            });
+        }
+
         return acc;
     }, {});
 }
@@ -830,4 +839,8 @@ export function createLinkId(resourceTypeA: string, resourceTypeB: string): stri
 
 function isProviderPlugin(pluginContent: DeployEnginePluginDocContent): pluginContent is ProviderPluginDocContent {
     return pluginContent.pluginType === 'provider';
+}
+
+function isTransformerPlugin(pluginContent: DeployEnginePluginDocContent): pluginContent is TransformerPluginDocContent {
+    return pluginContent.pluginType === 'transformer';
 }

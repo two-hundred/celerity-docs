@@ -9,6 +9,7 @@ import {
     DeployEnginePluginDocContent,
     DeployEnginePluginDocContentLinkWithPluginInfo,
     DeployEnginePluginDocContentResource,
+    DeployEnginePluginDocContentResourceWithPluginInfo,
     ProviderPluginDocContent,
     ResourceKind
 } from '../utils/types';
@@ -31,13 +32,14 @@ type DeployEnginePluginResourceData = {
     pluginContent: ProviderPluginDocContent;
     resource: DeployEnginePluginDocContentResource;
     globalLinkMap: Record<string, DeployEnginePluginDocContentLinkWithPluginInfo>;
+    globalResourceMap: Record<string, DeployEnginePluginDocContentResourceWithPluginInfo>;
     kind: ResourceKind;
 }
 
 const deployEngineTextContent = textContent();
 
 export default function DeployEnginePluginDocResourcePage(props: Readonly<Props>) {
-    const { pluginContent, resource, globalLinkMap, kind } = props.route.customData;
+    const { pluginContent, resource, globalLinkMap, globalResourceMap, kind } = props.route.customData;
 
     const dataTypeSchemas = useMemo(() => extractDataTypeSchemas(resource.specification.schema), [resource.type])
 
@@ -47,9 +49,10 @@ export default function DeployEnginePluginDocResourcePage(props: Readonly<Props>
             resource,
             dataTypeSchemas,
             globalLinkMap,
+            globalResourceMap,
             kind,
         ),
-        [deployEngineTextContent, resource, dataTypeSchemas, globalLinkMap, kind],
+        [deployEngineTextContent, resource, dataTypeSchemas, globalLinkMap, globalResourceMap, kind],
     );
 
     const renderLinksToSection = () => {
@@ -76,6 +79,8 @@ export default function DeployEnginePluginDocResourcePage(props: Readonly<Props>
                                 pluginContent={pluginContent}
                                 currentResource={resource}
                                 globalLinkMap={globalLinkMap}
+                                globalResourceMap={globalResourceMap}
+                                kind={kind}
                             />
                         </li>
                     ))}
