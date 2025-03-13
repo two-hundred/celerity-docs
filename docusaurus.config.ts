@@ -62,6 +62,15 @@ const config: Config = {
     [
       "@docusaurus/plugin-content-docs",
       {
+        id: "plugin-framework",
+        path: "plugin-framework",
+        routeBasePath: "plugin-framework",
+        sidebarPath: require.resolve("./sidebars-plugin-framework.js"),
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
         id: "blueprint-framework",
         path: "blueprint-framework",
         routeBasePath: "blueprint-framework",
@@ -197,6 +206,11 @@ const config: Config = {
                 to: "/deploy-engine/docs/intro",
               },
               {
+                label: "Plugin Framework",
+                activeBasePath: "/plugin-framework",
+                to: "/plugin-framework/docs/intro",
+              },
+              {
                 label: "Blueprint Framework",
                 activeBasePath: "/blueprint-framework",
                 to: "/blueprint-framework/docs/intro",
@@ -258,8 +272,8 @@ const config: Config = {
             items: [
               {
                 label: "Deploy Engine Plugins",
-                activeBasePath: "/community/deploy-engine/plugins",
-                to: "community/deploy-engine/plugins",
+                activeBasePath: "/community/plugin-framework/plugins",
+                to: "community/plugin-framework/plugins",
               },
             ],
           },
@@ -315,6 +329,12 @@ const config: Config = {
             type: "docsVersionDropdown",
             title: "Deploy Engine Version",
             docsPluginId: "deploy-engine",
+            position: "left",
+          },
+          {
+            type: "docsVersionDropdown",
+            title: "Plugin Framework Version",
+            docsPluginId: "plugin-framework",
             position: "left",
           },
           {
@@ -401,6 +421,9 @@ const config: Config = {
       },
       "deploy-engine": {
         title: "Deploy Engine",
+      },
+      "plugin-framework": {
+        title: 'Plugin Framework',
       },
       "blueprint-framework": {
         title: "Blueprint Framework",

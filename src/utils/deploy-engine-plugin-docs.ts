@@ -17,7 +17,7 @@ import {
 import { DeployEnginePluginResourcesTextContent, DeployEnginePluginTextContent } from "../contexts/deploy-engine";
 import { ValueTypeDefinition } from "./function-types";
 
-export const BASE_PATH = '/community/deploy-engine/plugins';
+export const BASE_PATH = '/community/plugin-framework/plugins';
 
 export function toSidebarItems(pluginsContent: DeployEnginePluginDocContent[]): PropSidebarItem[] {
     const providerPluginsContent = pluginsContent.filter((pluginContent) => pluginContent.pluginType === 'provider');

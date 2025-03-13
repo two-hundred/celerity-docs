@@ -211,11 +211,11 @@ function addFunctionRoutes(
 
 function loadPluginDocsContent(): DeployEnginePluginDocContent[] {
     const providerPlugins = loadPluginDocsFromDir(
-        './deploy-engine/community/plugins/providers',
+        './plugin-framework/community/plugins/providers',
         'provider',
     );
     const transformerPlugins = loadPluginDocsFromDir(
-        './deploy-engine/community/plugins/transformers',
+        './plugin-framework/community/plugins/transformers',
         'transformer',
     );
 

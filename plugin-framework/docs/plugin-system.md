@@ -1,22 +1,29 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 # Plugin System
 
 The Deploy Engine supports plugins that can be pulled in at runtime for providers and transformers.
 These plugins are [gRPC](https://grpc.io/) servers that implement one of the `Provider` or `Transformer` gRPC service interfaces.
 
-Plugins can be implemented in any language that supports gRPC, however, the Deploy Engine only provides an SDK in Go. The SDK makes for a simplified plugin building experience by abstracting away the scaffolding involved in setting up a gRPC server along with utilities for validating resources and data sources.
-
 ## Plugin Discovery
 
-Out of the box, the Deploy Engine discovers plugins by looking for executables under the `~/.celerity/deploy-engine/plugins/bin` directory. Each plugin is expected to be in a subdirectory following the ID format of `{hostname/}?{namespace}/{plugin}`. For example, a plugin for the `celerity/aws` provider would be located at `~/.celerity/deploy-engine/plugins/bin/celerity/aws`. Another example, would be that the plugin with the ID `registry.celerityframework.com/celerity/azure` would be expected to be located in `~/.celerity/deploy-engine/plugins/bin/registry.celerityframework.com/celerity/azure`. 
+Out of the box, the Deploy Engine discovers plugins by looking for executables under the `$HOME/.celerity/deploy-engine/plugins/bin` directory. The `bin` directory is expected to contain a directory for each type of plugin. Provider plugins should be in the `providers` directory, and transformer plugins should be in the `transformers` directory.
+
+Each plugin is expected to be in a subdirectory following the ID format of `{hostname/}?{namespace}/{plugin}`. For example, a plugin for the `celerity/aws` provider would be located at `$HOME/.celerity/deploy-engine/plugins/bin/providers/celerity/aws`. Another example, would be that the plugin with the ID `registry.celerityframework.com/celerity/azure` would be expected to be located in `$HOME/.celerity/deploy-engine/plugins/bin/providers/registry.celerityframework.com/celerity/azure`. 
+
+In each plugin directory, there should be a folder for each version of the plugin. The version folder should be named with the version number of the plugin. For example, the plugin version `1.0.0` would be located at `$HOME/.celerity/deploy-engine/plugins/bin/providers/celerity/aws/1.0.0`.
 
 Each plugin executable is expected to be a file named `plugin` with no file extension.
+An example of a full path to the plugin executable file would be `$HOME/.celerity/deploy-engine/plugins/bin/providers/celerity/aws/1.0.0/plugin`.
 
-For a standard install of the Deploy Engine, the `~/.celerity/deploy-engine/plugins/bin` directory is created for you and populated with the core plugins that enable the Celerity resource types.
+For a standard install of the Deploy Engine, the `$HOME/.celerity/deploy-engine/plugins/bin` directory is created for you and populated with the core plugins that enable the Celerity resource types.
 
-You can specify a custom directory for the Deploy Engine to look for plugins by setting the `CELERITY_DEPLOY_ENGINE_PLUGIN_DIR` environment variable, this will not override the default directory but will be appended to the default directory, this env var can be set to a comma separated list of directories in case you have multiple directories you want to search for plugins in.
+You can specify a custom directory for the Deploy Engine to look for plugins by appending a new directory to the `CELERITY_DEPLOY_ENGINE_PLUGIN_PATH` environment variable. This environment variable is a colon-separated list of directories that the Deploy Engine will search for plugins in. This environment variable will be set as a part of the standard Celerity installation with a default value of `$HOME/.celerity/deploy-engine/plugins/bin`. If, for some reason, this environment variable is not set, the Deploy Engine will default to the `$HOME/.celerity/deploy-engine/plugins/bin` directory.
+
+An example for a custom plugin path would be to set the `$HOME/.celerity/deploy-engine/plugins/bin:/path/to/custom/plugins`.
+
+The priority of plugin discovery is based on the order of the directories in the `CELERITY_DEPLOY_ENGINE_PLUGIN_PATH` environment variable. The Deploy Engine will search for plugins in the directories in the order they are listed in the environment variable from left to right.
 
 ## Plugin Lifecycle
 
@@ -59,9 +66,9 @@ Transient errors are only retried for plugin methods that are expected to make n
 - `provider.Link.UpdateIntermediaryResources`
 - `provider.DataSource.Fetch`
 
-## Service (Registration/Deregistration)
+## Plugin Service
 
-The Deploy Engine provides a gRPC service for plugins to register and deregister themselves. The following gRPC service definitions are supported for a provider in the selected version of the Deploy Engine:
+The Deploy Engine provides a gRPC service for plugins to register, deregister themselves and act as a gateway for inter-plugin communication. The following gRPC service definitions are supported for a provider in the selected version of the Deploy Engine:
 
 - [Service v1 gRPC Reference](https://github.com/two-hundred/celerity/tree/main/libs/deploy-engine/plugin/providerservice/service.proto)
 
@@ -70,10 +77,3 @@ The Deploy Engine provides a gRPC service for plugins to register and deregister
 Plugins must be accessible from the Deploy Engine via the local network through the loopback interface or a unix socket. Remote plugins are not supported for security and performance reasons. In regards to security, plugins do not support TLS to keep the plugin system simple and easy to use. In regards to performance, local plugins are expected to be fast and reliable, remote plugins introduce latency and potential network issues.
 
 The Deploy Engine will always attempt to connect to a plugin via the `127.0.0.1` loopback address or a unix socket, plugins can only configure the port to listen on when TCP is used.
-
-## Advanced Use Cases
-
-### Opting Out
-
-When building the engine from source, you can opt out of the gRPC-based plugin system by setting the `CELERITY_DEPLOY_ENGINE_DISABLE_PLUGINS` environment variable to `true`.
-When doing this, you will need to make sure that all the `provider.Provider` and `transformer.SpecTransformer` implementations expected by the underlying [Blueprint Framework](../../../blueprint-framework/docs/intro) are loaded in by modifying the source code that initialises the Deploy Engine.
