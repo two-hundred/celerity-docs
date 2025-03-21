@@ -10,7 +10,9 @@ These plugins are [gRPC](https://grpc.io/) servers that implement one of the `Pr
 
 Out of the box, the Deploy Engine discovers plugins by looking for executables under the `$HOME/.celerity/deploy-engine/plugins/bin` directory. The `bin` directory is expected to contain a directory for each type of plugin. Provider plugins should be in the `providers` directory, and transformer plugins should be in the `transformers` directory.
 
-Each plugin is expected to be in a subdirectory following the ID format of `{hostname/}?{namespace}/{plugin}`. For example, a plugin for the `celerity/aws` provider would be located at `$HOME/.celerity/deploy-engine/plugins/bin/providers/celerity/aws`. Another example, would be that the plugin with the ID `registry.celerityframework.com/celerity/azure` would be expected to be located in `$HOME/.celerity/deploy-engine/plugins/bin/providers/registry.celerityframework.com/celerity/azure`. 
+Each plugin is expected to be in a subdirectory following the ID format of `{hostname/}?{namespace}/{plugin}`. 
+For example, a plugin for the `celerity/aws` provider would be located at `$HOME/.celerity/deploy-engine/plugins/bin/providers/celerity/aws`. Another example, would be that the plugin with the ID `registry.customhost.com/celerity/azure` would be expected to be located in `$HOME/.celerity/deploy-engine/plugins/bin/providers/registry.customhost.com/celerity/azure`. 
+The `{hostname/}` part is only required if the plugin is hosted on a custom registry, all plugins that have an ID in the form `{namespace}/{plugin}` are assumed to be hosted in the Celerity Framework registry.
 
 In each plugin directory, there should be a folder for each version of the plugin. The version folder should be named with the version number of the plugin. For example, the plugin version `1.0.0` would be located at `$HOME/.celerity/deploy-engine/plugins/bin/providers/celerity/aws/1.0.0`.
 
@@ -25,6 +27,18 @@ An example for a custom plugin path would be to set the `$HOME/.celerity/deploy-
 
 The priority of plugin discovery is based on the order of the directories in the `CELERITY_DEPLOY_ENGINE_PLUGIN_PATH` environment variable. The Deploy Engine will search for plugins in the directories in the order they are listed in the environment variable from left to right.
 
+## Plugin IDs
+
+There are two formats for plugin IDs:
+- `{hostname/}?{namespace}/{plugin}` - This format is used for plugins that are hosted on a custom registry.
+- `{namespace}/{plugin}` - This format is used for plugins that are hosted in the Celerity Framework registry.
+
+An example for the former format would be `registry.customhost.com/celerity/azure`.
+
+An example for the latter format would be `celerity/aws`.
+
+Plugin IDs are globally unique and are used to identify a plugin regardless of type, a transformer plugin and a provider plugin must **_not_** have the same ID.
+
 ## Plugin Lifecycle
 
 The Deploy Engine will execute each discovered plugin and waits for each plugin to register itself with the plugin service by a pre-determined deadline before continuing, it will store the process ID and plugin ID (Based on the path) in memory to manage the lifecycle of the plugin.
@@ -35,7 +49,9 @@ On successful registration, the "Plugin Service" will instantiate a new plugin c
 
 On a graceful shutdown of the plugin, the plugin will deregister itself with the "Plugin Service" and the Deploy Engine will remove the plugin client from it's in-memory store.
 
-When an unrecoverable error occurs in the plugin during registration or the plugin becomes unreachable, the Deploy Engine will kill the plugin process. It will then attempt to restart the plugin process up to a maximum of 5 times (as per the default configuration). The retry limit is configurable via the `CELERITY_DEPLOY_ENGINE_PLUGIN_LAUNCH_RETRY_LIMIT` environment variable.
+When a plugin hasn't registered itself with the host after a pre-determined deadline, the Deploy Engine will kill the plugin process. It will then attempt to restart the plugin process up to a maximum of 4 times (5 launch attempts as per the default configuration). The attempt limit is configurable via the `CELERITY_DEPLOY_ENGINE_PLUGIN_LAUNCH_ATTEMPT_LIMIT` environment variable.
+If the plugin still hasn't registered itself after the maximum number of attempts, the Deploy Engine will log an error and exit with a non-zero exit code.
+The Deploy Engine does not carry on as all installed plugins are required to be registered before the Deploy Engine can continue to ensure it can not get into an unrecoverable state.
 
 ## Plugin Method Error Handling
 
