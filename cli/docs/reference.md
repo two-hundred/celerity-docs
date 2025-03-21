@@ -87,7 +87,7 @@ celerity plugins install celerity/aws celerity/azure registry.customhost.com/cel
 
 Plugins that exist in the celerity framework registry do not need the full URL with the host name,
 only plugins stored in a custom registry need the full URL.
-For example, the plugin ID `celerity/aws` will be resolved to `registry.celerityframework.com/celerity/aws`.
+For example, the plugin ID `celerity/aws` will be resolved to `registry.celerityframework.io/celerity/aws`.
 
 The Celerity CLI only supports sourcing plugins from a custom registry if it has been added to the
 allowed registries, you can create a PR or contact the Celerity team to get a custom registry

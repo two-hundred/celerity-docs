@@ -13,7 +13,7 @@
       "type": "celerity/handler",
       "label": "Celerity Handler",
       "summary": "An abstract resource for managing a Celerity application handler.",
-      "description": "The abstract resource type used to define a [Celerity Handler](https://www.celerityframework.com/docs/applications/resources/celerity-handler).",
+      "description": "The abstract resource type used to define a [Celerity Handler](https://www.celerityframework.io/docs/applications/resources/celerity-handler).",
       "specification": {
         "schema": {
           "type": "object",

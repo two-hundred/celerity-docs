@@ -588,7 +588,7 @@ True, if the substring or value is found in the string or array, false otherwise
 **Example:**
 
 ```
-${contains(values.cacheClusterConfig.host, "celerityframework.com")}
+${contains(values.cacheClusterConfig.host, "celerityframework.io")}
 ```
 
 <br/>
@@ -612,7 +612,7 @@ A function that takes a string or array and returns true if the substring or val
 ```
 ${filter(
   values.cacheClusterConfig.hosts,
-  contains_g("celerityframework.com")
+  contains_g("celerityframework.io")
 )}
 ```
 

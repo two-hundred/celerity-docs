@@ -66,7 +66,7 @@ There are three error codes that are expected to be returned by the plugin:
 `BAD_INPUT (2)` - This error code is used when the plugin encounters an error due to bad input.
 
 The Deploy Engine will retry transient errors based on a configured retry and backoff strategy.
-The actual retry behaviour is managed by the [Blueprint Framework](https://celerityframework.com/blueprint-framework/docs/intro), the Deploy Engine maps these error codes to errors that are a part of the framework's error handling system used in the data retrieval, change staging and deployment processes.
+The actual retry behaviour is managed by the [Blueprint Framework](https://celerityframework.io/blueprint-framework/docs/intro), the Deploy Engine maps these error codes to errors that are a part of the framework's error handling system used in the data retrieval, change staging and deployment processes.
 
 When the `details` field of an error response is set and is an object containing a `failureReasons` field, these reasons will be extracted and persisted as the reason for failure by the Deploy Engine. Otherwise, the error message will be used as the reason for failure.
 

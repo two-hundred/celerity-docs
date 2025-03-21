@@ -12,7 +12,7 @@ dotenvConfig({ silent: true });
 const config: Config = {
   title: "Celerity",
   tagline: "The backend toolkit that gets you moving fast",
-  url: "https://celerityframework.com",
+  url: "https://celerityframework.io",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
