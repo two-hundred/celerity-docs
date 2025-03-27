@@ -3,7 +3,7 @@ sidebar_position: 1
 ---
 # Introduction
 
-The Plugin Framework is a set of tools and libraries that allow you to extend the functionality Deploy Engine. Plugins can be used to extend the functionality of the Deploy Engine by adding providers and transformers that are compatible with the [Blueprint Framework](/blueprint-framework/docs/intro).
+The Plugin Framework allows you to extend the functionality of the Deploy Engine with blueprint resources, data sources, functions and more. Plugins can either provide elements that can be used in blueprints (e.g. resource types) or apply transformations to blueprints; the former is considered a `Provider` and the latter a `Transformer`, both concepts are defined in the [Blueprint Framework](/blueprint-framework/docs/intro).
 
 ## Plugin System Overview
 
@@ -22,3 +22,12 @@ Plugins can be implemented in any language that supports gRPC, however, the Depl
 The SDK makes it easier to build plugins by abstracting away the scaffolding involved in setting up a gRPC server, converting data types and providing utilities to define resources, data sources, functions and more.
 
 [Take me to the SDK Documentation](./sdk)
+
+## Registry Protocols & Formats
+
+The Plugin Framework comes with an official registry that plugins can be published to and downloaded from.
+The registry adheres to a set of protocols and formats that can be implemented by anyone who wishes to create their own registry to host plugins. Protocols include plugin discovery and authentication.
+
+An example for when you might want to host your own registry is when you have private plugins that you don't want to share with the public but want to leverage the Celerity CLI to manage them for an instance of the Deploy Engine.
+
+[Start with the Registry Protocol](./registry-protocols-formats/registry-protocol)
