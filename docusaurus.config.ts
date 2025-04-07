@@ -224,7 +224,6 @@ const config: Config = {
               }
             ],
           },
-
           {
             type: "dropdown",
             label: "Runtimes & SDKs",
@@ -261,6 +260,11 @@ const config: Config = {
                 to: "/go-sdk/docs/intro",
               },
             ],
+          },
+          {
+            href: "https://registry.celerityframework.io",
+            label: "Registry",
+            position: "right",
           },
           {
             href: "https://github.com/two-hundred/celerity",
