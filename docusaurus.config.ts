@@ -1,8 +1,6 @@
 import { config as dotenvConfig } from "dotenv";
 import { Config } from "@docusaurus/types";
 
-import deployEnginePluginDocsPlugin from "./deploy-engine-plugin-docs-plugin";
-
 // @ts-ignore
 dotenvConfig({ silent: true });
 
@@ -149,7 +147,6 @@ const config: Config = {
         sidebarPath: require.resolve("./sidebars-go-sdk.js"),
       },
     ],
-    deployEnginePluginDocsPlugin,
   ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -262,18 +259,6 @@ const config: Config = {
                 label: "Go",
                 activeBasePath: "/go-sdk",
                 to: "/go-sdk/docs/intro",
-              },
-            ],
-          },
-          {
-            type: "dropdown",
-            label: "Community",
-            position: "right",
-            items: [
-              {
-                label: "Deploy Engine Plugins",
-                activeBasePath: "/community/plugin-framework/plugins",
-                to: "community/plugin-framework/plugins",
               },
             ],
           },
