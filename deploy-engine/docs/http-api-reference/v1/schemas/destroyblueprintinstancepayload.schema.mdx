@@ -1,0 +1,33 @@
+---
+id: destroyblueprintinstancepayload
+title: "DestroyBlueprintInstancePayload"
+description: ""
+sidebar_label: "DestroyBlueprintInstancePayload"
+hide_title: true
+hide_table_of_contents: true
+schema: true
+sample: {"changeSetId":"a471bbb8-1267-4e65-873b-fa86bca71fcf","rollback":false}
+custom_edit_url: null
+---
+
+import Schema from "@theme/Schema";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"DestroyBlueprintInstancePayload"}
+>
+</Heading>
+
+
+
+
+
+<Schema
+  schema={{"type":"object","required":["changeSetId","rollback"],"properties":{"changeSetId":{"type":"string","description":"The ID of the change set to use to destroy the blueprint instance.\nWhen destroy a blueprint instance, a change set is used instead\nof the destroy process re-computing the changes that need to be applied.\n","example":"a471bbb8-1267-4e65-873b-fa86bca71fcf"},"rollback":{"type":"boolean","description":"If true, destroying the blueprint instance will be treated as a rollback\nfor the initial deployment of the blueprint instance.\nThis will usually be set to true when rolling back a recent first time deployment\nthat needs to be rolled back due to a failure in a parent blueprint instance.\n","example":false,"default":false}},"title":"DestroyBlueprintInstancePayload"}}
+  schemaType={"response"}
+>
+  
+</Schema>
+            

@@ -35,8 +35,14 @@ The discovery document will be a JSON object with the following structure:
 
 ```json
 {
-  "provider.v1": "https://api.registry.celerityframework.io/v1/plugins",
-  "transformer.v1": "https://api.registry.celerityframework.io/v1/plugins",
+  "provider.v1": {
+    "endpoint": "https://api.registry.celerityframework.io/v1/plugins",
+    "downloadAcceptContentType": "application/octet-stream"
+  },
+  "transformer.v1": {
+    "endpoint": "https://api.registry.celerityframework.io/v1/plugins",
+    "downloadAcceptContentType": "application/octet-stream"
+  },
   "auth.v1": {
     "endpoint": "https://github.com/login/oauth",
     "clientId": "your-client-id",
@@ -50,8 +56,12 @@ The discovery document will be a JSON object with the following structure:
 
 The following services are supported by the Plugin Framework:
 
-- `provider.v1` - The service endpoint for the registry used for a v1 provider plugin. This can be a relative path for the resolved host name or a full URL to the service on a separate host.
-- `transformer.v1` - The service endpoint for the registry used for a v1 transformer plugin. This can be a relative path for the resolved host name or a full URL to the service on a separate host.
+- `provider.v1`
+  - `endpoint` (Required) - The service endpoint for the registry used for a v1 provider plugin. This can be a relative path for the resolved host name or a full URL to the service on a separate host.
+  - `downloadAcceptContentType` (Optional) - The content type that the client should use in the `Accept` header to download the provider plugin archive. Some services such as GitHub may require a specific content type to be set in the `Accept` header to return the correct response. If not set, the client is free to choose an appropriate content type to accept for the request.
+- `transformer.v1`
+  - `endpoint` (Required) - The service endpoint for the registry used for a v1 transformer plugin. This can be a relative path for the resolved host name or a full URL to the service on a separate host.
+  - `downloadAcceptContentType` (Optional) - The content type that the client should use in the `Accept` header to download the transformer plugin archive. Some services such as GitHub may require a specific content type to be set in the `Accept` header to return the correct response. If not set, the client is free to choose an appropriate content type to accept for the request.
 - `auth.v1` - The service authentication configuration as per the [Authentication Protocol](./auth-protocol). This should be omitted if the registry does not require authentication.
 
 ## About Authentication

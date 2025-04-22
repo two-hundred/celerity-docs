@@ -8,6 +8,7 @@
 
  Create as many sidebars as you want.
  */
+import deployEngineApiv1Sidebar from './deploy-engine/docs/http-api-reference/v1/sidebar';
 
 // @ts-check
 

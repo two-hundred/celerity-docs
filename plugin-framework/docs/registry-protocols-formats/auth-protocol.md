@@ -24,7 +24,8 @@ For OAuth2, only the `client_credentials` and `authorization_code` grant types a
 ```json
 {
   "auth.v1": {
-    "apiKeyHeader": "My-Service-Api-Key"
+    "apiKeyHeader": "My-Service-Api-Key",
+    "downloadAuth": "bearer"
   }
 }
 ```
@@ -38,6 +39,8 @@ On the client side (e.g. environment running the Celerity CLI), the API key must
   }
 }
 ```
+
+This API key will then be used to authenticate requests to the registry service and to download plugins and other release artifacts.
 
 ### OAuth 2 Client Credentials
 
@@ -90,3 +93,4 @@ The following are the properties that can be provided in the `auth.v1` object:
 - `authorize` (Optional) - The path to use for the authorization step in the OAuth 2 flow. If omitted, the client will default to `/authorize`.
 - `token` (Required for OAuth) - The path to use for the token step in the OAuth 2 flow.
 - `apiKeyHeader` (Required for API Key) - The HTTP header to use for the API key.
+- `downloadAuth` (Optional) - The authentication scheme to use for downloading plugins and other release artifacts. This is only required for the `apiKeyHeader` flow. The default is `bearer`. Other options are `basic` and `digest`.

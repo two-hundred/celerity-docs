@@ -1,0 +1,33 @@
+---
+id: blueprintvalidation
+title: "BlueprintValidation"
+description: ""
+sidebar_label: "BlueprintValidation"
+hide_title: true
+hide_table_of_contents: true
+schema: true
+sample: {"id":"60d7c6c5-3984-42b9-a3c1-ae8a47a9bf55","status":"VALIDATING"}
+custom_edit_url: null
+---
+
+import Schema from "@theme/Schema";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"BlueprintValidation"}
+>
+</Heading>
+
+
+
+
+
+<Schema
+  schema={{"type":"object","required":["id","status"],"properties":{"id":{"type":"string","description":"The ID of the blueprint validation.","example":"60d7c6c5-3984-42b9-a3c1-ae8a47a9bf55"},"status":{"type":"string","description":"The status of the blueprint validation.","example":"VALIDATING","enum":["STARTING","VALIDATING","VALIDATED","FAILED"]}},"title":"BlueprintValidation"}}
+  schemaType={"response"}
+>
+  
+</Schema>
+            

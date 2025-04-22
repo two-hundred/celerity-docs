@@ -8,16 +8,13 @@ The Celerity CLI provides tooling for every stage of development for Celerity ap
 
 ## Installation
 
-To install the Celerity CLI (including deploy engine), run the following command:
+To install the Celerity CLI (including the deploy engine) on macOS, Linux or another Unix-like OS, run the following command in your terminal:
 
 ```bash
-# placeholder for installation script
-sh -c "$(curl -fsSL https://get-celerity.dev)"
+curl --proto "-https" --tslv1.2 -sSf https://sh.celerityframework.io | sh
 ```
 
-### Package Managers
-
-TODO: Add instructions for installing the CLI using OS package managers.
+This will
 
 ### Binaries
 

@@ -129,7 +129,7 @@ To use the signature, you must include it in the `Celerity-Signature-V1` header 
 ```
 POST /v1/run HTTP/1.1
 Host: api.workflow.example.com
-Celerity-Signature-V1: keyId="{keyId}", headers="Celerity-Date", signature="{signature}"
+Celerity-Signature-V1: keyId="{keyId}", headers="celerity-date", signature="{signature}"
 Celerity-Date: {timestamp}
 Content-Type: application/json
 Content-Length: 170

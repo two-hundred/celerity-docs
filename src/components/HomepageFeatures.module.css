@@ -3,16 +3,11 @@
   align-items: center;
   padding: 2rem 0;
   width: 100%;
+  border-top: 1px solid #333;
 }
 
 .featureSvg {
   padding: 10px;
   height: 200px;
   width: 200px;
-}
-
-html[data-theme='dark'] .featureSvg {
-  background: var(--ifm-color-primary);
-  border-radius: 10%;
-  padding: 30px;
 }

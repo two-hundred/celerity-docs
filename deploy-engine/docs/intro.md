@@ -68,15 +68,10 @@ Open `docs/intro.md` and edit some lines: the site **reloads automatically** and
 
 ## Architecture
 
-The Deploy Engine is made up of a core Go library and a HTTP API that wraps around it. For the most part these are treated as one and the same, they are versioned together and the interfaces are designed to be as similar as possible.
+The Deploy Engine provides a HTTP API that supports SSE (Server-Sent Events) for streaming events for change staging, validation and deployment. 
 
-For example, `v1.0.5` of the Deploy Engine Library will have a corresponding `v1.0.5` of the Deploy Engine API executable.
+The Deploy Engine API facilitates multiple versions of the HTTP API, this allows for backwards compatibility with older clients. The HTTP API version is specified in the URL path, for example `/v1/deploy`. Older versions are slowly deprecated and removed as the deploy engine is updated.
 
-The Deploy Engine API executable supports multiple versions of the HTTP API, this allows for backwards compatibility with older clients. The HTTP API version is specified in the URL path, for example `/v1/deploy`. Older versions are slowly deprecated and removed as the library and executable are updated.
+In terms of the composition of the Deploy Engine, it brings together the [Plugin Framework](../../plugin-framework/docs/intro) and [Blueprint Framework](../../blueprint-framework/docs/intro) to provide a powerful and extensible solution for deploying and managing Celerity applications and infrastructure as code.
 
-:::note
-The HTTP API version only changes when there are major breaking changes to the API.
-For example, when the library and executable are updated from `v1.1.0` to `v1.2.0`, the HTTP API version will remain `v1`.
-When the library and executable are updated from `v1.1.0` to `v2.0.0`, the HTTP API version will be updated to `v2`.
-:::
-
+The Deploy Engine itself is combined with the CLI, foundational resource provider plugins and the Celerity Application transformer plugin to provide a complete solution for managing Celerity applications.

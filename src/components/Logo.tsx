@@ -1,11 +1,7 @@
 import React from "react";
 
-type Props = {
-  mode: "light" | "dark";
-};
-
-function Logo({ mode }: Readonly<Props>) {
-  const fill = mode === "dark" ? "#212121" : "#f8f8f8";
+function Logo() {
+  const fill = "#f8f8f8";
   return (
     <svg
       width="200"

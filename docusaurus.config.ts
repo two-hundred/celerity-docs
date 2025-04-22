@@ -1,5 +1,6 @@
 import { config as dotenvConfig } from "dotenv";
 import { Config } from "@docusaurus/types";
+import { SidebarItem } from "@docusaurus/plugin-content-docs/src/sidebars/types.js";
 
 // @ts-ignore
 dotenvConfig({ silent: true });
@@ -54,8 +55,29 @@ const config: Config = {
         id: "deploy-engine",
         path: "deploy-engine",
         routeBasePath: "deploy-engine",
-        sidebarPath: require.resolve("./sidebars-deploy-engine.js"),
+        sidebarPath: require.resolve("./sidebars-deploy-engine.ts"),
+        // Derived from docusaurus-theme-openapi
+        docItemComponent: "@theme/ApiItem",
+        sidebarItemsGenerator: deployEngineSidebarItemsGenerator,
       },
+    ],
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'deploy-engine-api-v1',
+        docsPluginId: "deploy-engine",
+        config: {
+          deployEnginev1: {
+            specPath: "api-docs/deploy-engine-v1.yaml",
+            outputDir: "deploy-engine/docs/http-api-reference/v1",
+            hideSendButton: true,
+            showSchemas: true,
+            sidebarOptions: {
+              groupPathsBy: "tag",
+            }
+          }
+        }
+      }
     ],
     [
       "@docusaurus/plugin-content-docs",
@@ -148,6 +170,7 @@ const config: Config = {
       },
     ],
   ],
+  themes: ["docusaurus-theme-openapi-docs"],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -426,5 +449,39 @@ const config: Config = {
     },
   },
 };
+
+async function deployEngineSidebarItemsGenerator({defaultSidebarItemsGenerator, ...args}) {
+  const sidebarItems = await defaultSidebarItemsGenerator(args);
+  const modifiedItems = await modifyHttpReferenceItems(sidebarItems[0].items);
+  return [{
+    ...sidebarItems[0],
+    items: modifiedItems,
+  }]
+}
+
+async function modifyHttpReferenceItems(items: SidebarItem[]): Promise<SidebarItem[]> {
+  const deployEnginev1SidebarItems = await import(
+    "./deploy-engine/docs/http-api-reference/v1/sidebar",
+  );
+
+  return items.map((item) => {
+    if (item.type === "category" && item.label === "HTTP API Reference") {
+      return {
+        ...item,
+        items: item.items.map((subItem) => {
+          if (subItem.type === "category" && subItem.label == "v1") {
+            return {
+              ...subItem,
+              label: 'HTTP API v1',
+              items: deployEnginev1SidebarItems,
+            };
+          }
+          return subItem;
+        }),
+      };
+    }
+    return item;
+  }) as SidebarItem[];
+}
 
 module.exports = config;

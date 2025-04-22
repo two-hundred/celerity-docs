@@ -108,7 +108,7 @@ Each version object has the following properties:
 - **supportedProtocols** (required, array of strings) - The supported plugin protocols for this version of the plugin. Each protocol should be given in the `MAJOR.MINOR` format where there should be only one instance of each major version and the minor version indicates the highest minor version that is supported. <br />\
   This information will be used by Celerity to inform the user of the compatibility of the plugin with the current version of the Celerity Deploy Engine.
 
-- **supportedPlatforms** (required, array of objects) - The supported platforms for this version of the plugin. Each object should contain the `os` and `arch` properties. `os` must be one of `darwin`, `linux` or `windows`. `arch` must be one of `amd64` or `arm`. <br />\
+- **supportedPlatforms** (required, array of objects) - The supported platforms for this version of the plugin. Each object should contain the `os` and `arch` properties. `os` must be one of `darwin`, `linux`, `freebsd` or `windows`. `arch` must be one of `amd64`, `arm64`, `arm` or `386`. <br />\
   This information will be used by Celerity to inform the user of the compatibility of the plugin with the current platform.
 
 Return a `404 Not Found` response to indicate that the requested plugin does not exist in the registry.
@@ -117,7 +117,7 @@ Return a `404 Not Found` response to indicate that the requested plugin does not
 
 `GET /{namespace}/{plugin}/{version}/package/{os}/{arch}`
 
-Retrieves the download URL and essential metadata for the plugin package for a perticular version of the plugin for a specified operating system and architecture.
+Retrieves the download URL and essential metadata for the plugin package for a particular version of the plugin for a specified operating system and architecture.
 
 The Celerity CLI will use this endpoint to download the plugin package for installation once the matching version has been selected in configuration by the end-user.
 
@@ -126,8 +126,8 @@ The Celerity CLI will use this endpoint to download the plugin package for insta
 - **namespace** (path, string) - The namespace of the plugin.
 - **plugin** (path, string) - The name of the plugin.
 - **version** (path, string) - The version of the plugin.
-- **os** (path, string) - The target operating system for the plugin executable. Must be one of `darwin`, `linux` or `windows`.
-- **arch** (path, string) - The architecture of the plugin executable. Must be one of `amd64` or `arm`.
+- **os** (path, string) - The target operating system for the plugin executable. Must be one of `darwin`, `linux`, `freebsd` or `windows`.
+- **arch** (path, string) - The architecture of the plugin executable. Must be one of `amd64`, `arm64`, `arm` or `386`.
 
 ### Example Request
 

@@ -4,6 +4,5 @@ sidebar_position: 3
 
 # Deploy Configuration
 
-This section provides documentation for the configuration options available when deploying a Celerity application. Deploy configuration describes the target environment to a deploy a Celerity application defined in a blueprint to.
-
-Celerity will provide reasonable defaults for most configuration options, but sometimes fine-tuning is required. This section provides a reference for all available configuration options.
+This section provides documentation for configuration that would need to be provided when deploying a blueprint. 
+Providers and Transformers that are used in a blueprint need to be configured with credentials and other options that are required to deploy the resources defined in the blueprint.
