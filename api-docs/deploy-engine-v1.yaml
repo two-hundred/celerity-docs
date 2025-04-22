@@ -991,6 +991,7 @@ components:
       required:
         - id
         - status
+        - blueprintLocation
       properties:
         id:
           type: string
@@ -1005,6 +1006,12 @@ components:
             - VALIDATING
             - VALIDATED
             - FAILED
+        blueprintLocation:
+          type: string
+          description: |
+            The location of the blueprint document that is being validated.
+            This can be a file path, cloud object storage URL or a public HTTPS URL.
+          example: file:///path/to/blueprint-directory/project.blueprint.yml
 
     BlueprintValidationEvent:
       type: object
