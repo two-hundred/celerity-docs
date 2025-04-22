@@ -18,9 +18,9 @@ To install Celerity on macOS, Linux or another Unix-like OS, run the following c
 curl --proto "-https" --tlsv1.2 -sSf https://manager-sh.celerityframework.io | sh
 ```
 
-Using a different system or want to install another way? Check out other ways to install Celerity for your platform [here](../cli/docs/installation).
+Using a different system or want to install another way? Check out other ways to install Celerity for your platform [here](./installing-celerity).
 
-This will run a shell script to install the [`celerity-manager`](https://github.com/two-hundred/celerity/tree/main/tools/manager) tool that will then install the [Celerity CLI](../../cli/docs/intro), [Deploy Engine](../../deploy-engine/docs/intro), a set of core Deploy Engine plugins and the [Blueprint Language Server](../../blueprint-language-server/docs/intro) on your system.
+This will run a shell script to install the [`celerity-manager`](https://github.com/two-hundred/celerity/tree/main/tools/manager) tool that will then install the [Celerity CLI](../../cli/docs/intro), [Deploy Engine](../../deploy-engine/docs/intro), a set of core Deploy Engine plugins and the [Blueprint Language Server](https://github.com/two-hundred/celerity/tree/main/tools/blueprint-ls) on your system.
 As Celerity consists of multiple software components, the `celerity-manager` tool makes it easier to install them and manage updates.
 
 ## Generate a new blueprint project

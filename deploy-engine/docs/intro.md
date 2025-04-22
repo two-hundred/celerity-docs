@@ -21,7 +21,7 @@ The Deploy Engine contains a collection of resource type providers and other Blu
 
 ## Installation
 
-The Deploy Engine is included with the Celerity CLI, follow the instructions [here](../../cli/docs/intro#installation) to install the CLI.
+The Deploy Engine is included with the Celerity CLI and other components in a standard install, follow the instructions [here](../../docs/intro/installing-celerity) to install Celerity.
 
 ### Binaries
 
