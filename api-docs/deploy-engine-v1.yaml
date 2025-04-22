@@ -1776,6 +1776,7 @@ components:
       type: object
       required:
         - id
+        - destroy
         - status
         - blueprintLocation
         - created
@@ -1784,6 +1785,18 @@ components:
           type: string
           description: The ID of the change set.
           example: 60d7c6c5-3984-42b9-a3c1-ae8a47a9bf55
+        instanceId:
+          type: string
+          description: |
+            The ID of the blueprint instance that the change set is for.
+            This is only present for change sets that are created for existing blueprint instances.
+          example: 60d7c6c5-3984-42b9-a3c1-ae8a47a9bf55
+          nullable: true
+        destroy:
+          type: boolean
+          description: |
+            Determines whether the change set is intended for a destroy operation.
+          example: false
         status:
           type: string
           description: The status of the change set.
