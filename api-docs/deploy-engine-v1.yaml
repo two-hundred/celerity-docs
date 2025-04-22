@@ -992,6 +992,7 @@ components:
         - id
         - status
         - blueprintLocation
+        - created
       properties:
         id:
           type: string
@@ -1012,6 +1013,10 @@ components:
             The location of the blueprint document that is being validated.
             This can be a file path, cloud object storage URL or a public HTTPS URL.
           example: file:///path/to/blueprint-directory/project.blueprint.yml
+        created:
+          type: integer
+          description: The unix timestamp of when the blueprint validation was created in seconds.
+          example: 1678901234
 
     BlueprintValidationEvent:
       type: object
@@ -1773,6 +1778,7 @@ components:
         - id
         - status
         - blueprintLocation
+        - created
       properties:
         id:
           type: string
@@ -1798,6 +1804,10 @@ components:
             The changes that will be applied to the blueprint instance.
             This will be empty until the change staging process has completed.
           $ref: '#/components/schemas/ChangeSetChanges'
+        created:
+          type: integer
+          description: The unix timestamp of when the change set was created in seconds.
+          example: 1678901234
 
     ChangeSetChanges:
       type: object
