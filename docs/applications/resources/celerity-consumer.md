@@ -189,10 +189,10 @@ When deploying to serverless environments, a consumer is a placeholder for a con
 
 Handlers contain the message processing functionality that is executed in response to one or more messages being received by the consumer.
 
-#### [`celerity/secrets`](/docs/applications/resources/celerity-secrets)
+#### [`celerity/config`](/docs/applications/resources/celerity-config)
 
-Secrets can be used to store configuration and sensitive information such as API keys, database passwords, and other credentials that are used by the application.
-A consumer can link to a secret store to access secrets at runtime, linking an application to a secret store will automatically make secrets accessible to all handlers in the application without having to link each handler to the secret store.
+The `celerity/config` resource type can be used to store configuration and sensitive information such as API keys, database passwords, and other credentials that are used by the application.
+A consumer can link to a `celerity/config` resource to access secrets at runtime, linking an application to a secret and configuration store will automatically make secrets accessible to all handlers in the application without having to link each handler to the store.
 
 :::note
 Where an application is made up of a composition of consumers, an API, schedules or other triggers, secrets only need to be linked to one of the application resource types.
@@ -238,7 +238,7 @@ In the AWS environment, a consumer is deployed as a containerised version of the
 
 When the `sourceId` is a Celerity topic, an SQS Queue is created to subscribe to the topic to implement a reliable and scalable fan-out approach. The consumer application is then configured to poll the SQS Queue for messages.
 
-Consumers can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the AWS target environment.
+Consumers can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/cli/docs/deploy-configuration) for the AWS target environment.
 
 #### ECS
 
@@ -302,7 +302,7 @@ When tracing is enabled, an [ADOT lambda layer](https://aws-otel.github.io/docs/
 
 In the Google Cloud environment, consumer applications are deployed as a containerised version of the Celerity runtime.
 
-consumer applications can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Google Cloud target environment.
+consumer applications can be deployed to [Cloud Run](https://cloud.google.com/run), as well as [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) in [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview) or [Standard](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-regional-cluster) mode using [deploy configuration](/cli/docs/deploy-configuration) for the Google Cloud target environment.
 
 #### Cloud Run
 
@@ -357,7 +357,7 @@ When tracing is enabled, the built-in Google Cloud metrics and tracing offerings
 
 In the Azure environment, consumer applications are deployed as a containerised version of the Celerity runtime.
 
-Consumer applications can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure target environment.
+Consumer applications can be deployed to [Azure Container Apps](https://azure.microsoft.com/en-us/products/container-apps/) or [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/products/kubernetes-service) using [deploy configuration](/cli/docs/deploy-configuration) for the Azure target environment.
 
 #### Container Apps
 
@@ -411,7 +411,7 @@ When the `sourceId` is a Celerity topic, an Azure Storage Queue is created to su
 When it comes metrics and tracing for the Azure Functions that process messages, traces and metrics go to Application Insights by default, from which you can export logs, traces and metrics to other tools like Grafana with plugins that use Azure Monitor as a data source.
 [OpenTelemetry for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=otlp-export&pivots=programming-language-csharp) is also supported for some languages, you can use the deploy configuration to enable OpenTelemetry for Azure Functions.
 
-Consumers can be deployed to Azure Functions with Azure Storage Queue triggers using [deploy configuration](/deploy-engine/docs/deploy-configuration) for the Azure Serverless target environment.
+Consumers can be deployed to Azure Functions with Azure Storage Queue triggers using [deploy configuration](/cli/docs/deploy-configuration) for the Azure Serverless target environment.
 
 ## Configuration Mappings
 

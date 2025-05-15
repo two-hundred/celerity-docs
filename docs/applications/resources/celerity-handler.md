@@ -785,9 +785,9 @@ you can also grab the populated configuration directly and interact directly wit
 For example, you can use the AWS Step Functions SDK to trigger a workflow in AWS Step Functions but this will not translate to Google Cloud Workflows, Azure Logic Apps or the Celerity Workflow runtime.
 :::
 
-#### [`celerity/secrets`](/docs/applications/resources/celerity-secrets)
+#### [`celerity/config`](/docs/applications/resources/celerity-config)
 
-When a handler links out to a secret store, it will be configured with permissions and environment variables that will enable the handler to fetch secrets. Secrets will be fetched and passed into your handlers when they are created with the handlers SDK.
+When a handler links out to a secret and configuration store, it will be configured with permissions and environment variables that will enable the handler to fetch secrets and configuration. These values will be fetched and passed into your handlers when they are created with the handlers SDK.
 
 ## Sharing Handler Configuration
 

@@ -342,7 +342,7 @@ This field is supported by the following target environments:
 
 **field type**
 
-[noncurrentVersionExpirationConfig](#noncurrentVersionExpirationConfig)
+[noncurrentVersionExpirationConfig](#noncurrentversionexpirationconfig)
 
 **examples**
 
