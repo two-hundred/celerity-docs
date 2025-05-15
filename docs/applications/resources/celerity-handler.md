@@ -4,9 +4,9 @@ sidebar_position: 5
 
 # `celerity/handler`
 
-**v2025-04-01 (draft)**
+**v2025-08-01 (draft)**
 
-**blueprint transform:** `celerity-2025-04-01`
+**blueprint transform:** `celerity-2025-08-01`
 
 The `celerity/handler` resource type is used to define a handler that can carry out a step in a workflow, process HTTP requests, WebSocket messages, or events from queues/message brokers, scheduled events, or cloud services.
 
@@ -804,8 +804,8 @@ For approach 1, see the [celerity/handlerConfig](/docs/applications/resources/ce
 For approach 2, you would define a metadata section in the blueprint like this:
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 resources:
    # ...
 metadata:
@@ -830,8 +830,8 @@ along with resource types that can be linked to the handler resource type to add
 ### Handlers for a HTTP API
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -890,8 +890,8 @@ resources:
 ### Handlers for a WebSocket API
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -948,8 +948,8 @@ resources:
 ### Handlers for a Message Queue
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -990,8 +990,8 @@ resources:
 ### Handlers for a Pub/Sub System
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -1027,8 +1027,8 @@ resources:
 ### Handlers for a Data Store Stream
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -1065,8 +1065,8 @@ resources:
 ### Handlers for a Hybrid Application (Pub/Sub, HTTP, WebSocket)
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -1177,8 +1177,8 @@ resources:
 ### Handlers for Scheduled Events
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -1214,8 +1214,8 @@ resources:
 ### Handlers for Cloud Object Storage Events (External)
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:
@@ -1244,8 +1244,8 @@ resources:
 ### Handlers for Data Streams (External)
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     # Variable definitions ...
 resources:

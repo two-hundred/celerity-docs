@@ -13,7 +13,7 @@ info:
     should be used as the core engine where the platform provides its own API layer to manage authorisation, multi-tenancy, versioning and long-term history.
 
     ### Connecting
-    
+
     Version 1 of the Deploy Engine HTTP API can be connected to over TCP/IP using HTTP or HTTPS or over a Unix domain socket.
     Unix domain sockets are useful for instances of the Deploy Engine that are running on the same host as the client making the request, such as the default installation of Celerity where the Deploy Engine is running as a local process that the CLI communicates with.
     
@@ -38,12 +38,25 @@ info:
     ```
     
     ### Event Streams
-    
+
     Validation, change staging and deployment processes are all asynchronous and can take a long time to complete, so the API provides stream endpoints that use [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) to stream events from the Deploy Engine to the client as they occur. This allows clients to receive real-time updates on the progress of long-running processes.
-    For stream endpoints, clients can send a `Last-Event-ID` header to the server to resume the stream from a specific event ID, allowing clients to reconnect to the stream and receive events that they may have missed while disconnected. The endpoints to retrieve validation results, change sets and deployment instances are also provided to allow the client to retrieve the full picture of the current state of each of these resource types.
-    
+    For stream endpoints, clients can send a `Last-Event-ID` header to the server to resume the stream from a specific event ID, allowing clients to reconnect to the stream and receive events that they may have missed while disconnected.
+
+    When `Last-Event-ID` is not provided, the stream will start with recently queued events and current events or will end instantly if the last saved event was marked as an `end` event
+    and there are no recently queued events.
+    This means that if a connection drops off and the client reconnects without a `Last-Event-ID` header, there is a high possibility that duplicate events will be received.
+    The client should check for duplicate events and handle them accordingly.
+    The meaning of "recently queued events" is dependent on the configuration of the Deploy Engine instance, typically this will be events saved in the last 5 minutes.
+    For blueprint instance deployments, where the same instance ID can be deployed multiple times, the next stream will become available as soon as the first event from the
+    new deployment process has been received and saved.
+
     When making a request to one of the `*/events` stream endpoints, the Deploy Engine will queue events server-side if the client is not yet connected to the stream. This allows the client to receive events that have occurred in the time between the process starting and the client connecting to the stream. These events will be queued server-side and will be cleaned up after an amount of time that will be configured for the Deploy Engine instance.
-    
+
+    The endpoints to retrieve change sets and deployment instances are also provided to allow the client to retrieve the full picture of the current state of these entity types.
+    Blueprint validation results are only available as events, so clients must build up a full picture of the validation results from the event stream.
+    In most cases, the validation process will produce the same results for the same blueprint document, The exception to this would be upgrades of the deploy engine, plugins that fix bugs or change behaviour that
+    would affect the validation results.
+
     `v1` of the Deploy Engine is not designed to be relied upon to retain long-term event history, clients are responsible for storing events that they receive from the stream endpoints if required. In order for this to be as reliable as possible, clients should properly implement usage of the `Last-Event-ID` header to resume the stream from a specific event ID to capture any missed events when reconnecting to the stream.
     
     If a request to a stream endpoint is made after the process has completed, events that have been retained server-side will be sent to the client in the order that they occurred.
@@ -92,14 +105,14 @@ tags:
   - name: Events
     description: Endpoints for managing events across validation, change staging and deployments.
 paths:
-  /validation:
+  /validations:
     post:
       tags:
         - Validation
       summary: Create a Blueprint Validation
       description: |
         Create a blueprint validation. This will start a validation process for the provided blueprint
-        document and return an ID that can be used to retrieve the validation results or stream validation
+        document and return an ID that can be used to retrieve validation metadata or stream validation
         events as they occur.
       operationId: createBlueprintValidation
       parameters:
@@ -119,6 +132,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BadRequestError'
+        '422':
+          description: Uprocessable entity (input validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableEntityError'
         '401':
           description: Unauthorized
           content:
@@ -135,7 +154,7 @@ paths:
         - oauth_jwt: []
         - api_key: []
 
-  /validation/{id}:
+  /validations/{id}:
     get:
       tags:
         - Validation
@@ -182,7 +201,7 @@ paths:
         - oauth_jwt: []
         - api_key: []
 
-  /validation/{id}/stream:
+  /validations/{id}/stream:
     get:
       tags:
         - Validation
@@ -222,11 +241,11 @@ paths:
             ```plaintext
             event: diagnostic
             id: 60d7c6c5-3984-42b9-a3c1-ae8a47a9bf55
-            data: {"message":"Incorrect blueprint version","level":1,"timestamp":1678901234}
+            data: {"message":"Incorrect blueprint version","level":1,"timestamp":1678901234,"end":false}
 
             event: diagnostic
             id: 62d3cac5-3984-42b9-a3c1-ae8a47a9bf33
-            data: {"message":"Unsupported transform provided","level":2,"timestamp":1678901234}
+            data: {"message":"Unsupported transform provided","level":2,"timestamp":1678901234,"end":true}
             ````
           content:
             text/event-stream:
@@ -272,7 +291,7 @@ paths:
         - oauth_jwt: []
         - api_key: []
 
-  /validation/cleanup:
+  /validations/cleanup:
     post:
       tags:
         - Validation
@@ -347,6 +366,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BadRequestError'
+        '422':
+          description: Uprocessable entity (input or source blueprint validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableEntityError'
         '401':
           description: Unauthorized
           content:
@@ -475,6 +500,8 @@ paths:
                       - resourceChanges
                       - childChanges
                       - linkChanges
+                      - changeStagingComplete
+                      - error
                   id:
                     type: string
                     description: The ID of the event.
@@ -553,8 +580,8 @@ paths:
         Create a new blueprint deployment instance.
         This will start the deployment process for the provided blueprint
         document and change set.
-        It will return an ID that can be used to retrieve the blueprint instance
-        or stream deployment events as they occur.
+        It will return a blueprint instance resource containing an ID that can be used to
+        stream deployment events as they occur.
       operationId: createBlueprintInstance
       parameters:
         - $ref: '#/components/parameters/celeritySignatureV1Param'
@@ -573,6 +600,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BadRequestError'
+        '422':
+          description: Uprocessable entity (input or source blueprint validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableEntityError'
         '401':
           description: Unauthorized
           content:
@@ -625,6 +658,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BadRequestError'
+        '422':
+          description: Uprocessable entity (input or source blueprint validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableEntityError'
         '401':
           description: Unauthorized
           content:
@@ -852,6 +891,7 @@ paths:
                       - link
                       - instanceUpdate
                       - finish
+                      - error
                   id:
                     type: string
                     description: The ID of the event.
@@ -977,14 +1017,20 @@ components:
             For `s3`, `gcs` and `azureblob` sources, this must be the path to the virtual directory where the first path segment
             is the bucket/container name and the rest of the path is the path to the virtual directory.
             An example for a remote object storage source would be `bucket-name/path/to/blueprint-directory`.
-            For `https` sources, this must be the base URL to the blueprint document excluding the scheme.
-            An example for a `https` source would be `example.com/path/to/blueprint-directory`.
+            For `https` sources, this must be the path to the blueprint document,
+            a host must be supplied in the `blueprintLocationMetadata` field.
+            An example for a `https` source would be `/path/to/blueprint-directory` with a
+            `blueprintLocationMetadata.host` field set to `example.com`.
           example: /path/to/blueprint-directory
         blueprintFile:
           type: string
           description: The name of the blueprint file to validate.
           example: project.blueprint.yml
           default: project.blueprint.yml
+        blueprintLocationMetadata:
+          $ref: '#/components/schemas/BlueprintLocationMetadata'
+        config:
+          $ref: '#/components/schemas/Config'
 
     BlueprintValidation:
       type: object
@@ -1024,6 +1070,7 @@ components:
         - message
         - level
         - timestamp
+        - end
       properties:
         message:
           type: string
@@ -1039,12 +1086,21 @@ components:
           example: 1678901234
         range:
           $ref: "#/components/schemas/DiagnosticRange"
+        end:
+          type: boolean
+          description: |
+            Indicates whether or not the diagnostic event is the last event in the stream.
+            This will be true if the event is the last event in the stream.
+            This will be false if the event is not the last event in the stream.
+          example: false
 
     ChangeStagingEvent:
       oneOf:
         - $ref: '#/components/schemas/ResourceChangesEvent'
         - $ref: '#/components/schemas/ChildChangesEvent'
         - $ref: '#/components/schemas/LinkChangesEvent'
+        - $ref: '#/components/schemas/ChangeStagingCompleteEvent'
+        - $ref: '#/components/schemas/ErrorEvent'
     
     ResourceChangesEvent:
       type: object
@@ -1171,6 +1227,43 @@ components:
           description: The unix timestamp of the event in seconds.
           example: 1678901234
 
+    ChangeStagingCompleteEvent:
+      type: object
+      required:
+        - changes
+        - timestamp
+      properties:
+        changes:
+          description: The changes that will be made to the blueprint when deploying the change set.
+          allOf:
+            - $ref: '#/components/schemas/ChangeSetChanges'
+        timestamp:
+          type: integer
+          description: The unix timestamp of the event in seconds.
+          example: 1678901234
+
+    ErrorEvent:
+      type: object
+      required:
+        - message
+        - timestamp
+      properties:
+        message:
+          type: string
+          description: The error message.
+          example: Failed to stage changes for resourceA
+        diagnostics:
+          type: array
+          description: |
+            A list of diagnostics extracted from an error during change staging or deployment,
+            this will be present if there are validation errors when loading the blueprint document.
+          items:
+            $ref: '#/components/schemas/Diagnostic'
+        timestamp:
+          type: integer
+          description: The unix timestamp of the event in seconds.
+          example: 1678901234
+
     DeploymentEvent:
       oneOf:
         - $ref: '#/components/schemas/ResourceDeploymentEvent'
@@ -1178,6 +1271,7 @@ components:
         - $ref: '#/components/schemas/LinkDeploymentEvent'
         - $ref: '#/components/schemas/InstanceUpdateDeploymentEvent'
         - $ref: '#/components/schemas/FinishDeploymentEvent'
+        - $ref: '#/components/schemas/ErrorEvent'
 
     ResourceDeploymentEvent:
       type: object
@@ -1503,15 +1597,32 @@ components:
             - $ref: '#/components/schemas/BlueprintInstanceCompletionDurations'
           nullable: true
 
+    Diagnostic:
+      type: object
+      required:
+        - message
+        - level
+      properties:
+        message:
+          type: string
+          description: The message of the diagnostic.
+          example: Incorrect blueprint version
+        level:
+          type: integer
+          description: The level of the diagnostic.
+          example: 1
+        range:
+          $ref: "#/components/schemas/DiagnosticRange"
+
     DiagnosticRange:
       type: object
       properties:
         start:
           description: The start position of the range.
-          $ref: "#/components/schemas/SourcePosition"
+          $ref: "#/components/schemas/SourceMeta"
         end:
           description: The end position of the range.
-          $ref: "#/components/schemas/SourcePosition"
+          $ref: "#/components/schemas/SourceMeta"
         columnAccuracy:
           type: integer
           description: The column accuracy of the range in the host document.
@@ -1519,6 +1630,25 @@ components:
           enum:
             - 1
             - 2
+
+    SourceMeta:
+      type: object
+      properties:
+        line:
+          type: integer
+          description: The line number of the source position.
+          example: 1
+        column:
+          type: integer
+          description: The column number of the source position.
+          example: 1
+        endPosition:
+          description: |
+            An optional end position for the location where the location represents
+            a range that identifies a particular item in a document.
+          allOf:
+            - $ref: "#/components/schemas/SourcePosition"
+          nullable: true
 
     SourcePosition:
       type: object
@@ -1569,14 +1699,18 @@ components:
             For `s3`, `gcs` and `azureblob` sources, this must be the path to the virtual directory where the first path segment
             is the bucket/container name and the rest of the path is the path to the virtual directory.
             An example for a remote object storage source would be `bucket-name/path/to/blueprint-directory`.
-            For `https` sources, this must be the base URL to the blueprint document excluding the scheme.
-            An example for a `https` source would be `example.com/path/to/blueprint-directory`.
+            For `https` sources, this must be the path to the blueprint document,
+            a host must be supplied in the `blueprintLocationMetadata` field.
+            An example for a `https` source would be `/path/to/blueprint-directory` with a
+            `blueprintLocationMetadata.host` field set to `example.com`.
           example: /path/to/blueprint-directory
         blueprintFile:
           type: string
           description: The name of the blueprint file to use to stage changes.
           example: project.blueprint.yml
           default: project.blueprint.yml
+        blueprintLocationMetadata:
+          $ref: '#/components/schemas/BlueprintLocationMetadata'
         instanceId:
           type: string
           description: |
@@ -1585,6 +1719,7 @@ components:
             a change set for a new blueprint instance deployment will be created.
 
             This should be left empty if the `instanceName` field is provided.
+            When both `instanceId` and `instanceName` are provided, the `instanceId` field will be used.
           example: a471bbb8-1267-4e65-873b-fa86bca71fcf
         instanceName:
           type: string
@@ -1594,6 +1729,7 @@ components:
             a change set for a new blueprint instance deployment will be created.
 
             This should be left empty if the `instanceId` field is provided.
+            When both `instanceId` and `instanceName` are provided, the `instanceId` field will be used.
           example: my-instance
         destroy:
           type: boolean
@@ -1603,6 +1739,8 @@ components:
             If this is not provided, the default value is false.
           example: false
           default: false
+        config:
+          $ref: '#/components/schemas/Config'
 
     CreateBlueprintInstancePayload:
       type: object
@@ -1656,8 +1794,10 @@ components:
             For `s3`, `gcs` and `azureblob` sources, this must be the path to the virtual directory where the first path segment
             is the bucket/container name and the rest of the path is the path to the virtual directory.
             An example for a remote object storage source would be `bucket-name/path/to/blueprint-directory`.
-            For `https` sources, this must be the base URL to the blueprint document excluding the scheme.
-            An example for a `https` source would be `example.com/path/to/blueprint-directory`.
+            For `https` sources, this must be the path to the blueprint document,
+            a host must be supplied in the `blueprintLocationMetadata` field.
+            An example for a `https` source would be `/path/to/blueprint-directory` with a
+            `blueprintLocationMetadata.host` field set to `example.com`.
           example: /path/to/blueprint-directory
         blueprintFile:
           type: string
@@ -1668,6 +1808,8 @@ components:
             be resolved at deploy time and is required for deployment orchestration.
           example: project.blueprint.yml
           default: project.blueprint.yml
+        blueprintLocationMetadata:
+          $ref: '#/components/schemas/BlueprintLocationMetadata'
         rollback:
           type: boolean
           description: |
@@ -1675,6 +1817,8 @@ components:
             for a previously destroyed blueprint instance.
           example: false
           default: false
+        config:
+          $ref: '#/components/schemas/Config'
 
     UpdateBlueprintInstancePayload:
       type: object
@@ -1728,8 +1872,10 @@ components:
             For `s3`, `gcs` and `azureblob` sources, this must be the path to the virtual directory where the first path segment
             is the bucket/container name and the rest of the path is the path to the virtual directory.
             An example for a remote object storage source would be `bucket-name/path/to/blueprint-directory`.
-            For `https` sources, this must be the base URL to the blueprint document excluding the scheme.
-            An example for a `https` source would be `example.com/path/to/blueprint-directory`.
+            For `https` sources, this must be the path to the blueprint document,
+            a host must be supplied in the `blueprintLocationMetadata` field.
+            An example for a `https` source would be `/path/to/blueprint-directory` with a
+            `blueprintLocationMetadata.host` field set to `example.com`.
           example: /path/to/blueprint-directory
         blueprintFile:
           type: string
@@ -1740,6 +1886,8 @@ components:
             be resolved at deploy time and is required for deployment orchestration.
           example: project.blueprint.yml
           default: project.blueprint.yml
+        blueprintLocationMetadata:
+          $ref: '#/components/schemas/BlueprintLocationMetadata'
         rollback:
           type: boolean
           description: |
@@ -1747,6 +1895,8 @@ components:
             for the previous update to the blueprint instance.
           example: false
           default: false
+        config:
+          $ref: '#/components/schemas/Config'
 
     DestroyBlueprintInstancePayload:
       type: object
@@ -1771,6 +1921,8 @@ components:
             that needs to be rolled back due to a failure in a parent blueprint instance.
           example: false
           default: false
+        config:
+          $ref: '#/components/schemas/Config'
 
     ChangeSet:
       type: object
@@ -3057,6 +3209,47 @@ components:
       required:
         - message
 
+    UnprocessableEntityError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Input validation failed
+        errors:
+          type: array
+          description: |
+            A list of input validation errors, specifying the location and
+            type of error.
+          items:
+            type: object
+            required:
+              - location
+              - message
+              - type
+            properties:
+              location:
+                type: string
+                description: The location of the error in the request.
+                example: body
+              message:
+                type: string
+                description: A message describing the error.
+                example: "Value must be one of the following: [aws, azure]"
+              type:
+                type: string
+                description: The type of error.
+                example: oneof
+        validationDiagnostics:
+          type: array
+          description: |
+            A list of validation diagnostics that provide additional information
+            about validation errors that occurred as a part of loading the source
+            blueprint document specified in the request.
+          items:
+            $ref: '#/components/schemas/Diagnostic'
+
     NotFoundError:
       type: object
       properties:
@@ -3075,9 +3268,103 @@ components:
           type: string
           example: Cleanup started
 
+    BlueprintLocationMetadata: 
+      type: object
+      description: |
+        Additional metadata about the location of the blueprint document.
+        For example, this can be used to specify the region of the bucket or container
+        where the blueprint document is located in a cloud object storage service.
+        This only supports scalar values.
+      additionalProperties:
+        oneOf:
+          - type: string
+            description: The string value for a metadata property.
+            example: us-east-1
+          - type: number
+            description: The numeric value for a metadata property.
+            example: 1.0
+          - type: boolean
+            description: The boolean value for a metadata property.
+            example: true
+        description: The value of the metadata property.
+        example: us-east-1
+      example:
+        region: us-east-1
+
+    Config:
+      type: object
+      description: |
+        Configuration used for carrying out actions for blueprints.
+        This consists of environment configuration (context-wide),
+        provider and transformer plugin specific configuration
+        along with blueprint variables.
+      properties:
+        providers:
+          type: object
+          additionalProperties:
+            type: object
+            description: |
+              Configuration for a provider plugin.
+              This is used to configure a specific provider plugin
+              when carrying out specific actions for a blueprint.
+            additionalProperties:
+              $ref: '#/components/schemas/ScalarValue'
+        transformers:
+          type: object
+          additionalProperties:
+            type: object
+            description: |
+              Configuration for a transformer plugin.
+              This is used to configure a specific transformer plugin
+              when carrying out specific actions for a blueprint.
+            additionalProperties:
+              $ref: '#/components/schemas/ScalarValue'
+        contextVariables:
+          type: object
+          description: |
+            Context variables that provide information that can be used across
+            components of the blueprint validation, change staging and deployment processes.
+          additionalProperties:
+            $ref: '#/components/schemas/ScalarValue'
+        blueprintVariables:
+          type: object
+          description: |
+            Blueprint variables that are expected to match the variables
+            defined in the source blueprint document an action is being carried out for.
+            When evaluating a blueprint document, variables will be derived from
+            the variables defined in this object.
+          additionalProperties:
+            $ref: '#/components/schemas/ScalarValue'
+      example:
+        providers:
+          aws:
+            accessKeyId: my-access-key-id
+            secretAccessKey: secret-access-key
+        transformers:
+          celerity-transform:
+            deployTarget: aws-serverless
+        contextVariables:
+          myConfigKey: my-config-value
+        blueprintVariables:
+          region: us-east-1
+
     AnyValue:
       description: |
         A value of any type, can be a string, number, boolean, object or array.
+      
+    ScalarValue:
+      description: |
+        A scalar value type, can be a string, number or boolean.
+      oneOf:
+        - type: string
+          description: The string value.
+          example: my-string-value
+        - type: number
+          description: The numeric value.
+          example: 1.0
+        - type: boolean
+          description: The boolean value.
+          example: true
 
   requestBodies:
     CreateBlueprintValidationBody:

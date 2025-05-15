@@ -26,14 +26,14 @@ TODO: Add links to binaries for all supported platform architectures.
 
 Once installed, the CLI can be run by executing the `celerity` command in the terminal.
 
-For information on all the available options and commands, run:
+For information on global options and all the available commands, run:
 
 ```bash
 celerity help
 ```
 
-To get usage information for a specific subcommand, run:
+To get usage information for a specific command, run:
 
 ```bash
-celerity [subcommand] --help
+celerity [command] --help
 ```

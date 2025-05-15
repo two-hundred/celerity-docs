@@ -162,6 +162,18 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "docs/http-api-reference/v1/schemas/changestagingcompleteevent",
+          label: "ChangeStagingCompleteEvent",
+          className: "schema",
+        },
+        {
+          type: "doc",
+          id: "docs/http-api-reference/v1/schemas/errorevent",
+          label: "ErrorEvent",
+          className: "schema",
+        },
+        {
+          type: "doc",
           id: "docs/http-api-reference/v1/schemas/deploymentevent",
           label: "DeploymentEvent",
           className: "schema",
@@ -198,8 +210,20 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "docs/http-api-reference/v1/schemas/diagnostic",
+          label: "Diagnostic",
+          className: "schema",
+        },
+        {
+          type: "doc",
           id: "docs/http-api-reference/v1/schemas/diagnosticrange",
           label: "DiagnosticRange",
+          className: "schema",
+        },
+        {
+          type: "doc",
+          id: "docs/http-api-reference/v1/schemas/sourcemeta",
+          label: "SourceMeta",
           className: "schema",
         },
         {
@@ -390,6 +414,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "docs/http-api-reference/v1/schemas/unprocessableentityerror",
+          label: "UnprocessableEntityError",
+          className: "schema",
+        },
+        {
+          type: "doc",
           id: "docs/http-api-reference/v1/schemas/notfounderror",
           label: "NotFoundError",
           className: "schema",
@@ -402,8 +432,26 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "docs/http-api-reference/v1/schemas/blueprintlocationmetadata",
+          label: "BlueprintLocationMetadata",
+          className: "schema",
+        },
+        {
+          type: "doc",
+          id: "docs/http-api-reference/v1/schemas/config",
+          label: "Config",
+          className: "schema",
+        },
+        {
+          type: "doc",
           id: "docs/http-api-reference/v1/schemas/anyvalue",
           label: "AnyValue",
+          className: "schema",
+        },
+        {
+          type: "doc",
+          id: "docs/http-api-reference/v1/schemas/scalarvalue",
+          label: "ScalarValue",
           className: "schema",
         },
       ],

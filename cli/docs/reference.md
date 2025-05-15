@@ -6,27 +6,109 @@ sidebar_position: 2
 
 This section provides the reference for the available commands and flags for the Celerity CLI.
 
+Options that are marked with a `boolean` type are command line flags that do not take a value, however their config file and environment variable equivalents do take a value that should be set to one of `true`, `false`, `1` or `0`.
+
 ## Global Options
 
 :::note
 CLI options take precedence over [configuration](./configuration) from environment variables and values from a configuration file.
 :::
 
-## `init`
+### `--config`
 
-This command initialises a new Celerity project.
-It will take you through a series of prompts to create a new project.
-You can provide command line options to skip parts of the interactive process of setting up a new project.
+The path to the configuration file to source CLI configuration from.
+Relative paths are expected to be relative to the current working directory.
 
-### `--language`
+**Type**: `string`
 
-**Environment Variable**: `CELERITY_CLI_INIT_LANGUAGE`
+**Default Value**: `celerity.config.toml`
 
-**Configuration Key**: `initLanguage`
+### `--deploy-config-file`
 
-**Allowed Values**: `nodejs` | `python` | `java` | `dotnet` | `go` | `rust`
+**Environment Variable**: `CELERITY_CLI_DEPLOY_CONFIG_FILE`
 
-The language or framework to use for a new Celerity project.
+**Configuration Key**: `deployConfigFile`
+
+**Type**: `string`
+
+**Default Value**: `celerity.deploy.jsonc`
+
+The path to the deploy configuration file that contains blueprint variable overrides and configuration for providers and transformers.
+This file is expected to be in the JSON with Commas and Comments format described in the [Deploy Configuration](./deploy-configuration) doc.
+
+If the file is not found, the CLI will send empty configuration to the Deploy Engine, which will in most cases result in an error in the response from the Deploy Engine.
+
+This file is used by the `stage-changes`, `deploy`, `destroy` and `validate` commands.
+
+### `--app-deploy-config-file`
+
+**Environment Variable**: `CELERITY_CLI_APP_DEPLOY_CONFIG_FILE`
+
+**Configuration Key**: `appDeployConfigFile`
+
+**Type**: `string`
+
+**Default Value**: `app.deploy.jsonc`
+
+The path to the app deploy configuration file that contains blueprint variable overrides and configuration for the target environment for a Celerity application.
+This file is expected to be in the JSON with Commas and Comments format described in the [App Deploy Configuration](./app-deploy-configuration) doc.
+
+This file is used by the `app build`, `stage-changes`, `deploy`, `destroy` and `validate` commands.
+
+### `--connect-protocol`
+
+**Environment Variable**: `CELERITY_CLI_CONNECT_PROTOCOL`
+
+**Configuration Key**: `connectProtocol`
+
+**Type**: `string`
+
+**Default Value**: `unix`
+
+**Allowed Values**: `unix` | `tcp`
+
+The protocol to connect to the deploy engine with,
+this can be either `unix` or `tcp`.
+A unix socket can only be used on linux, macos and other unix-like operating systems.
+To use a `unix` socket on windows, you will need to use WSL 2 or above.
+
+### `--engine-endpoint`
+
+**Environment Variable**: `CELERITY_CLI_ENGINE_ENDPOINT`
+
+**Configuration Key**: `engineEndpoint`
+
+**Type**: `string`
+
+**Default Value**: `http://localhost:8325`
+
+The endpoint of the deploy engine api, this is used if `--connect-protocol` is set to `tcp`.
+
+### `--skip-plugin-config-validation`
+
+**Environment Variable**: `CELERITY_CLI_SKIP_PLUGIN_CONFIG_VALIDATION`
+
+**Configuration Key**: `skipPluginConfigValidation`
+
+**Type**: `boolean`
+
+**Default Value**: `false`
+
+This flag skips the validation of the deploy configuration file against plugin configuration schemas.
+When not set, the provider and transformer configuration will be validated against the plugin configuration schemas.
+This is applied to the `stage-changes`, `deploy`, `destroy` and `validate` commands.
+
+## `help`
+
+For information on all the available commands and global options, run the following:
+```bash
+celerity help
+```
+
+To get usage information for a specific command, run the following:
+```bash
+celerity [command] --help
+```
 
 ## `validate`
 
@@ -41,6 +123,67 @@ It can also be used to validate a single blueprint file.
 **Configuration Key**: `validateBlueprintFile`
 
 **Default Value**: `app.blueprint.yaml`
+
+### `--runtime-blueprint-vars`
+
+**Environment Variable**: `CELERITY_CLI_VALIDATE_RUNTIME_BLUEPRINT_VARS`
+
+**Configuration Key**: `validateRuntimeBlueprintVars`
+
+**Type**: `boolean`
+
+**Default Value**: `false`
+
+This flag enables validation of the blueprint variable values that are set in the deploy configuration file.
+By default, the CLI will not validate the blueprint variable overrides set in the deploy configuration file when validating a blueprint file.
+
+## `stage-changes`
+
+## `deploy`
+
+## `destroy`
+
+## `login`
+
+This command logs into a plugin registry to allow the installation of plugins from specific protected registries by host.
+
+An example of logging into a plugin registry:
+```bash
+celerity login registry.customhost.com
+```
+
+The auth configuration for plugin registries is expected to be present in the `$HOME/.celerity/auth.json` file.
+See the [Plugin Registry Authentication Protocol](/plugin-framework/docs/registry-protocols-formats/auth-protocol) for more information on how to authenticate with a plugin registry.
+
+## `app`
+
+This is the command category for managing Celerity applications.
+
+### `init`
+
+This command initialises a new Celerity application project.
+It will take you through a series of prompts to create a new application project.
+You can provide command line options to skip parts of the interactive process of setting up a new application project.
+
+#### `--language`
+
+**Environment Variable**: `CELERITY_CLI_INIT_LANGUAGE`
+
+**Configuration Key**: `initLanguage`
+
+**Allowed Values**: `nodejs` | `python` | `java` | `dotnet` | `go` | `rust`
+
+The language or framework to use for a new Celerity project.
+
+### `start`
+
+### `build`
+
+### `test`
+
+Run tests for a Celerity application.
+This will set up an isolated environment that sets up and tears down test fixtures used with [Celerity::1](/celerity-one/docs/intro).
+The underlying test runner will depend on the language used for the application.
 
 ## `plugins`
 
@@ -96,3 +239,6 @@ verified and added to the list of allowed registries.
 As plugin IDs are globally unique, the CLI does not differentiate between provider and transformer plugins
 for the sake of installation.
 
+### `uninstall`
+
+## `version`

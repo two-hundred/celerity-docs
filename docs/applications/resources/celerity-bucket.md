@@ -4,9 +4,9 @@ sidebar_position: 9
 
 # `celerity/bucket`
 
-**v2025-04-01 (draft)**
+**v2025-08-01 (draft)**
 
-**blueprint transform:** `celerity-2025-04-01`
+**blueprint transform:** `celerity-2025-08-01`
 
 The `celerity/bucket` resource type defines an object storage bucket that can be used to store files and other data for a Celerity application.
 

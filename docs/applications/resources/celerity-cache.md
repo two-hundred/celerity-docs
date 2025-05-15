@@ -4,9 +4,9 @@ sidebar_position: 14
 
 # `celerity/cache`
 
-**v2025-04-01 (draft)**
+**v2025-08-01 (draft)**
 
-**blueprint transform:** `celerity-2025-04-01`
+**blueprint transform:** `celerity-2025-08-01`
 
 The `celerity/cache` resource type defines a SQL database for a Celerity application.
 A Celerity database supports MySQL and Postgres databases.

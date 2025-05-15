@@ -8,7 +8,7 @@ Celerity supports a range of architectures for building multi-cloud applications
 
 This includes applications that provide HTTP APIs, WebSocket APIs, pub/sub message handling, queue message handling, workflows, scheduled event triggers and responding to cloud service events.
 
-You can also define core infrastructure resources including databases, storage, queues, pub/sub, secret stores and network resources for your application.
+You can also define core infrastructure resources including databases, storage, queues, pub/sub, secret/configuration stores and network resources for your application.
 
 ## HTTP APIs
 
@@ -31,8 +31,8 @@ You should limit the amount of consumers defined in a single blueprint to avoid 
 An example of multiple consumers in a single application:
 
 ```yaml
-version: 2025-02-01
-transform: celerity-2025-04-01
+version: 2025-05-12
+transform: celerity-2025-08-01
 variables:
     ordersQueue:
         type: string

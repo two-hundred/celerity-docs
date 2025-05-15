@@ -5,7 +5,7 @@ toc_max_heading_level: 4
 
 # Specification
 
-**v2025-02-01**
+**v2025-05-12**
 
 This section provides the first version of the Blueprint Specification with accompanying examples.
 
@@ -22,7 +22,9 @@ For example, this could abstract away a significant portion of dealing with perm
 The purpose of the blueprint specification and supporting implementations is to provide the backbone of scalable
 code and infrastructure deployment tools and to be a part of an ecosystem of composable tools that super charge developers to deliver high quality products and services at a fast pace.
 
-A blueprint can either be in JSON or YAML format.
+A blueprint can either be in JWCC ([JSON with Commas and Comments](https://nigeltao.github.io/blog/2021/json-with-commas-comments.html)) or YAML format.
+The JWCC format is a JSON-based format that allows for comments and trailing commas, making it easier to read and write for the purpose of configuration.
+The `.jsonc` extension is typically used for JWCC files, and is the recommended extension to be used with implementations of this spec.
 
 ## Yet another specification for resources?
 
@@ -56,9 +58,9 @@ string
 
 **allowed values** 
 
-2025-02-01
+2025-05-12
 
-For the v2025-02-01 version of the specification, the only valid value is `2025-02-01`.
+For the v2025-05-12 version of the specification, the only valid value is `2025-05-12`.
 
 <br/>
 
@@ -75,7 +77,7 @@ string | array[string]
 
 **example**
 
-celerity-2025-04-01
+celerity-2025-08-01
 
 *Representing a hypothetical transform for a celerity application.*
 
@@ -105,10 +107,14 @@ mapping[name(string), [variableDefinition](#variabledefinition)]
 
 **example**
 
-JSON
+JSON With Commas and Comments
 
-```json
+```javascript
 {
+  // The initial version of the blueprint spec.
+  "version": "2025-05-12",
+  // The transform to be applied to the blueprint.
+  "transform": "celerity-2025-08-01",
   "variables": {
     "databaseHost": {
       "type": "string",
@@ -125,6 +131,7 @@ JSON
     "databasePassword": {
       "type": "string",
       "description": "The password of the user to connect to the database with",
+      // This is important to keep the database password out of any logs.
       "secret": true
     },
     "instanceSize": {
@@ -143,6 +150,7 @@ JSON
 ```
 
 YAML
+
 ```yaml
 variables:
   databaseHost:
@@ -234,9 +242,9 @@ mapping[string, [valueDefinition](#valuedefinition)]
 
 **example**
 
-JSON
+JSON with Commas and Comments
 
-```json
+```javascript
 {
   "values": {
     "s3BucketNames": {
@@ -312,9 +320,9 @@ mapping[string, [datasourceDefinition](#datasourcedefinition)]
 
 **example**
 
-JSON
+JSON with Commas and Comments
 
-```json
+```javascript
 {
   "datasources": {
     "network": {
@@ -325,6 +333,8 @@ JSON
       "filter": {
         "field": "tags",
         "operator": "has key",
+        // Dynamic values can be used in the search value
+        // for a data source filter.
         "search": "${variables.environment}"
       },
       "exports": {
@@ -394,9 +404,9 @@ mapping[string, [resourceDefinition](#resourcedefinition)]
 
 **example**
 
-JSON
+JSON with Commas and Comments
 
-```json
+```javascript
 {
   "resources": {
     "saveOrderFunction": {
@@ -492,11 +502,12 @@ mapping[string, [includeDefinition](#includedefinition)]
 
 **example**
 
-JSON
+JSON with Commas and Comments
 
-```json
+```javascript
 {
   "include": {
+    // Consider changing the name to something other than coreInfra.
     "coreInfra": {
       "path": "core-infra.yaml",
       "description": "core infra (including database) for the Orders API",
@@ -562,14 +573,16 @@ mapping[string, [exportDefinition](#exportdefinition)]
 
 **example**
 
-JSON
+JSON with Commas and Comments
 
-```json
+```javascript
 {
   "exports": {
     "saveOrdersFunctionArn": {
       "type": "string",
       "description": "The ARN of the function used to save orders to the system.",
+      // ${..} substitutions are not allowed in the field property
+      // so we must reference the path to a field as a string.
       "field": "resources.saveOrdersFunction.spec.functionArn"
     },
     "saveOrdersFunctionName": {
@@ -607,12 +620,15 @@ mapping[string, ( string | object | array | boolean | float | integer ) ]
 
 **example**
 
-JSON
+JSON with Commas and Comments
 
-```json
+```javascript
 {
   "metadata": {
     "function.builder": "ESM",
+    // The benefits of minifying are still being evaluated,
+    // it might be worth removing this in the future if it doesn't
+    // provide a significant benefit. 
     "function.builder.minify": false
   }
 }
@@ -1531,7 +1547,7 @@ Remote file system example:
 # main-blueprint.yaml
 include:
   coreInfrastructure:
-    path: core-infra-2025-02-01.yaml
+    path: core-infra-2025-05-12.yaml
     metadata:
       sourceType: aws/s3
       bucket: order-system-blueprints
@@ -2718,7 +2734,7 @@ The following section contains a set of examples of how you can pull in one or m
 `main-blueprint.yaml`
 
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
 
@@ -2769,7 +2785,7 @@ exports:
 
 `core-infra.yaml`
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
     orderTopicType:
@@ -2797,7 +2813,7 @@ exports:
 `app-infra.yaml`
 
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
   region:
@@ -2836,7 +2852,7 @@ exports:
 `app-infra/main-blueprint.yaml`
 
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
 
@@ -2894,7 +2910,7 @@ exports:
 
 `core-infra/topics.yaml`
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
   orderTopicType:
@@ -2921,7 +2937,7 @@ exports:
 
 `core-infra/event-bus.yaml`
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
   eventBus:
@@ -2946,7 +2962,7 @@ exports:
 `app-infra/api.yaml`
 
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 
 variables:
   region:
@@ -2985,7 +3001,7 @@ For example, if the remote source was an AWS S3 bucket:
 ```yaml
 include:
   coreInfrastructure:
-    path: core-infra-2025-02-01.yaml
+    path: core-infra-2025-05-12.yaml
     metadata:
       sourceType: aws/s3
       bucket: order-system-blueprints
@@ -3005,7 +3021,7 @@ The following is an example of how an implementation might go about supporting b
 
 
 ```yaml
-version: 2025-02-01
+version: 2025-05-12
 variables:
 
   region:

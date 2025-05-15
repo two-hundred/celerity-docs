@@ -5,7 +5,7 @@ toc_max_heading_level: 4
 
 # Spec Core Functions
 
-**v2025-02-01**
+**v2025-05-12**
 
 This document contains the definitions of the core `${..}` substitution utility functions that should be supported by all implementations of the spec.
 

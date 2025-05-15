@@ -67,9 +67,22 @@ https://api.deploy.celerityframework.io/v1
 ### Event Streams
 
 Validation, change staging and deployment processes are all asynchronous and can take a long time to complete, so the API provides stream endpoints that use [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) to stream events from the Deploy Engine to the client as they occur. This allows clients to receive real-time updates on the progress of long-running processes.
-For stream endpoints, clients can send a `Last-Event-ID` header to the server to resume the stream from a specific event ID, allowing clients to reconnect to the stream and receive events that they may have missed while disconnected. The endpoints to retrieve validation results, change sets and deployment instances are also provided to allow the client to retrieve the full picture of the current state of each of these resource types.
+For stream endpoints, clients can send a `Last-Event-ID` header to the server to resume the stream from a specific event ID, allowing clients to reconnect to the stream and receive events that they may have missed while disconnected.
+
+When `Last-Event-ID` is not provided, the stream will start with recently queued events and current events or will end instantly if the last saved event was marked as an `end` event
+and there are no recently queued events.
+This means that if a connection drops off and the client reconnects without a `Last-Event-ID` header, there is a high possibility that duplicate events will be received.
+The client should check for duplicate events and handle them accordingly.
+The meaning of "recently queued events" is dependent on the configuration of the Deploy Engine instance, typically this will be events saved in the last 5 minutes.
+For blueprint instance deployments, where the same instance ID can be deployed multiple times, the next stream will become available as soon as the first event from the
+new deployment process has been received and saved.
 
 When making a request to one of the `*/events` stream endpoints, the Deploy Engine will queue events server-side if the client is not yet connected to the stream. This allows the client to receive events that have occurred in the time between the process starting and the client connecting to the stream. These events will be queued server-side and will be cleaned up after an amount of time that will be configured for the Deploy Engine instance.
+
+The endpoints to retrieve change sets and deployment instances are also provided to allow the client to retrieve the full picture of the current state of these entity types.
+Blueprint validation results are only available as events, so clients must build up a full picture of the validation results from the event stream.
+In most cases, the validation process will produce the same results for the same blueprint document, The exception to this would be upgrades of the deploy engine, plugins that fix bugs or change behaviour that
+would affect the validation results.
 
 `v1` of the Deploy Engine is not designed to be relied upon to retain long-term event history, clients are responsible for storing events that they receive from the stream endpoints if required. In order for this to be as reliable as possible, clients should properly implement usage of the `Last-Event-ID` header to resume the stream from a specific event ID to capture any missed events when reconnecting to the stream.
 
