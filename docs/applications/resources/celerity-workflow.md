@@ -2293,6 +2293,16 @@ When it comes to the Azure Functions that power the endpoints, traces and metric
 
 Workflows can be deployed to Azure Logic Apps using [deploy configuration](/cli/docs/deploy-configuration) for the Azure Serverless target environment.
 
+## App Deploy Configuration
+
+Configuration specific to a target environment can be defined for `celerity/workflow` resources in the [app deploy configuration](/cli/docs/app-deploy-configuration) file.
+
+This section lists the configuration options that can be set in the `deployTarget.config` object in the app deploy configuration file.
+
+### Compute Configuration
+
+Compute configuration that can be used for the `celerity/api`, `celerity/consumer`, `celerity/schedule` and the `celerity/workflow` resource types is documented [here](/docs/applications/resources/celerity-api#app-deploy-configuration).
+
 ## ⚠️ Limitations
 
 Celerity Workflows do not support the full set of features that each cloud provider's workflow service provides. The Celerity runtime will provide a subset of features that are common across all cloud providers and are compatible with the Celerity workflow runtime.

@@ -76,7 +76,7 @@ string
 
 **examples**
 
-`python3.12.x`
+`python3.13.x`
 
 ### memory
 
@@ -810,7 +810,7 @@ resources:
    # ...
 metadata:
     sharedHandlerConfig:
-        runtime: python3.12.x
+        runtime: python3.13.x
         memory: 256
         timeout: 60
         environmentVariables:
@@ -860,7 +860,7 @@ resources:
             handlerName: "SaveOrderHandler-v1"
             codeLocation: "handlers/orders"
             handler: "save_order"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -881,7 +881,7 @@ resources:
             handlerName: "AuthoriseHandler-v1"
             codeLocation: "handlers/auth"
             handler: "authorise"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -918,7 +918,7 @@ resources:
             handlerName: "StreamOrdersHandler-v1"
             codeLocation: "handlers/orders"
             handler: "stream_orders"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -939,7 +939,7 @@ resources:
             handlerName: "AuthoriseHandler-v1"
             codeLocation: "handlers/auth"
             handler: "authorise"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -978,7 +978,7 @@ resources:
             handlerName: "OrderProcessor-v1"
             codeLocation: "handlers/orders"
             handler: "orders_processor"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1015,7 +1015,7 @@ resources:
             handlerName: "OrderUpdateHandler-v1"
             codeLocation: "handlers/orders"
             handler: "order_update_processor"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1056,7 +1056,7 @@ resources:
             handlerName: "OrderEventProcessor-v1"
             codeLocation: "handlers/orders"
             handler: "order_event_processor"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1103,7 +1103,7 @@ resources:
             handlerName: "StreamOrdersHandler-v1"
             codeLocation: "handlers/orders"
             handler: "stream_orders"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1126,7 +1126,7 @@ resources:
             handlerName: "SaveOrderHandler-v1"
             codeLocation: "handlers/orders"
             handler: "save_order"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1148,7 +1148,7 @@ resources:
             handlerName: "AuthoriseHandler-v1"
             codeLocation: "handlers/auth"
             handler: "authorise"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1165,7 +1165,7 @@ resources:
             handlerName: "OrderUpdateHandler-v1"
             codeLocation: "handlers/orders"
             handler: "order_update_processor"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1202,7 +1202,7 @@ resources:
             handlerName: "SyncOrders-Handler-v1"
             codeLocation: "handlers/orders"
             handler: "sync"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1227,7 +1227,7 @@ resources:
             handlerName: "Invoice-Handler-v1"
             codeLocation: "handlers/invoices"
             handler: "invoice_handler"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1257,7 +1257,7 @@ resources:
             handlerName: "OrderEvent-Handler-v1"
             codeLocation: "handlers/orders"
             handler: "event_handler"
-            runtime: "python3.12.x"
+            runtime: "python3.13.x"
             memory: 512
             timeout: 30
             tracingEnabled: false
@@ -1286,11 +1286,11 @@ You can choose from the following options for the Celerity runtime:
 
  Runtime         | Runtime ID   | Operating System     |
 ---------------- | ------------ | -------------------- |
- Node.js 20      | nodejs20.x   | Debian 12 (bookworm) |
+ Node.js 22      | nodejs22.x   | Debian 12 (bookworm) |
  .NET 8          | dotnet8.x    | Debian 12 (bookworm) |
- Python 3.12     | python3.12.x | Debian 12 (bookworm) |
+ Python 3.13     | python3.13.x | Debian 12 (bookworm) |
  Java 21         | java21.x     | Debian 12 (bookworm) |
- OS-only Runtime | os.deb2024   | Debian 12 (bookworm) |
+ OS-only Runtime | os.deb2025   | Debian 12 (bookworm) |
 
 ### AWS Lambda Runtime
 

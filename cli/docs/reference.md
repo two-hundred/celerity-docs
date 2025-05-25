@@ -84,20 +84,6 @@ To use a `unix` socket on windows, you will need to use WSL 2 or above.
 
 The endpoint of the deploy engine api, this is used if `--connect-protocol` is set to `tcp`.
 
-### `--skip-plugin-config-validation`
-
-**Environment Variable**: `CELERITY_CLI_SKIP_PLUGIN_CONFIG_VALIDATION`
-
-**Configuration Key**: `skipPluginConfigValidation`
-
-**Type**: `boolean`
-
-**Default Value**: `false`
-
-This flag skips the validation of the deploy configuration file against plugin configuration schemas.
-When not set, the provider and transformer configuration will be validated against the plugin configuration schemas.
-This is applied to the `stage-changes`, `deploy`, `destroy` and `validate` commands.
-
 ## `help`
 
 For information on all the available commands and global options, run the following:
@@ -124,11 +110,11 @@ It can also be used to validate a single blueprint file.
 
 **Default Value**: `app.blueprint.yaml`
 
-### `--runtime-blueprint-vars`
+### `--check-blueprint-vars`
 
-**Environment Variable**: `CELERITY_CLI_VALIDATE_RUNTIME_BLUEPRINT_VARS`
+**Environment Variable**: `CELERITY_CLI_VALIDATE_CHECK_BLUEPRINT_VARS`
 
-**Configuration Key**: `validateRuntimeBlueprintVars`
+**Configuration Key**: `validateCheckBlueprintVars`
 
 **Type**: `boolean`
 
@@ -136,6 +122,28 @@ It can also be used to validate a single blueprint file.
 
 This flag enables validation of the blueprint variable values that are set in the deploy configuration file.
 By default, the CLI will not validate the blueprint variable overrides set in the deploy configuration file when validating a blueprint file.
+
+### `--check-plugin-config`
+
+**Environment Variable**: `CELERITY_CLI_VALIDATE_CHECK_PLUGIN_CONFIG`
+
+**Configuration Key**: `validateCheckPluginConfig`
+
+**Type**: `boolean`
+
+**Default Value**: `false`
+
+By default, the validate command only runs validation on a provided blueprint file.
+You can use the `--check-blueprint-vars` flag to validate the blueprint variable values set in the deploy configuration file.
+By default, configuration specific to providers and transformers is not validated as a part of this command.
+When this flag is set, the provider and transformer configuration sourced from deploy config files will be validated against the plugin configuration schemas.
+
+:::note
+The "app deploy config" file provides a convenient way to set up the deploy configuration specifically for a Celerity application.
+All configuration in the `deployTarget` section of the app deploy config file will be used to generate the final configuration organised by the underlying provider and transformer plugins.
+
+This means that when `--check-deploy-config` is set, the CLI will validate the configuration in the `deployTarget` section of the app deploy config file.
+:::
 
 ## `stage-changes`
 

@@ -238,21 +238,29 @@ In the AWS environment, a consumer is deployed as a containerised version of the
 
 When the `sourceId` is a Celerity topic, an SQS Queue is created to subscribe to the topic to implement a reliable and scalable fan-out approach. The consumer application is then configured to poll the SQS Queue for messages.
 
-Consumers can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](/cli/docs/deploy-configuration) for the AWS target environment.
+Consumers can be deployed to [ECS](https://aws.amazon.com/ecs/) or [EKS](https://aws.amazon.com/eks/) backed by [Fargate](https://aws.amazon.com/fargate/) or [EC2](https://aws.amazon.com/ec2/) using [deploy configuration](#app-deploy-configuration) for the AWS target environment.
 
 #### ECS
 
-When a Consumer is deployed to ECS, a new cluster is created for the application. A service is provisioned within the cluster to run the application.
+When a Consumer is first deployed to ECS, a new cluster is created for the application. A service is provisioned within the cluster to run the application.
 
-The service is deployed with an auto-scaling group that will scale the number of tasks running the consumer based on the CPU and memory usage of the tasks. The auto-scaling group will scale the desired task count with a minimum of 1 task and a maximmum of 5 tasks by default. If backed by EC2, the auto-scaling group will scale the number of instances based on the CPU and memory usage of the instances with a minimum of 1 instance and a maximum of 3 instances by default. Deploy configuration can be used to override this behaviour.
+The service is deployed with an auto-scaling group that will scale the number of tasks running the consumer based on the CPU and memory usage of the tasks. The auto-scaling group will scale the desired task count with a minimum of 1 task and a maximmum of `N` tasks depending on the [app environment](/cli/docs/app-deploy-configuration#structure).
+
+The default maximum number of tasks is 2 for `development` app environments and 5 for `production` app environments. Deploy configuration can be used to override this behaviour.
+
+If backed by EC2, the auto-scaling group will scale the number instances based on CPU utilisation of the instances with a minimum of 1 instance and a maximum of `N` instances depending on the [app environment](/cli/docs/app-deploy-configuration#structure).
+
+The default maximum number of EC2 instances is 2 for `development` app environments and 3 for `production` app environments. Deploy configuration can be used to override this behaviour.
 
 When it comes to networking, ECS services need to be deployed to VPCs; if a VPC is defined in the blueprint and linked to the consumer, it will be used, otherwise the default VPC for the account will be used. The service for the application will be deployed to a public subnet by default, but can be configured to be deployed to a private subnet by setting the `celerity.consumer.vpc.subnetType` annotation to `private`. By default, 2 private subnets and 2 public subnets are provisioned for the associated VPC, the subnets are spread across 2 availability zones, the ECS resources that need to be associated with a subnet will be associated with these subnets, honouring the subnet type defined in the annotations.
 
-The CPU to memory ratio used by default for AWS deployments backed by EC2 is that of the `t3.*` instance family. The auto-scaling launch configuration will use the appropriate instance type based on the requirements of the application, these requirements will be taken from the deploy configuration or derived from the handlers configured for the consumer application. If the requirements can not be derived, the instance profile will be `t3.small` with 2 vCPUs and 2GB of memory.
+The CPU to memory ratio used by default for AWS deployments backed by EC2 is that of the `t3.*` instance family. The auto-scaling launch configuration will use the appropriate instance type based on the requirements of the application, these requirements will be taken from the deploy configuration or derived from the handlers configured for the consumer application. If the requirements can not be derived, a default instance type will be selected. For production app environments, the default instance type will be `t3.medium` with 2 vCPUs and 4GB of memory. For development app environments, the default instnce type will be `t3.small` with 2 vCPUs and 2GB of memory.
 
 Fargate-backed ECS deployments use the same CPU to memory ratios allowed for Fargate tasks as per the [task definition parameters](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size).
 
-If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. For an EC2-backed cluster, the task housing the containers that make  up the service for the consumer will be deployed with 896MB of memory and 0.8 vCPUs. Less than half of the memory and CPU is allocated to the EC2 instance to allow for smooth deployments of new versions of the application, this is done by making sure there is enough memory and CPU available to the ECS agent. For a Fargate-backed cluster, the task housing the containers that make up the service for the application will be deployed with 1GB of memory and 0.5 vCPUs.
+If memory and CPU is not defined in the deploy configuration and can not be derived from the handlers, some defaults will be set. For an EC2-backed cluster, the task housing the containers that make up the service for the consumer will be deployed with 43.75% of memory and 0.8 vCPUs. Less than half of the memory and CPU is allocated to the EC2 instance to allow for smooth deployments of new versions of the application, this is done by making sure there is enough memory and CPU available to the ECS agent. The exact memory usage values for the defaults would be 1,792MB for production app environments and 896MB for development app environments.
+
+For a Fargate-backed cluster, in production app environments, the task housing the containers for the consumer application will be deployed with 2GB of memory and 1 vCPU. In development app environments, the task for the API will be deployed with 1GB of memory and 0.5 vCPUs.
 
 A sidecar [ADOT collector](https://aws-otel.github.io/docs/getting-started/collector) container is deployed with the application to collect traces and metrics for the application, this will take up a small portion of the memory and CPU allocated to the consumer. Traces are only collected when tracing is enabled for the handler that is processing messages.
  
@@ -266,9 +274,13 @@ For example, a cluster without a Fargate profile can not be used to deploy a con
 You also need to make sure there is enough memory and CPU allocated for node group instances to run the application in addition to other workloads running in the cluster.
 :::
 
-The cluster is configured with a public endpoint for the Kubernetes API server by default, this can be overridden to be private in the deploy configuration. (VPC links will be required to access the Kubernetes API server when set to private)
+:::warning cost of running on EKS
+Running a Celerity application on EKS will often not be the most cost-effective way to run consumer applications that are not expected to use a lot of resources. All EKS clusters have a fixed cost of $74 per month for the control plane, in addition to the cost of the EC2 instances or Fargate tasks that are used to run the application along with the cost of data transfer and networking components. If you are looking for a cost-effective solution for low-load applications on AWS, consider using [ECS](#ecs) or switching to a [serverless deployment](#aws-serverless) instead.
+:::
 
-For an EKS cluster backed by EC2, a node group is configured with auto-scaling configuration to have a minimum size of 2 nodes and a maximum size of 5 nodes by default. Auto-scaling is handled by the [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler#kubernetes-autoscaler). The instance type configured for node groups is determined by the CPU and memory requirements defined in the deploy configuration or derived from the handlers of the consumer application, if the requirements can not be derived, the instance type will be `t3.small` with 2 vCPUs and 2GB of memory.
+The cluster is configured with a private endpoint for the Kubernetes API server by default, this can be overridden in the deploy configuration. (VPC links are required to access the Kubernetes API server with the default configuration)
+
+For an EKS cluster backed by EC2, a node group is configured with auto-scaling configuration to have a minimum size of 3 nodes and a maximum size of 5 nodes by default for production app environments. For development app environments, the minimum size of a node group is 2 with a maximum size of 3 by default. Auto-scaling is handled by the [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler#kubernetes-autoscaler). The instance type configured for node groups is determined by the CPU and memory requirements defined in the deploy configuration or derived from the handlers of the consumer application, if the requirements can not be derived, a default instance type will be selected. For production app environments, the default instance type will be `t3.medium` with 2 vCPUs and 4GB of memory. For development app environments, the default instance type will be `t3.small` with 2 vCPUs and 2GB of memory.
 
 For an EKS cluster backed by Fargate, a [Fargate profile](https://docs.aws.amazon.com/eks/latest/userguide/fargate-profile.html) is configured to run the consumer application.
 
@@ -457,3 +469,13 @@ The following is a table of `celerity/consumer` configuration fields and how the
 </table>
 
 [^1]: Examples of Serverless event-driven flows include [Amazon SQS Queues triggerring AWS Lambda Functions](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html), [Google Cloud Pub/Sub triggering Google Cloud Functions](https://cloud.google.com/functions/docs/calling/pubsub), and [Azure Queue Storage triggering Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-queue-trigger?tabs=python-v2%2Cisolated-process%2Cnodejs-v4%2Cextensionv5&pivots=programming-language-typescript).
+
+## App Deploy Configuration
+
+Configuration specific to a target environment can be defined for `celerity/consumer` resources in the [app deploy configuration](/cli/docs/app-deploy-configuration) file.
+
+This section lists the configuration options that can be set in the `deployTarget.config` object in the app deploy configuration file.
+
+### Compute Configuration
+
+Compute configuration that can be used for the `celerity/api`, `celerity/consumer`, `celerity/schedule` and the `celerity/workflow` resource types is documented [here](/docs/applications/compute-configuration).

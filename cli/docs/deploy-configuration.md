@@ -11,6 +11,7 @@ This section provides documentation for configuration that needs to be provided 
 Deploy configuration is used for blueprint variable overrides, configuration for providers (e.g. credentials for AWS), configuration for transformers and more general configuration that may be used by Deploy Engine plugins.
 
 Deploy configuration is used with the following commands:
+
 - `stage-changes` - Used to ensure that all the final blueprint variables are set and that providers and transformers are configured correctly when deploying resources for a new blueprint instance.
 - `deploy` - Used to ensure that all the final blueprint variables are set and that providers and transformers are configured correctly when deploying resources for a new blueprint instance. The change staging process makes use of the final blueprint variables in producing a change set to be deployed, however, not all values can be resolved during change staging, especially where there are dependencies between resources. To account for this, the blueprint document is required along with blueprint variable overrides to resolve the remaining values during the deployment process.
 - `destroy` - Used to ensure that providers and transformers are configured correctly when destroying resources in a blueprint instance. This command does not make use of an input blueprint file so blueprint variable overrides are not used.
@@ -76,6 +77,57 @@ For each provider and transformer, the keys and values are specific to the provi
   },
   "blueprintVariables": {
     "region": "us-east-1"
+  }
+}
+```
+
+## Version Control
+
+The deploy configuration file is not intended to be version controlled when its contents is primarily used for credentials and blueprint variable overrides that can contain sensitive information. However, for provider or transformer specific configuration, it can be useful to commit sections of this file to version control.
+
+When you want to commit sections of configuration in the app deploy configuration file to version control, you can either commit the entire file and use environment variable substitution for sensitive information like so:
+
+```javascript title="celerity.deploy.jsonc"
+{
+  "providers": {
+   "aws": {
+      // It would be best to assume a role on the host machine
+      // running the deployment instead of using access keys.
+      "accessKeyId": "${AWS_ACCESS_KEY_ID}",
+      "secretAccessKey": "${AWS_SECRET_ACCESS_KEY}"
+    }
+  },
+  "transformers": {
+    "celerityTransform": {
+      "deployTarget": "aws"
+    }
+  },
+  "contextVariables": {},
+  "blueprintVariables": {
+    "region": "${REGION}"
+  }
+}
+```
+
+Alternatively, you can create a template file that contains the configuration you want to commit to version control and have placeholders for sensitive information that should be populated in the final file used with the Celerity CLI.
+You can then copy this template file to the final file used with the Celerity CLI and populate the placeholders with environment variables or secrets loaded into a CI/CD or local environment from which you are deploying a blueprint.
+
+```javascript title="celerity.deploy.template.jsonc"
+{
+  "providers": {
+    "aws": {
+      "accessKeyId": "[placeholder__aws_access_key_id]",
+      "secretAccessKey": "[placeholder__aws_secret_access_key]"
+    }
+  },
+  "transformers": {
+    "celerityTransform": {
+      "deployTarget": "aws"
+    }
+  },
+  "contextVariables": {},
+  "blueprintVariables": {
+    "region": "[placeholder__region]"
   }
 }
 ```

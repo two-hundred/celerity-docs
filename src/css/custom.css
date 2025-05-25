@@ -210,7 +210,8 @@ a:any-link:hover {
   margin-bottom: 1.25rem !important;
 }
 
-.plugin-id-deploy-engine .openapi-schema__list-item {
+.plugin-id-deploy-engine .openapi-schema__list-item,
+.plugin-id-deploy-engine .openapi-params__list-item {
   padding-bottom: 25px;
 }
 

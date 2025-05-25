@@ -150,7 +150,7 @@ resources:
         - "MAX_RETRIES"
 ```
 
-### Replicated Config Store with Custom Encryption Key
+### Custom Encryption Key
 
 ```yaml
 version: 2025-05-12
@@ -169,7 +169,6 @@ resources:
       displayName: My App Config
     spec:
       name: "my-app-config"
-      replicate: true
       encryptionKeyId: "${variables.customEncryptionKeyId}"
 ```
 

@@ -117,6 +117,30 @@ paths:
       operationId: createBlueprintValidation
       parameters:
         - $ref: '#/components/parameters/celeritySignatureV1Param'
+        - name: checkBlueprintVars
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: |
+            If set to `true` or `1`, the blueprint validation process
+            will check that the provided blueprint variables are valid
+            for the blueprint.
+            By default, the blueprint validation process will not check the
+            provided blueprint variables.
+        - name: checkPluginConfig
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: |
+            If set to `true` or `1`, the blueprint validation process
+            will check that the provided plugin configuration is valid
+            against the plugin config schemas defined by the plugins
+            installed for the Deploy Engine instance.
+            By default, the blueprint validation process will not check the
+            provided plugin configuration.
+
       requestBody:
         $ref: '#/components/requestBodies/CreateBlueprintValidationBody'
       responses:

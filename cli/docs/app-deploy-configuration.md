@@ -84,3 +84,50 @@ The `deployTarget.config` object contains configuration for the target environme
   }
 }
 ```
+
+## Version Control
+
+The app deploy configuration file is not intended to be version controlled when its contents is primarily used for credentials and blueprint variable overrides that can contain sensitive information. However, for heavily customised deployments where a lot of the deployment target configuration is used (e.g. AWS), it can be useful to commit sections of this file to version control.
+
+When you want to commit sections of configuration in the app deploy configuration file to version control, you can either commit the entire file and use environment variable substitution for sensitive information like so:
+
+```javascript title="app.deploy.jsonc"
+{
+  "deployTarget": {
+    "name": "aws",
+    "appEnv": "production",
+    "config": {
+      // It would be better to assume an AWS IAM role for the host machine
+      // running the deployment.
+      "aws.accessKeyId": "${AWS_ACCESS_KEY_ID}",
+      "aws.secretAccessKey": "${AWS_SECRET_ACCESS_KEY}",
+      "aws.containerService": "ecs",
+      "aws.compute": "fargate"
+    },
+  },
+  "blueprintVariables": {
+    "region": "${REGION}"
+  }
+}
+```
+
+Alternatively, you can create a template file that contains the configuration you want to commit to version control and have placeholders for sensitive information that should be populated in the final file used with the Celerity CLI.
+You can then copy this template file to the final file used with the Celerity CLI and populate the placeholders with environment variables or secrets loaded into a CI/CD or local environment from which you are deploying the application.
+
+```javascript title="app.deploy.template.jsonc"
+{
+  "deployTarget": {
+    "name": "aws",
+    "appEnv": "production",
+    "config": {
+      "aws.accessKeyId": "[placeholder__aws_access_key_id]",
+      "aws.secretAccessKey": "[placeholder__aws_secret_access_key]",
+      "aws.containerService": "ecs",
+      "aws.compute": "fargate"
+    },
+  },
+  "blueprintVariables": {
+    "region": "[placeholder__region]"
+  }
+}
+```

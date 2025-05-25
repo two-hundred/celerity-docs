@@ -334,3 +334,13 @@ schedule               | schedule - [cron and rate expressions](https://docs.aws
 
 
 [^1]: Examples of Serverless event-driven flows include [Amazon Event Bridge triggerring AWS Lambda Functions](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-run-lambda-schedule.html), [Google Cloud Scheduler with Pub/Sub and Google Cloud Functions](https://cloud.google.com/scheduler/docs/tut-gcf-pub-sub), and [Timer triggers for Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=python-v2%2Cisolated-process%2Cnodejs-v4&pivots=programming-language-javascript).
+
+## App Deploy Configuration
+
+Configuration specific to a target environment can be defined for `celerity/schedule` resources in the [app deploy configuration](/cli/docs/app-deploy-configuration) file.
+
+This section lists the configuration options that can be set in the `deployTarget.config` object in the app deploy configuration file.
+
+### Compute Configuration
+
+Compute configuration that can be used for the `celerity/api`, `celerity/consumer`, `celerity/schedule` and the `celerity/workflow` resource types is documented [here](/docs/applications/resources/celerity-api#app-deploy-configuration).
