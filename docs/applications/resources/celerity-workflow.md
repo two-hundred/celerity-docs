@@ -2301,7 +2301,7 @@ This section lists the configuration options that can be set in the `deployTarge
 
 ### Compute Configuration
 
-Compute configuration that can be used for the `celerity/api`, `celerity/consumer`, `celerity/schedule` and the `celerity/workflow` resource types is documented [here](/docs/applications/resources/celerity-api#app-deploy-configuration).
+Compute configuration that can be used for the `celerity/api`, `celerity/consumer`, `celerity/schedule` and the `celerity/workflow` resource types is documented [here](/docs/applications/compute-configuration).
 
 ## ⚠️ Limitations
 

@@ -172,6 +172,9 @@ string
 
 ## Outputs
 
+Outputs are computed values that are accessible via the `{resourceName}.spec.*` field accessor in a blueprint substitution.
+For example, if the resource name is `myApi`, the output would be accessible via `${myApi.spec.id}`.
+
 ### id
 
 The ID of the created API in the target environment.
