@@ -1782,6 +1782,8 @@ string
 
 The minimum number of replicas per revision to use when deploying to the `azure` target environment and the container service is `containerApps`.
 
+This only applies to Celerity applications that represent an service that is expected to be reached via HTTP requests (i.e. `celerity/api` and `celerity/workflow` applications).
+
 **Type**
 
 number
@@ -1811,6 +1813,8 @@ By default, this will be `1` for development app environments and `2` for produc
 ### azure.compute.containerApps.maxReplicas
 
 The maximum number of replicas per revision to use when deploying to the `azure` target environment and the container service is `containerApps`.
+
+This only applies to Celerity applications that represent an service that is expected to be reached via HTTP requests (i.e. `celerity/api` and `celerity/workflow` applications).
 
 **Type**
 
