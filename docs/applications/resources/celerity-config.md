@@ -74,6 +74,17 @@ A default, platform-specific encryption key will be used if this field is not pr
 
 string
 
+### rotation
+
+Secret rotation configuration for automatically populated secrets in the store that are managed by Celerity.
+This is only applicable to secrets that are auto-populated by Celerity for links between handlers or application resource types and infrastructure resources.
+
+If not set, secrets managed by Celerity will not be rotated automatically.
+
+**type**
+
+[rotationConfiguration](#rotationconfiguration)
+
 ## Annotations
 
 There are no annotations required for linking other resources to a `celerity/config` resource or modifying the behaviour of a secret and configuration store resource.
@@ -104,6 +115,26 @@ _A prefix is used for AWS parameter store as each parameter will have its own re
 `projects/my-project/secrets/my-secret` (Google Cloud)
 
 `my-secret` (Azure)
+
+## Data Types
+
+### rotationConfiguration
+
+Configuration for secret rotation for automatically populated secrets in the store that are managed by Celerity.
+
+#### FIELDS
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>period</strong></p>
+
+The period of time (in days) after which secrets in the store managed by Celerity should be rotated.
+
+**field type**
+
+integer
+
+___
 
 ## Linked From
 
@@ -187,6 +218,7 @@ In the Celerity::1 local environment, secrets and configuration are stored as a 
 The value will be the JSON-encoded string holding all the secrets and configuration values for the application.
 In the Celerity local environment, the same valkey instance will be reused for config stores and cache resource types.
 Replication and encryption configuration will be ignored in the Celerity::1 environment.
+Rotation configuration will also be ignored in the Celerity::1 environment, secrets will not be rotated automatically.
 
 :::warning No encryption in local & CI environments
 Application secrets are not encrypted in local & CI environment, this would be the same situation if `.env` or configuration files were being used on the developer's machine.
@@ -225,6 +257,13 @@ If the `encryptionKeyId` is provided, it must be the ARN of a [KMS key](https://
 
 If `replicate` is set to `true` and `encryptionKeyId` is provided, the encryption key will be ignored; region-specific encryption keys must be provided for each region in the app deploy configuration.
 
+#### Rotation
+
+When the `rotation` field is set in the `celerity/config` resource, Celerity will automatically rotate secrets that are managed by Celerity.
+This is only applicable to secrets that are auto-populated by Celerity for links between handlers or application resource types and infrastructure resources.
+A lambda function will be created in each region that the config store is saved to, which will be triggered by a CloudWatch event rule to rotate the secrets in the store based on the `period` (in days) specified in the rotation configuration.
+This lambda function will have permissions to update the specific infrastructure resources that the config store is linked to, such as an SQL database or a cache.
+
 ### Google Cloud
 
 In the Google Cloud environment, secrets and configuration is stored with the [Google Cloud Secret Manager](https://cloud.google.com/secret-manager/docs) service.
@@ -236,6 +275,13 @@ The maximum size of a secret in Google Cloud Secret Manager is 64KB, if the secr
 If `replicate` is set to `true`, the secret store will be replicated across multiple regions in a way that is managed by Google Cloud through the [Automatic](https://cloud.google.com/secret-manager/docs/choosing-replication#automatic) replication policy.
 
 The `encryptionKeyId` field is not supported in Google Cloud Secret Manager, Google Cloud manages encryption keys for you.
+
+#### Rotation
+
+When the `rotation` field is set in the `celerity/config` resource, Celerity will automatically rotate secrets that are managed by Celerity.
+This is only applicable to secrets that are auto-populated by Celerity for links between handlers or application resource types and infrastructure resources.
+A google cloud function will be created to rotate secrets, which will be triggered by a Cloud Scheduler job to rotate the secrets in the store based on the `period` (in days) specified in the rotation configuration.
+This google cloud function will have permissions to update the specific infrastructure resources that the config store is linked to, such as an SQL database or a cache.
 
 ### Azure
 
@@ -249,13 +295,22 @@ If `replicate` is set to `true`, the secret store will be replicated across mult
 
 The `encryptionKeyId` field is not supported in Azure Key Vault, Azure manages encryption keys for you.
 
+#### Rotation
+
+When the `rotation` field is set in the `celerity/config` resource, Celerity will automatically rotate secrets that are managed by Celerity.
+This is only applicable to secrets that are auto-populated by Celerity for links between handlers or application resource types and infrastructure resources.
+An azure function will be created to rotate secrets, which will be triggered by a Timer Trigger to rotate the secrets in the store based on the `period` (in days) specified in the rotation configuration.
+This azure function will have permissions to update the specific infrastructure resources that the config store is linked to, such as an SQL database or a cache.
+
 ## App Deploy Configuration
 
 Configuration specific to a target environment can be defined for `celerity/config` resources in the [app deploy configuration](/cli/docs/app-deploy-configuration) file.
 
 This section lists the configuration options that can be set in the `deployTarget.config` object in the app deploy configuration file.
 
-### aws.config.replicateRegions
+### AWS Configuration Options
+
+#### aws.config.replicateRegions
 
 A comma-separated list of regions to replicate the secret and configuration store to.
 This is required if `replicate` is set to `true` in the `celerity/config` resource and the target environment is `aws` or `aws-serverless`.
@@ -283,7 +338,7 @@ string
 }
 ```
 
-### aws.config.regionKMSKeys.\<region\>
+#### aws.config.regionKMSKeys.\<region\>
 
 A mapping of region name to KMS key ARN where the region name must match one of the region names in the `aws.config.replicateRegions` field.
 One of these fields must be set for each region in the `aws.config.replicateRegions` field.

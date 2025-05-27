@@ -507,7 +507,12 @@ Configuration for a cloud service event trigger that the handler will respond to
 This supports a limited set of event sources, such as object storage, NoSQL database streams/events, data streams and a few other services.
 
 Due to the differences in event sources across cloud providers, the amount of options is kept minimal and as general as possible to support the most common event sources.
-To support the full range of event sources, you will need to wire up an event source to a queue or message broker and use a `celerity/consumer` resource to handle the events.
+
+:::note
+Blueprints with one or more handlers that all are configured with an event source directly do not need to have an application resource type defined. In containerised environments, the behaviour for the application that hosts the handlers will be configured to be that of the `celerity/consumer` resource type. This is because the handlers will be wired up to a queue or message broker that is polled by the runtime; at deploy time the queue or message broker is wired up to handle incoming messages from the external event sources.
+:::
+
+To support the a wider range of event sources, you will need to wire up an event source to a queue or message broker and use a `celerity/consumer` resource to handle the events.
 
 #### FIELDS
 ___
@@ -1284,13 +1289,13 @@ The Celerity runtime is used when you deploy your handlers to a containerised en
 
 You can choose from the following options for the Celerity runtime:
 
- Runtime         | Runtime ID   | Operating System     |
----------------- | ------------ | -------------------- |
- Node.js 22      | nodejs22.x   | Debian 12 (bookworm) |
- .NET 8          | dotnet8.x    | Debian 12 (bookworm) |
- Python 3.13     | python3.13.x | Debian 12 (bookworm) |
- Java 21         | java21.x     | Debian 12 (bookworm) |
- OS-only Runtime | os.deb2025   | Debian 12 (bookworm) |
+ Runtime         | Runtime ID   | Operating System     | Status              |
+---------------- | ------------ | -------------------- | ------------------- |
+ Node.js 22      | nodejs22.x   | Debian 12 (bookworm) | Actively maintained |
+ .NET 8          | dotnet8.x    | Debian 12 (bookworm) | Actively maintained |
+ Python 3.13     | python3.13.x | Debian 12 (bookworm) | Actively maintained |
+ Java 21         | java21.x     | Debian 12 (bookworm) | Actively maintained |
+ OS-only Runtime | os.deb2025   | Debian 12 (bookworm) | Actively maintained |
 
 ### AWS Lambda Runtime
 
@@ -1462,7 +1467,24 @@ When using the Celerity workflow runtime, you can still define timeouts for indi
 Using the Celerity workflow runtime as an alternative to cloud provider workflow orchestration services requires persistence of workflow state to a database, this is managed by Celerity but will use the resources in your cloud provider account. See the [`celerity/workflow`](/docs/applications/resources/celerity-workflow) documentation for more information.
 :::
 
-TODO: provide a table of timeout limits for different cloud providers and the Celerity runtime.
+<table>
+    <thead>
+        <tr>
+            <th>Celerity Runtime Maximum Timeout</th>
+            <th>AWS Lambda Maximum Timeout</th>
+            <th>Google Cloud Functions Maximum Timeout</th>
+            <th>Azure Functions Maximum Timeout</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Unlimited when backed by self-managed VMs; otherwise, the timeout limit of a "serverless" container service (e.g. AWS Fargate or Google Cloud Run).</td>
+            <td>900 seconds (15 minutes)</td>
+            <td>3600 seconds (60 minutes)</td>
+            <td>230 seconds for HTTP triggered functions, no maximum execution time-out is defined for functions that are triggered by other means.</td>
+        </tr>
+    </tbody>
+</table>
 
 [^1]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
 [^2]: Examples of Serverless stream flows include [Amazon DynamoDB Streams and AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html), [Google Cloud Datastore triggering Google Cloud Functions](https://cloud.google.com/datastore/docs/extend-with-functions-2nd-gen) and [Azure Cosmos DB Streams triggering Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb?toc=%2Fazure%2Fcosmos-db%2Ftoc.json&bc=%2Fazure%2Fcosmos-db%2Fbreadcrumb%2Ftoc.json&tabs=csharp).

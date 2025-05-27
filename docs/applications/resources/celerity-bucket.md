@@ -61,6 +61,37 @@ Logging configuration for the bucket.
 
 [loggingConfiguration](#loggingconfiguration)
 
+### versioning
+
+Versioning configuration used to enable versioning for objects in the bucket.
+
+**type**
+
+[versioningConfiguration](#versioningconfiguration)
+
+### replication
+
+Replication configuration for the bucket.
+This is used primarily for cross-region replication of objects in the bucket.
+
+The replication configuration for Celerity buckets is a simplified approach that is designed to work across multiple target environments. In this simplified model, you can choose the regions to replicate to.
+
+Some configuration will be specific to target environments and will need to be specified in the [app deploy configuration](#app-deploy-configuration).
+
+**type**
+
+[replicationConfiguration](#replicationconfiguration)
+
+### website
+
+Configuration for hosting a static website in the bucket.
+Website configuration is a simplified model that is designed to work across multiple target environments.
+You can specify the index and error documents for the website, more advanced configuration such as redirects and routing rules are not supported in this simplified model.
+
+**type**
+
+[websiteConfiguration](#websiteconfiguration)
+
 ## Annotations
 
 There are no annotations required for linking other resources to a `celerity/bucket` resource or modifying the behaviour of a bucket resource.
@@ -68,6 +99,9 @@ There are no annotations required for linking other resources to a `celerity/buc
 `linkSelector.byLabel` can be used to target buckets from other resource types.
 
 ## Outputs
+
+Outputs are computed values that are accessible via the `{resourceName}.spec.*` field accessor in a blueprint substitution.
+For example, if the resource name is `myBucket`, the output would be accessible via `${myBucket.spec.id}`.
 
 ### id
 
@@ -547,11 +581,122 @@ string
 
 ___
 
+### versioningConfiguration
+
+#### FIELDS
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>status</strong></p>
+
+The status of versioning for the bucket.
+This can be set to `Enabled` to enable versioning for the bucket, or `Suspended` to suspend versioning.
+When versioning is suspended, new objects will not have versions created, but existing versions will still be retained.
+
+For Google Cloud, `Suspended` is equivalent to a `Disabled` object versioning status with a soft delete status set to `Enabled`.
+
+For Azure Blob Storage, `Suspended` is equivalent to disabling blob versioning for the bucket, which leaves the existing versions intact, see [Azure Blob Storage versioning](https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#enable-or-disable-blob-versioning) for more information.
+
+By default, if versioning configuration is not provided, versioning will be disabled.
+
+**field type**
+
+string
+
+**allowed values**
+
+`Enabled` | `Suspended`
+
+**examples**
+
+`Enabled`
+
+___
+
+### replicationConfiguration
+
+#### FIELDS
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>enabled</strong></p>
+
+Whether or not replication is enabled for the bucket.
+
+**field type**
+
+boolean
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>regions</strong></p>
+
+The regions to replicate objects in the bucket to.
+
+The region strings are expected to be in the format of the target environment's region identifiers, for example:
+
+- AWS: `us-west-2`
+- Google Cloud `US-WEST2`
+- Azure: `westus2`
+
+:::warning Google Cloud Dual-Region Replication
+For Google Cloud, you can only specify a single region to replicate to, as Celerity uses the dual-region replication approach for Google Cloud Storage.
+:::
+
+**field type**
+
+array[string]
+
+**examples**
+
+```json
+["us-west-2", "us-east-1"]
+```
+
+___
+
+### websiteConfiguration
+
+#### FIELDS
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>mainPageDocument</strong></p>
+
+The name of the main page document for the static website hosted in the bucket.
+
+**field type**
+
+string
+
+**examples**
+
+`index.html`
+
+___
+
+<p style={{fontSize: '1.2em'}}><strong>notFoundDocument</strong></p>
+
+The name of the document to return when a requested object is not found in the bucket.
+This is typically a custom 404 page that you can use to provide a better user experience when a requested object is not found.
+
+For the AWS target environments, this will be used as the error document for the static website hosted in the bucket that is a catch-all for errors beyond 404 not found errors.
+
+**field type**
+
+string
+
+**examples**
+
+`404.html`
+
+___
+
 ## Linked From
 
 #### [`celerity/handler`](/docs/applications/resources/celerity-handler)
 
-When a handler links out to a bucket, it will be configured with permissions and environment variables that enable the handler to interact with the bucket. If a secret store is associated with the handler or the application that it is a part of, the bucket configuration will be added to the secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with object storage services using the handlers SDK.
+When a handler links out to a bucket, it will be configured with permissions and environment variables that enable the handler to interact with the bucket. If a bucket is associated with the handler or the application that it is a part of, the bucket configuration will be added to the bucket instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with object storage services using the handlers SDK.
 
 :::warning Opting out of the handlers SDK for buckets
 You don't have to use the handlers SDK abstraction for buckets,
@@ -560,7 +705,25 @@ you can also grab the populated configuration directly and interact directly wit
 
 ## Links To
 
-Secret store resources can not link to other resources.
+#### [`celerity/queue`](/docs/applications/resources/celerity-queue)
+
+When a bucket is linked to a queue, the queue will be configured to receive notifications from the bucket for events such as object creation, deletion, and updates. This is useful for making events flow through a queue for processing by handlers in an application where the queue can be used to control the flow of events and ensure that they are processed in a reliable manner.
+
+In cases where you deploy your application to a target environment that is not FaaS-based[^1], a queue will be used to receive notifications from the bucket that the Celerity runtime will poll for events and trigger handlers accordingly.
+
+#### [`celerity/topic`](/docs/applications/resources/celerity-topic)
+
+When a bucket is linked to a topic, the topic will be configured to receive notifications from the bucket for events such as object creation, deletion, and updates. This is useful for publishing events to a topic that can be subscribed to by consumers such as handlers in applications of the `celerity/consumer` resource type.
+
+#### [`celerity/handler`](/docs/applications/resources/celerity-handler)
+
+When a bucket is linked to a handler, the handler will be configured to receive notifications from the bucket for events such as object creation, deletion, and updates. This is useful for processing events in a handler that can then perform actions based on the events received from the bucket.
+
+For FaaS-based target environments, the handler will be triggered directly through a rule in the cloud provider's event system (e.g. Amazon EventBridge). To gain greater control over throughput and processing of events, you can link the bucket to a queue or topic and have the application consume events from there.
+
+#### [`celerity/workflow`](/docs/applications/resources/celerity-workflow)
+
+When a bucket is linked to a workflow, a workflow execution will be triggered when an event occurs in the bucket, such as an object being created, deleted, or updated. For FaaS-based target environments, the notification will be used to trigger an execution of the cloud provider's workflow service (e.g. AWS Step Functions). For non-FaaS target environments, an intermediary serverless function will be triggered by the bucket event to start the workflow execution by calling the API of your workflow application provided by the Celerity Workflow Runtime.
 
 ## Examples
 
@@ -595,6 +758,77 @@ Buckets are not encrypted in local & CI environment.
 
 ### AWS
 
+In AWS, the `celerity/bucket` resource is implemented using [Amazon S3](https://docs.aws.amazon.com/s3/) buckets.
+
+When replication is enabled, Celerity will create a replication configuration for the bucket with a simple rule to replicate objects to the specified regions.
+A bucket resource will be created in each of the specified regions in the same storage class as the primary bucket.
+
+Prefix-based replication is not supported in AWS, so all objects in the bucket will be replicated to the specified regions.
+
+If enabling replication for an existing bucket, you will need to initiate a batch replication job to copy existing objects to the replicated buckets, Celerity (or the underlying S3 service) will not automatically copy existing objects to the replicated buckets.
+
 ### Google Cloud
 
+In Google Cloud, the `celerity/bucket` resource is implemented using [Google Cloud Storage](https://cloud.google.com/storage) buckets.
+
+When replication is enabled, Celerity will create a dual-region replication configuration for the bucket with the region for the deployment of the bucket and a single region to replicate to.
+
+:::warning
+When more than one region is specified for replication, only the first region will be used, as Celerity only supports dual-region replication for Google Cloud Storage buckets.
+:::
+
 ### Azure
+
+In Azure, the `celerity/bucket` resource is implemented using [Azure Blob Storage](https://learn.microsoft.com/en-us/azure/storage/blobs/).
+
+When replication is enabled, Celerity will create a replication configuration for the container with a simple rule to replicate objects to the specified regions.
+
+A storage account will be created in each of the specified regions, and the container will be created in each of the storage accounts. A replication policy will be created to replicate objects to the configured regions.
+
+Prefix-based replication is not supported in Azure Blob Storage, so all objects in the container will be replicated to the specified regions.
+
+When updating an existing bucket with replication enabled, Celerity will set a `minCreationTime` (based on the time the container was created) on the replication policy to ensure existing and new objects are replicated to the specified regions.
+
+:::warning Azure supports up to 2 regions for replication
+When more than two regions are specified for replication, only the first two regions will be used, as Azure Blob Storage only supports replication to two regions (storage accounts).
+:::
+
+## App Deploy Configuration
+
+Configuration specific to a target environment can be defined for `celerity/bucket` resources in the [app deploy configuration](/cli/docs/app-deploy-configuration) file.
+
+This section lists the configuration options that can be set in the `deployTarget.config` object in the app deploy configuration file.
+
+### AWS Configuration Options
+
+#### aws.s3.replication.role
+
+The IAM role to assume when replicating objects in an S3 bucket.
+
+**Type**
+
+string
+
+**Deploy Targets**
+
+`aws`, `aws-serverless`
+
+**Default Value**
+
+When not provided, a role to assume will be created automatically when the bucket is created.
+
+**Example**
+
+```javascript
+{
+  "deployTarget": {
+    "name": "aws",
+    "appEnv": "production",
+    "config": {
+      "aws.s3.replication.role": "arn:aws:iam::123456789012:role/my-replication-role"
+    }
+  }
+}
+```
+
+[^1]: FaaS stands for Function-as-a-Service, which is a serverless compute model where applications are composed of functions that are triggered by events. Examples of FaaS include AWS Lambda, Google Cloud Functions and Azure Functions.

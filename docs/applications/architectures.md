@@ -118,7 +118,7 @@ A workflow will always be deployed separately.
 
 ## Infrastructure Components
 
-### Secret Stores
+### Secret & Configuration Stores
 
 ### SQL Databases
 
@@ -142,4 +142,3 @@ In normal circumstances, a lot of the containerised environments such as ECS or 
 [^1]: Environments in this context covers Function-as-a-service offerings such as AWS Lambda, Google Cloud Functions, and Azure Functions, as well as containerised environments such as Kubernetes, Docker, and the container orchestration platforms that use these technologies such as Amazon ECS, Google Kubernetes Engine, and Azure Kubernetes Service.
 [^2]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
 [^3]: Supported stream services include Amazon Kinesis and Azure Event Hubs.
-

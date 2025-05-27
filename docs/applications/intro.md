@@ -27,6 +27,15 @@ The blueprint specification and core framework implementation are designed to be
 You can even use the Blueprint framework as a part of a more general purpose deployment system for known cloud providers or any kind of resources that can be managed with an API.
 :::
 
+:::tip
+As you navigate through the Celerity resource types, you may notice the lack of a `tags` field in the resource specs.
+
+Don't worry, this is intentional and Celerity very much has grouping and organising cloud provider resources in mind.
+
+For all Celerity application resource types, the contents of `metadata.labels` will be saved as tags in the target cloud provider for the concrete resources that support tags.
+In addition, Celerity-specific tags will be added to all resources that are created by the Celerity Deploy Engine to help you identify resources that are part of a Celerity deployment.
+:::
+
 [^1]: Function-as-a-Service such as AWS Lambda, Google Cloud Functions, and Azure Functions.
 [^2]: Minimal configuration changes that feed into the Celerity Build process are required. Changes to your source code may be required if you are switching cloud providers and your application talks to vendor-specific services, such as AWS S3, Google Cloud Storage, or Azure Blob Storage.
 [^3]: Depending on the target deployment environment, `celerity/consumer` can be a composite of application config and infrastructure resources such as queues that subscribe to topics. [Read more about consumers](/docs/applications/resources/celerity-consumer).
