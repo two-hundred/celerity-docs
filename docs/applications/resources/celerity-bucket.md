@@ -696,7 +696,7 @@ ___
 
 #### [`celerity/handler`](/docs/applications/resources/celerity-handler)
 
-When a handler links out to a bucket, it will be configured with permissions and environment variables that enable the handler to interact with the bucket. If a bucket is associated with the handler or the application that it is a part of, the bucket configuration will be added to the bucket instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with object storage services using the handlers SDK.
+When a handler links out to a bucket, it will be configured with permissions and environment variables that enable the handler to interact with the bucket. If a `celerity/config` resource is associated with the handler or the application that it is a part of, the bucket configuration will be added to the config/secret store instead of environment variables. You can use guides and templates to get an intuition for how to source the configuration and interact with object storage services using the handlers SDK.
 
 :::warning Opting out of the handlers SDK for buckets
 You don't have to use the handlers SDK abstraction for buckets,
@@ -727,6 +727,76 @@ When a bucket is linked to a workflow, a workflow execution will be triggered wh
 
 ## Examples
 
+### Basic Bucket Configuration
+
+```yaml
+version: 2025-05-12
+transform: celerity-2025-08-01
+resources:
+  myAppBucket:
+    type: "celerity/bucket"
+    metadata:
+      displayName: My App Bucket
+    spec:
+      name: "my-app-bucket"
+```
+
+### Complex Bucket Configuration
+
+```yaml
+version: 2025-05-12
+transform: celerity-2025-08-01
+variables:
+    encryptionKeyId:
+        type: string
+        description: "The ID of the encryption key to use for the bucket."
+    encryptionAlgorithm:
+        type: string
+        description: "The algorithm to use for encryption, e.g. 'AES256' or 'aws:kms'."
+        default: "aws:kms"
+    logsBucket:
+        type: string
+        description: "The name of the bucket to store logs in."
+
+resources:
+    myAppBucket:
+        type: "celerity/bucket"
+        metadata:
+            displayName: My App Bucket
+        spec:
+            name: "my-app-bucket"
+            encryption:
+                encryptionKeyId: "${variables.encryptionKeyId}"
+                encryptionAlgorithm: "${variables.encryptionAlgorithm}"
+            cors:
+                corsRules:
+                    - id: "cors-rule-1"
+                      allowedOrigins: ["http://example.com", "https://example.com"]
+                      allowedHeaders: ["Content-Type", "Authorization"]
+                      allowedMethods: ["GET", "POST"]
+                      exposedHeaders: ["Content-Type"]
+                      maxAge: 3600
+            lifecycle:
+                rules:
+                    - id: "lifecycle-rule-1"
+                      enabled: true
+                      expirationInDays: 365
+                      transitions:
+                          - targetStorageClass: "cool"
+                            transitionInDays: 30
+            logging:
+                destinationBucket: "${variables.logsBucket}"
+                logFilePrefix: "logs/"
+            versioning:
+                status: "Enabled"
+            replication:
+                enabled: true
+                regions: ["us-west-2", "us-east-1"]
+            website:
+                mainPageDocument: "index.html"
+                notFoundDocument: "404.html"
+```
+
 ## Storage Class Mappings
 
 To simplify object lifecycle configuration, the concept of `hot`, `cool` and `archive` storage classes for object transitions is used for a `celerity/bucket` resource. (This is the simplified model provided by Azure Blob Storage)
@@ -749,7 +819,7 @@ Replication and encryption configuration will be ignored in the Celerity::1 envi
 Bucket notifications are published from the minio instance to a [valkey](https://github.com/valkey-io/valkey) queue on the local or CI machine using the [Redis bucket notification](https://min.io/docs/minio/linux/administration/monitoring/publish-events-to-redis.html) support in minio. The runtime will poll the queue for notifications and trigger handlers in response to bucket events.
 
 :::note
-[valkey](https://github.com/valkey-io/valkey) is also used as the `celerity/queue` implementation in Celerity::1, so the same behaviour is mostly reused for bucket notifications.
+[valkey](https://github.com/valkey-io/valkey) is also used as the `celerity/queue` and `celerity/topic` implementation in Celerity::1, so the same behaviour is mostly reused for bucket notifications.
 :::
 
 :::warning No encryption in local & CI environments
@@ -826,6 +896,37 @@ When not provided, a role to assume will be created automatically when the bucke
     "appEnv": "production",
     "config": {
       "aws.s3.replication.role": "arn:aws:iam::123456789012:role/my-replication-role"
+    }
+  }
+}
+```
+
+#### aws.s3.\<bucketName\>.replication.role
+
+The IAM role to assume when replicating objects in an S3 bucket with a specific name.
+`<bucketName>` refers to the logical name (key) of the bucket resource in the blueprint, not the actual name of the bucket in the target environment.
+
+**Type**
+
+string
+
+**Deploy Targets**
+
+`aws`, `aws-serverless`
+
+**Default Value**
+
+When not provided, a role to assume will be created automatically when the bucket is created.
+
+**Example**
+
+```javascript
+{
+  "deployTarget": {
+    "name": "aws",
+    "appEnv": "production",
+    "config": {
+      "aws.s3.myAppBucket.replication.role": "arn:aws:iam::123456789012:role/my-replication-role"
     }
   }
 }
