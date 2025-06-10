@@ -82,6 +82,41 @@ Transient errors are only retried for plugin methods that are expected to make n
 - `provider.Link.UpdateIntermediaryResources`
 - `provider.DataSource.Fetch`
 
+## Plugin Dependencies
+
+Plugins can depend on other plugins, this is done by specifying a `dependencies` map in the plugin's `celerity-registry-info.json` file. Dependencies between plugins allow the pinning of specific versions of plugins to ensure compatibility between plugins loaded into the Deploy Engine (or other host).
+
+There are two types of dependencies that a plugin can have on another.
+The first is when a provider implements a link between two resource types that are provided by different plugins, pinning dependencies is required to ensure that the resource type implementation of the other plugin remains compatible with the plugin that is implementing the link. The second is when a transformer plugin produces an output that contains concrete resource types in a provider plugin, pinning dependencies for this use case is required to ensure that the concrete resources that the transformer plugin produces are compatible with the version of the provider plugin that is being used in the Deploy Engine (or other host).
+
+The `dependencies` map is mapping of plugin IDs to plugin versions/version ranges.
+A version string can be specified one of three ways:
+- `{major}.{minor}.{patch}` - For example, `1.0.0` for a specific version.
+- `^{major}.{minor}.{patch}` - For example, `^1.0.0` for a version range that matches any version that is greater than or equal to `1.0.0` and less than `2.0.0`.
+- `~{major}.{minor}.{patch}` - For example, `~1.0.0` for a version range that matches any version that is greater than or equal to `1.0.0` and less than `1.1.0`.
+
+Plugin IDs can be the short form `{namespace}/{plugin}` or the full form `{hostname/}?{namespace}/{plugin}`. The short form is used for plugins that are hosted in the Celerity Framework registry, while the full form is used for plugins that are hosted on a custom registry.
+
+An example of a `celerity-registry-info.json` file with dependencies would look like this:
+
+```json
+{
+    "supportedProtocols": ["1.0"],
+    "dependencies": {
+        "two-hundred/aws": "^1.0.0",
+        "two-hundred/azure": "1.0.0",
+        "two-hundred/gcloud": "~1.0.0",
+        "two-hundred/celerity-one": "^1.0.0",
+        "registry.example-org.com/example-org/cloud": "1.0.0"
+    }
+}
+```
+
+:::note About Dependency Locking
+As plugins are **not** source code libraries, they will not be used in building a software artifact or for resolving dependencies in a language runtime/interpreter. For this reason, the Plugin Framework does not support dependency locking.
+If you need to ensure that an exact version of a dependency is used in the plugin that you are developing, you must specify the exact version (e.g. `1.0.0`) in the `dependencies` map.
+:::
+
 ## Plugin Service
 
 The Deploy Engine provides a gRPC service for plugins to register, deregister themselves and act as a gateway for inter-plugin communication. The following gRPC service definitions are supported for a provider in the selected version of the Deploy Engine:

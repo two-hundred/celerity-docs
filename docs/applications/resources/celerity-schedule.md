@@ -123,7 +123,7 @@ The `celerity/config` resource type can be used to store configuration and sensi
 A schedule application can link to a secret and configuration store to access config at runtime, linking an application to a `celerity/config` resource type will automatically make secrets and configuration accessible to all handlers in the application without having to link each handler to the store.
 
 :::note
-Where an application is made up of a composition of consumers, an API, schedules or other triggers, secrets only need to be linked to one of the application resource types.
+Where an application is made up of a composition of consumers, an API, schedules or other triggers, a `celerity/config` resource only needs to be linked to one of the application resource types.
 :::
 
 ## Examples

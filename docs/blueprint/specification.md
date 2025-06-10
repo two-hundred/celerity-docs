@@ -932,11 +932,13 @@ Annotations should be well documented by providers for data sources
 to allow for easy discovery of the available options and required context needed for a data
 source to do its job.
 
+The value of an annotation must be a string, when `${..}` substitutions are used, the value must resolve to a string.
+
 It is good practise to namespace annotation keys and use dot notation.
 
 **field type**
 
-`mapping[string, ( string | integer | float | boolean ) ]`
+mapping[string, string]
 
 ___
 
@@ -1309,11 +1311,13 @@ Annotations should be well documented by providers for resources and their links
 to allow for easy discovery of the available options and required context needed for a data
 source to do its job.
 
+The value of an annotation must be a string, when `${..}` substitutions are used, the value must resolve to a string.
+
 It is good practise to namespace annotation keys and use dot notation.
 
 **field type** 
 
-mapping[string, ( string | integer | float | boolean ) ]
+mapping[string, string]
 
 ___
 
@@ -1396,7 +1400,7 @@ resources:
       timeout: 120
 ```
 
-Some predefined rules about the relationships between lambda functions and the resources they need to talk (e.g. DynamoDB tables and SecretsManager stores)
+Some predefined rules about the relationships between lambda functions and the resources they need to talk to (e.g. DynamoDB tables and SecretsManager stores)
 will be used in the selection process to determine what links are supported.
 The link implementation will then be responsible for ensuring everything needed to "activate" the link is provisioned.
 In this example, this would include ensuring the correct roles and policies are attached to the lambda functions.

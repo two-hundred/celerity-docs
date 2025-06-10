@@ -100,23 +100,13 @@ you can also grab the populated configuration directly and interact directly wit
 
 #### [`celerity/queue`](/docs/applications/resources/celerity-queue)
 
-When a queue links out to a topic, messages received by the queue will be published to the topic. Intermediary configuration and code will be provisioned to enable message forwarding from the queue to the topic. This can be useful if a queue is used as the endpoint of a specific task that should be published to a topic for further processing or to send out notifications. 
+When a queue links out to a topic, messages received by the queue will be published to the topic. Intermediary serverless functions (if necessary) will be provisioned to enable message forwarding from the queue to the topic. This can be useful if a queue is used as the endpoint of a specific task that should be published to a topic for further processing or to send out notifications. 
 
 ## Links To
 
-#### [`celerity/queue`](/docs/applications/resources/celerity-queue)
+Topic resources can not link to other resources.
 
-When a topic links to a queue, the queue will be configured as a subscriber to the topic. Messages published to the topic will be delivered to the queue, which can then be processed by a consumer or workflow application.
-
-Usually, you'll link a topic directly to a consumer or workflow application as the queue (if required) will be created automatically under the hood.
-
-#### [`celerity/consumer`](/docs/applications/resources/celerity-handler)
-
-When a topic links to a consumer application, the consumer will be configured to receive messages published to the topic. The consumer will be wired up to a subscription that is created under the hood, which will receive messages from the topic; for some target environments, this will involve provisioning a queue.
-
-#### [`celerity/workflow`](/docs/applications/resources/celerity-workflow)
-
-When a topic links to a workflow application, the workflow will be configured to receive messages published to the topic. The workflow will be wired up to a subscription that is created under the hood, which will receive messages from the topic; for some target environments, this will involve provisioning a queue. This "wire up" will involve an intermediary serverless function that will receive messages via the subscription and make an API call to invoke the workflow with the message payload.
+As topics are typically used to allow asynchronous message passing for decoupled applications, the exported topic ID should be used as the source ID when configuring a `celerity/consumer` resource to subscribe to the topic and receive messages published to it.
 
 ## Examples
 
