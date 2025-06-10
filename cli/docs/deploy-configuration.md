@@ -51,7 +51,7 @@ This file is expected to contain the following structure:
 
 `<provider-name>` is the name of the provider that is being configured. This name is the last part of the plugin ID for the provider. For example, for the plugin ID `registry.customhost.com/celerity/azure`, the provider name would be `azure`.
 
-`<transformer-name>` is the name of the transformer that is being configured. This name is the last part of the plugin ID for the transformer. For example, for the plugin ID `two-hundred/awsTransform`, the transformer name would be `awsTransform`.
+`<transformer-name>` is the name of the transformer that is being configured. This name is the last part of the plugin ID for the transformer. For example, for the plugin ID `newstack-cloud/awsTransform`, the transformer name would be `awsTransform`.
 
 For each provider and transformer, the keys and values are specific to the provider or transformer being configured. The valid keys and values can be found in the plugin documentation. The Deploy Engine will validate the configuration against the plugin schema when any of the `stage-changes`, `deploy`, `destroy` or `validate` commands are run unless the `--skip-config-validation` option is specified.
 

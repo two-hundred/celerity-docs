@@ -19,4 +19,4 @@ sidebar_position: 3
 
 The following gRPC service definitions are supported for a provider in the selected version of the Deploy Engine:
 
-- [Provider v1 gRPC Reference](https://github.com/two-hundred/celerity/tree/main/libs/deploy-engine/plugin/providerserverv1/provider.proto)
+- [Provider v1 gRPC Reference](https://github.com/newstack-cloud/celerity/tree/main/libs/deploy-engine/plugin/providerserverv1/provider.proto)

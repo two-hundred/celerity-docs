@@ -111,10 +111,10 @@ auth:
     guards:
         jwt:
             type: jwt
-            issuer: "https://identity.twohundred.cloud/oauth2/v1/"
+            issuer: "https://identity.newstack.cloud/oauth2/v1/"
             tokenSource: "$.headers.Authorization"
             audience:
-                - "https://identity.twohundred.cloud/api/manage/v1/"
+                - "https://identity.newstack.cloud/api/manage/v1/"
 ```
 
 ## Annotations
@@ -534,7 +534,7 @@ string
 
 **examples**
 
-`https://identity.twohundred.cloud/oauth2/v1/`
+`https://identity.newstack.cloud/oauth2/v1/`
 ___
 
 <p style={{fontSize: '1.2em'}}><strong>tokenSource (conditionally required)</strong></p>
@@ -593,7 +593,7 @@ array[string]
 
 **examples**
 
-`["https://identity.twohundred.cloud/api/manage/v1/"]`
+`["https://identity.newstack.cloud/api/manage/v1/"]`
 
 `["4f4948fac1b4b2b4c10deaf32"]` (a client ID for an OAuth2 application)
 
@@ -759,10 +759,10 @@ resources:
                 guards:
                     jwt:
                         type: jwt
-                        issuer: "https://identity.twohundred.cloud/oauth2/v1/"
+                        issuer: "https://identity.newstack.cloud/oauth2/v1/"
                         tokenSource: "$.headers.Authorization"
                         audience:
-                            - "https://identity.twohundred.cloud/api/manage/v1/"
+                            - "https://identity.newstack.cloud/api/manage/v1/"
 ```
 
 ### WebSocket API
@@ -799,10 +799,10 @@ resources:
                 guards:
                     jwt:
                         type: jwt
-                        issuer: "https://identity.twohundred.cloud/oauth2/v1/"
+                        issuer: "https://identity.newstack.cloud/oauth2/v1/"
                         tokenSource: "$.data.token"
                         audience:
-                            - "https://identity.twohundred.cloud/api/manage/v1/"
+                            - "https://identity.newstack.cloud/api/manage/v1/"
 ```
 
 ### Hybrid API
@@ -850,14 +850,14 @@ resources:
                 guards:
                     jwt:
                         type: jwt
-                        issuer: "https://identity.twohundred.cloud/oauth2/v1/"
+                        issuer: "https://identity.newstack.cloud/oauth2/v1/"
                         tokenSource:
                             - protocol: "http"
                               source: "$.headers.Authorization"
                             - protocol: "websocket"
                               source: "$.data.token"
                         audience:
-                            - "https://identity.twohundred.cloud/api/manage/v1/"
+                            - "https://identity.newstack.cloud/api/manage/v1/"
 ```
 
 ## WebSockets

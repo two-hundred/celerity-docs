@@ -32,7 +32,7 @@ TODO: Add instructions for downloading and running the binaries for the Deploy E
 The Deploy Engine is also available as a Docker image, you can pull the latest version with:
 
 ```bash
-docker pull ghcr.io/two-hundred/celerity-deploy-engine:latest
+docker pull ghcr.io/newstack-cloud/celerity-deploy-engine:latest
 ```
 
 TODO: Add instructions for running the Docker image.

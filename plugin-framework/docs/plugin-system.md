@@ -103,10 +103,10 @@ An example of a `celerity-registry-info.json` file with dependencies would look 
 {
     "supportedProtocols": ["1.0"],
     "dependencies": {
-        "two-hundred/aws": "^1.0.0",
-        "two-hundred/azure": "1.0.0",
-        "two-hundred/gcloud": "~1.0.0",
-        "two-hundred/celerity-one": "^1.0.0",
+        "newstack-cloud/aws": "^1.0.0",
+        "newstack-cloud/azure": "1.0.0",
+        "newstack-cloud/gcloud": "~1.0.0",
+        "newstack-cloud/celerity-one": "^1.0.0",
         "registry.example-org.com/example-org/cloud": "1.0.0"
     }
 }
@@ -121,7 +121,7 @@ If you need to ensure that an exact version of a dependency is used in the plugi
 
 The Deploy Engine provides a gRPC service for plugins to register, deregister themselves and act as a gateway for inter-plugin communication. The following gRPC service definitions are supported for a provider in the selected version of the Deploy Engine:
 
-- [Service v1 gRPC Reference](https://github.com/two-hundred/celerity/tree/main/libs/deploy-engine/plugin/providerservice/service.proto)
+- [Service v1 gRPC Reference](https://github.com/newstack-cloud/celerity/tree/main/libs/deploy-engine/plugin/providerservice/service.proto)
 
 ## Local Network Only
 

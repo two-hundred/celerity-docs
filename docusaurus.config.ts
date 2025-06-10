@@ -16,7 +16,7 @@ const config: Config = {
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon.ico",
-  organizationName: "two-hundred", // Usually your GitHub org/user name.
+  organizationName: "newstack-cloud", // Usually your GitHub org/user name.
   projectName: "celerity", // Usually your repo name.
   trailingSlash: false,
   deploymentBranch: "gh-pages",
@@ -27,11 +27,11 @@ const config: Config = {
       ({
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/two-hundred/celerity-docs/tree/main/",
+          editUrl: "https://github.com/newstack-cloud/celerity-docs/tree/main/",
         },
         blog: {
           showReadingTime: true,
-          editUrl: "https://github.com/two-hundred/celerity-docs/tree/main/",
+          editUrl: "https://github.com/newstack-cloud/celerity-docs/tree/main/",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -290,7 +290,7 @@ const config: Config = {
             position: "right",
           },
           {
-            href: "https://github.com/two-hundred/celerity",
+            href: "https://github.com/newstack-cloud/celerity",
             "aria-label": "GitHub",
             position: "right",
             className: "header-github-link",
@@ -395,7 +395,7 @@ const config: Config = {
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/two-hundred/celerity",
+                href: "https://github.com/newstack-cloud/celerity",
               },
             ],
           },
