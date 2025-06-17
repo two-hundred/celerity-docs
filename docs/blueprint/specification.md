@@ -376,6 +376,31 @@ datasources:
         aliasFor: vpcId
 ```
 
+YAML with multiple filters
+
+```yaml
+datasources:
+  network:
+    type: aws/vpc
+    metadata:
+      displayName: Network source
+    filter:
+      - field: tags
+        operator: has key
+        search: ${variables.environment}
+      - field: region
+        operator: in
+        search: ${variables.awsRegions}
+    exports:
+      subnets:
+        type: array
+      securityGroups:
+        type: array
+      vpc:
+        type: string
+        aliasFor: vpcId
+```
+
 <br/>
 
 ### resources
@@ -869,12 +894,17 @@ ___
 
 Filter provides a way to select a specific resource managed outside of the blueprint for a data source.
 A filter can simply be an equality check (`=` or `!=`), or it can be a more complex search using operators like `in`, `not in` etc.
+One or more filter definitions can be defined for a data source. 
 
-In the case there are multiple externally-managed resources that match the filter, the first one should be used.
+:::note
+When an array is supplied, all filters must match for the data source to be considered a match, implementations must treat the array of filters as a logical `and` operation.
+:::
+
+In the case there are multiple externally-managed resources that match a filter, the first one should be used.
 
 **field type** 
 
-[dataSourceFilterDefinition](#datasourcefilterdefinition)
+[dataSourceFilterDefinition](#datasourcefilterdefinition) | array[[dataSourceFilterDefinition](#datasourcefilterdefinition)]
 
 ___
 
@@ -1019,6 +1049,10 @@ A value or list of values that should be compared to the value of the configured
 
 A definition of an exported field from a data source that is exposed to resources and other data sources in
 a blueprint.
+
+:::tip
+As only primitive values and primitive arrays are supported, data source developers should model complex data structures using field names such as `loggingConfig.applicationLogLevel` to represent nested fields in the data source object or populate exported data source fields with JSON-encoded strings that can be parsed in blueprint using the [`jsondecode`](/docs/blueprint/core-functions#jsondecode) function in a `${..}` substitution.
+:::
 
 <p style={{fontSize: '1em'}}><strong>FIELDS</strong></p>
 ___
